@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ["lucide-react", "recharts"],
   },
   // Django REST Framework attend les URLs avec leur slash final, y compris
   // pour les POST. On évite que Next.js le retire avant la réécriture.
