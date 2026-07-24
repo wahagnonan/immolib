@@ -102,9 +102,7 @@ CSRF_TRUSTED_ORIGINS = tuple(
     ).split(",")
     if origin.strip()
 )
-EXPOSE_TEST_OTP = os.getenv(
-    "EXPOSE_TEST_OTP", str(DEBUG)
-).lower() == "true"
+EXPOSE_TEST_OTP = os.getenv("EXPOSE_TEST_OTP", "false").lower() == "true"
 ACCOUNT_OTP_LIFETIME_SECONDS = int(
     os.getenv("IMMOLIB_ACCOUNT_OTP_LIFETIME_SECONDS", "600")
 )
