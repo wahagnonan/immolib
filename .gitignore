@@ -22,3 +22,4 @@ upload/
 .DS_Store
 AGENTS.md
 CLAUDE.md
+infrastructure/production.env
