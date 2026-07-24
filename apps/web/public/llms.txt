@@ -1,0 +1,49 @@
+# ImmoLib
+
+> ImmoLib est un service de gestion locative consacré aux maisons. Il aide les
+> bailleurs, copropriétaires et locataires à suivre les baux, échéances,
+> paiements, cautions, quittances et incidents.
+
+## Pages publiques
+
+- Accueil : /
+- Vérifier un document ImmoLib : /verifier-quittance
+- Inscription : /inscription
+- Connexion : /connexion
+
+## Fonctions principales
+
+- Création et suivi de maisons uniquement dans le MVP.
+- Gestion d’un propriétaire principal et de plusieurs copropriétaires.
+- Création des locataires, invitations et baux.
+- Génération des échéances mensuelles.
+- Enregistrement de paiements hors ImmoLib et répartition entre caution et loyers.
+- Suivi de la caution : remboursement, retenue justifiée ou affectation au loyer
+  avec accord explicite.
+- Génération de reçus, quittances et relevés de caution vérifiables.
+- Partage par email, WhatsApp, SMS ou outils natifs selon les canaux configurés.
+- Notifications push lorsque l’utilisateur a activé un appareil compatible.
+
+## Limites du MVP
+
+- ImmoLib ne détient pas les fonds et ne fournit pas de portefeuille interne.
+- La mention « document vérifiable » signifie que sa référence et son statut
+  peuvent être contrôlés sur ImmoLib ; elle ne constitue pas une garantie
+  juridique universelle.
+- L’intégration définitive d’un fournisseur Mobile Money reste à configurer par
+  l’exploitant.
+- Les appartements, terrains, commerces, la marketplace, la carte publique,
+  l’ImmScore et l’application mobile native ne font pas partie du MVP.
+
+## Accès et confidentialité
+
+- Les espaces de gestion et locataire nécessitent une authentification.
+- La vérification publique expose uniquement les informations minimales du
+  document et ne publie ni les noms, ni le numéro de téléphone, ni l’adresse de
+  la maison.
+
+## Langue et zone
+
+- Langue principale : français.
+- Devise actuelle du MVP : franc CFA BCEAO (XOF).
+- Fuseau horaire de référence : Africa/Abidjan.
