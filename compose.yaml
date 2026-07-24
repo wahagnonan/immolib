@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file: infrastructure/production.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: apps/api
+    restart: unless-stopped
+    env_file: infrastructure/production.env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings_production
+      POSTGRES_HOST: db
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check", "--settings=config.settings_production"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    build:
+      context: apps/web
+      args:
+        NEXT_PUBLIC_API_URL: /backend
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
