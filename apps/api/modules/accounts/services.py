@@ -104,6 +104,11 @@ def issue_account_otp(*, user, purpose: str, now=None) -> AccountOtpIssue:
         destination=challenge.destination,
         language=resolve_language(user=locked_user),
     )
+    if settings.DEBUG:
+        print(
+            f"[IMMOLIB] OTP {challenge.purpose} envoye par {challenge.channel} "
+            f"a {challenge.destination}: {account_otp_code_for(challenge)}"
+        )
     return AccountOtpIssue(challenge=challenge, created=True)
 
 

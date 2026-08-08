@@ -71,6 +71,7 @@ class SimulatedNotificationAdapter:
             message.channel,
             _mask_destination(message.destination),
         )
+        logger.info("Contenu simule: %s", message.body)
         return DeliveryReceipt(provider_reference=f"SIM-{message.delivery_id}")
 
 
