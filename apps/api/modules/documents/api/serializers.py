@@ -1,7 +1,7 @@
 from rest_framework import serializers
+from django.utils.translation import gettext_lazy as _
 
 from modules.payments.models import Payment
-
 from ..models import ManualShareEvent, NotificationDelivery, RentalDocument
 
 
@@ -11,9 +11,9 @@ class RentalDocumentSerializer(serializers.ModelSerializer):
     )
     status_label = serializers.CharField(source="get_status_display", read_only=True)
     period = serializers.SerializerMethodField()
+    rent_charge_id = serializers.UUIDField(read_only=True)
     payment_id = serializers.UUIDField(read_only=True, allow_null=True)
     deposit_movement_id = serializers.UUIDField(read_only=True, allow_null=True)
-    rent_charge_id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = RentalDocument
@@ -24,9 +24,9 @@ class RentalDocumentSerializer(serializers.ModelSerializer):
             "document_type_label",
             "status",
             "status_label",
+            "rent_charge_id",
             "payment_id",
             "deposit_movement_id",
-            "rent_charge_id",
             "amount",
             "currency",
             "period",
@@ -121,10 +121,10 @@ class NotificationDeliverySerializer(serializers.ModelSerializer):
         if obj.access_link_id:
             return obj.access_link.document.reference
         if obj.rent_charge_id:
-            return f"Loyer {obj.rent_charge.period_label}"
+            return _("Loyer {period}").format(period=obj.rent_charge.period_label)
         if obj.tenant_invitation_id:
-            return "Invitation locataire"
-        return "Notification"
+            return _("Invitation locataire")
+        return _("Notification")
 
     def get_house_name(self, obj: NotificationDelivery) -> str:
         if obj.access_link_id:

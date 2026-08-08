@@ -17,7 +17,12 @@ from modules.leases.api.views import (
     TenantViewSet,
 )
 from modules.maintenance.api.views import MaintenanceIncidentViewSet
-from modules.payments.api.views import PaymentViewSet, SecurityDepositViewSet
+from modules.payments.api.views import (
+    PaymentMethodAccountViewSet,
+    PaymentRequestViewSet,
+    PaymentViewSet,
+    SecurityDepositViewSet,
+)
 from modules.payments.api.webhook_views import MobileMoneyWebhookView
 from modules.properties.api.views import (
     CoOwnerInvitationViewSet,
@@ -58,6 +63,16 @@ router.register(
 )
 router.register("payments", PaymentViewSet, basename="payment")
 router.register(
+    "payment-requests",
+    PaymentRequestViewSet,
+    basename="payment-request",
+)
+router.register(
+    "payment-methods",
+    PaymentMethodAccountViewSet,
+    basename="payment-method",
+)
+router.register(
     "security-deposits",
     SecurityDepositViewSet,
     basename="security-deposit",
@@ -89,6 +104,7 @@ urlpatterns = [
         name="dashboard-overview",
     ),
     path("api/v1/auth/", include("modules.accounts.api.urls")),
+    path("api/v1/profile/", include("modules.i18n.api.urls")),
     path("api/v1/", include("modules.notifications.api.urls")),
     path("api/v1/tenant-portal/", include("modules.tenant_portal.api.urls")),
     path("api/v1/", include(router.urls)),

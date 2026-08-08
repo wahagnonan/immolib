@@ -6,6 +6,8 @@ from ..models import (
     Payment,
     PaymentAllocation,
     PaymentEvent,
+    PaymentMethodAccount,
+    PaymentRequest,
     SecurityDepositMovement,
 )
 
@@ -278,3 +280,140 @@ class SettleSecurityDepositSerializer(serializers.Serializer):
             if errors:
                 raise serializers.ValidationError(errors)
         return attrs
+
+
+class PaymentMethodAccountSerializer(serializers.ModelSerializer):
+    operator_label = serializers.CharField(
+        source="get_operator_display", read_only=True
+    )
+
+    class Meta:
+        model = PaymentMethodAccount
+        fields = (
+            "id",
+            "operator",
+            "operator_label",
+            "account_identifier",
+            "account_holder",
+            "is_default",
+            "created_at",
+            "updated_at",
+        )
+
+
+class PaymentMethodAccountCreateSerializer(serializers.Serializer):
+    operator = serializers.ChoiceField(choices=PaymentMethodAccount.Operator.choices)
+    account_identifier = serializers.CharField(max_length=120)
+    account_holder = serializers.CharField(
+        max_length=120, allow_blank=True, required=False
+    )
+    is_default = serializers.BooleanField(required=False, default=False)
+
+
+class PaymentMethodAccountBriefSerializer(serializers.ModelSerializer):
+    operator_label = serializers.CharField(
+        source="get_operator_display", read_only=True
+    )
+
+    class Meta:
+        model = PaymentMethodAccount
+        fields = (
+            "id",
+            "operator",
+            "operator_label",
+            "account_identifier",
+            "account_holder",
+        )
+
+
+class PaymentRequestSerializer(serializers.ModelSerializer):
+    status_label = serializers.CharField(source="get_status_display", read_only=True)
+    operator_label = serializers.CharField(
+        source="get_operator_display", read_only=True
+    )
+    rent_charge_id = serializers.UUIDField(source="rent_charge.id", read_only=True)
+    lease_id = serializers.UUIDField(source="rent_charge.lease_id", read_only=True)
+    house_id = serializers.UUIDField(
+        source="rent_charge.lease.property_id", read_only=True
+    )
+    house_name = serializers.CharField(
+        source="rent_charge.lease.property.name", read_only=True
+    )
+    tenant_id = serializers.UUIDField(
+        source="rent_charge.lease.tenant_id", read_only=True
+    )
+    tenant_name = serializers.CharField(
+        source="rent_charge.lease.tenant.full_name", read_only=True
+    )
+    period = serializers.CharField(source="rent_charge.period_label", read_only=True)
+    charge_status = serializers.CharField(
+        source="rent_charge.status", read_only=True
+    )
+    charge_balance_due = serializers.DecimalField(
+        source="rent_charge.balance_due",
+        max_digits=12,
+        decimal_places=2,
+        read_only=True,
+    )
+    method_account = PaymentMethodAccountBriefSerializer(read_only=True)
+    payment_id = serializers.UUIDField(source="payment.id", read_only=True)
+
+    class Meta:
+        model = PaymentRequest
+        fields = (
+            "id",
+            "reference",
+            "amount",
+            "amount_received",
+            "currency",
+            "rent_charge_id",
+            "lease_id",
+            "house_id",
+            "house_name",
+            "tenant_id",
+            "tenant_name",
+            "period",
+            "charge_status",
+            "charge_balance_due",
+            "operator",
+            "operator_label",
+            "method_account",
+            "payee_name",
+            "payee_phone",
+            "status",
+            "status_label",
+            "note",
+            "processing_note",
+            "payment_id",
+            "created_at",
+            "updated_at",
+        )
+
+
+class PaymentRequestCreateSerializer(serializers.Serializer):
+    rent_charge_id = serializers.UUIDField()
+    amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, min_value=Decimal("0.01")
+    )
+    operator = serializers.ChoiceField(choices=PaymentRequest.Operator.choices)
+    method_account_id = serializers.UUIDField(required=False, allow_null=True)
+    note = serializers.CharField(allow_blank=True, required=False)
+
+
+class PaymentRequestConfirmSerializer(serializers.Serializer):
+    received_amount = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.01"),
+        required=False,
+        allow_null=True,
+    )
+    note = serializers.CharField(allow_blank=True, required=False)
+
+
+class PaymentRequestRefuseSerializer(serializers.Serializer):
+    reason = serializers.CharField(min_length=3)
+
+
+class PaymentRequestCancelSerializer(serializers.Serializer):
+    reason = serializers.CharField(allow_blank=True, required=False)

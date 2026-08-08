@@ -2,6 +2,11 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+from modules.i18n.currencies import CURRENCY_CHOICES
+from modules.i18n.format import DATE_FORMAT_CHOICES, NUMBER_FORMAT_CHOICES
+from modules.i18n.languages import LANGUAGE_CHOICES
 
 from .managers import UserManager
 from .phones import validate_e164
@@ -21,6 +26,43 @@ class User(AbstractUser):
     email = models.EmailField("email", blank=True)
     phone_verified_at = models.DateTimeField(null=True, blank=True)
     email_verified_at = models.DateTimeField(null=True, blank=True)
+    preferred_language = models.CharField(
+        _("langue preferee"),
+        max_length=10,
+        choices=LANGUAGE_CHOICES,
+        blank=True,
+        default="",
+        help_text=_("Laisser vide pour la detection automatique."),
+    )
+    preferred_timezone = models.CharField(
+        _("fuseau horaire prefere"),
+        max_length=64,
+        blank=True,
+        default="",
+        help_text=_("Code IANA, ex. Africa/Abidjan. Laisser vide pour le defaut."),
+    )
+    preferred_currency = models.CharField(
+        _("devise preferee"),
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        blank=True,
+        default="",
+        help_text=_("Devise ISO 4217. Laisser vide pour la devise par defaut."),
+    )
+    preferred_date_format = models.CharField(
+        _("format de date prefere"),
+        max_length=8,
+        choices=DATE_FORMAT_CHOICES,
+        blank=True,
+        default="",
+    )
+    preferred_number_format = models.CharField(
+        _("format de nombre prefere"),
+        max_length=8,
+        choices=NUMBER_FORMAT_CHOICES,
+        blank=True,
+        default="",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

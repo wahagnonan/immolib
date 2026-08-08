@@ -8,6 +8,9 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.crypto import salted_hmac
+from django.utils.translation import gettext_lazy as _
+
+from modules.i18n.utils import resolve_language
 
 from .models import AccountOtpChallenge
 from .phones import normalize_e164
@@ -15,7 +18,7 @@ from .phones import normalize_e164
 
 User = get_user_model()
 ACCOUNT_OTP_SALT = "immolib.account-otp.v1"
-INVALID_ACCOUNT_OTP_MESSAGE = "Code invalide ou expiré."
+INVALID_ACCOUNT_OTP_MESSAGE = _("Code invalide ou expiré.")
 
 
 class InvalidAccountOtp(Exception):
@@ -54,7 +57,7 @@ def account_otp_code_for(challenge: AccountOtpChallenge) -> str:
 def _otp_route(*, user, purpose: str) -> tuple[str, str]:
     if purpose == AccountOtpChallenge.Purpose.EMAIL_VERIFICATION:
         if not user.email:
-            raise ValidationError({"email": "Une adresse email est obligatoire."})
+            raise ValidationError({"email": _("Une adresse email est obligatoire.")})
         return AccountOtpChallenge.Channel.EMAIL, user.email
     if purpose == AccountOtpChallenge.Purpose.PHONE_VERIFICATION:
         return AccountOtpChallenge.Channel.SMS, user.phone
@@ -62,7 +65,7 @@ def _otp_route(*, user, purpose: str) -> tuple[str, str]:
         if user.email and user.email_verified_at is not None:
             return AccountOtpChallenge.Channel.EMAIL, user.email
         return AccountOtpChallenge.Channel.SMS, user.phone
-    raise ValueError("Finalité OTP inconnue.")
+    raise ValueError(_("Finalité OTP inconnue."))
 
 
 @transaction.atomic
@@ -99,6 +102,7 @@ def issue_account_otp(*, user, purpose: str, now=None) -> AccountOtpIssue:
         kind=NotificationDelivery.Kind.ACCOUNT_OTP,
         channel=challenge.channel,
         destination=challenge.destination,
+        language=resolve_language(user=locked_user),
     )
     return AccountOtpIssue(challenge=challenge, created=True)
 
@@ -148,7 +152,7 @@ def register_user(*, data: RegisterUserData) -> RegistrationResult:
         )
     except IntegrityError as exc:
         raise ValidationError(
-            {"phone": "Un compte utilise déjà ce numéro de téléphone."}
+            {"phone": _("Un compte utilise déjà ce numéro de téléphone.")}
         ) from exc
 
 
@@ -168,7 +172,7 @@ def request_account_otp(*, phone: str, purpose: str) -> AccountOtpIssue | None:
         if not user.has_verified_contact:
             return None
     else:
-        raise ValueError("Finalité OTP inconnue.")
+        raise ValueError(_("Finalité OTP inconnue."))
     return issue_account_otp(user=user, purpose=purpose)
 
 

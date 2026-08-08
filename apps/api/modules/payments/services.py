@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
-from uuid import NAMESPACE_URL, uuid5
+from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
@@ -20,7 +20,9 @@ from .models import (
     Payment,
     PaymentAllocation,
     PaymentEvent,
+    PaymentMethodAccount,
     PaymentProviderEvent,
+    PaymentRequest,
     SecurityDepositMovement,
 )
 
@@ -711,3 +713,319 @@ def record_mobile_money_provider_event(
         payment=payment,
         created=True,
     )
+
+
+@dataclass(frozen=True)
+class InitiatePaymentRequestData:
+    rent_charge_id: UUID
+    amount: Decimal
+    operator: str
+    method_account_id: UUID | None = None
+    note: str = ""
+
+
+def _assert_tenant_of_charge(*, user: User, charge: RentCharge) -> Tenant:
+    tenant = (
+        Tenant.objects.select_related("linked_user")
+        .filter(linked_user=user, leases__property=charge.lease.property)
+        .order_by("-created_at")
+        .first()
+    )
+    if tenant is None:
+        raise PermissionDenied("Cette échéance ne t'appartient pas.")
+    return tenant
+
+
+def _primary_payee(*, charge: RentCharge) -> User:
+    try:
+        ownership = charge.lease.property.ownerships.select_related("user").get(
+            role=Ownership.Role.PRIMARY
+        )
+    except Ownership.DoesNotExist as exc:
+        raise ValidationError("La maison n'a pas de bailleur principal.") from exc
+    return ownership.user
+
+
+def _outstanding_balance(charge: RentCharge) -> Decimal:
+    return charge.amount_due - _active_allocated_total(charge)
+
+
+def _enqueue_notification(
+    *,
+    recipient: User,
+    kind: str,
+    rent_charge: RentCharge,
+    payment_request: PaymentRequest | None = None,
+) -> None:
+    from modules.documents.models import NotificationDelivery
+    from modules.i18n.utils import resolve_language
+    from modules.notifications.services import available_routes_for_user
+
+    route = None
+    routes = available_routes_for_user(recipient)
+    if routes:
+        route = routes[0]
+    if route is None:
+        return
+    NotificationDelivery.objects.create(
+        kind=kind,
+        channel=route.channel,
+        destination=route.destination,
+        language=resolve_language(user=recipient),
+        rent_charge=rent_charge,
+        payment_request=payment_request,
+    )
+
+
+def _next_payment_request_reference() -> str:
+    from .models import PaymentRequest
+
+    for _ in range(10):
+        candidate = f"PR-{uuid4().hex[:8].upper()}"
+        if not PaymentRequest.objects.filter(reference=candidate).exists():
+            return candidate
+    raise ValidationError("Impossible de générer une référence unique.")
+
+
+@transaction.atomic
+def initiate_payment_request(
+    *, tenant: User, data: InitiatePaymentRequestData
+) -> PaymentRequest:
+    """Le locataire demande un paiement au bailleur de la maison."""
+
+    charge = (
+        RentCharge.objects.select_for_update()
+        .select_related(
+            "lease__tenant",
+            "lease__property",
+        )
+        .filter(id=data.rent_charge_id)
+        .first()
+    )
+    if charge is None:
+        raise ValidationError("Cette échéance est introuvable.")
+    _assert_tenant_of_charge(user=tenant, charge=charge)
+    if charge.status == RentCharge.Status.CANCELLED:
+        raise ValidationError("Une échéance annulée ne peut pas recevoir de demande.")
+    if charge.charge_type == RentCharge.Type.SECURITY_DEPOSIT:
+        raise ValidationError(
+            "La caution ne se règle pas par demande de paiement."
+        )
+    if data.amount <= 0:
+        raise ValidationError("Le montant doit être strictement positif.")
+    outstanding = _outstanding_balance(charge)
+    if data.amount > outstanding:
+        raise ValidationError(
+            f"Le montant dépasse le solde restant de {outstanding} {charge.currency}."
+        )
+    if PaymentRequest.objects.filter(
+        rent_charge=charge, status=PaymentRequest.Status.PENDING
+    ).exists():
+        raise ValidationError(
+            "Une demande est déjà en attente pour cette échéance."
+        )
+    if data.operator not in PaymentRequest.Operator.values:
+        raise ValidationError("Moyen de paiement invalide.")
+
+    payee = _primary_payee(charge=charge)
+    method_account = None
+    if data.method_account_id:
+        method_account = (
+            PaymentMethodAccount.objects.select_related("owner")
+            .filter(id=data.method_account_id, owner=payee)
+            .first()
+        )
+        if method_account is None:
+            raise ValidationError(
+                "Ce compte de réception n'appartient pas au bailleur de la maison."
+            )
+        if method_account.operator != data.operator:
+            raise ValidationError(
+                "Le compte choisi ne correspond pas au moyen de paiement."
+            )
+
+    payment_request = PaymentRequest(
+        reference=_next_payment_request_reference(),
+        rent_charge=charge,
+        amount=data.amount,
+        currency=charge.currency,
+        operator=data.operator,
+        method_account=method_account,
+        payee=payee,
+        payee_name=payee.get_full_name() or payee.phone,
+        payee_phone=payee.phone,
+        requested_by=tenant,
+        note=data.note.strip(),
+    )
+    payment_request.full_clean()
+    payment_request.save()
+
+    _enqueue_notification(
+        recipient=payee,
+        kind="PAYMENT_REQUEST",
+        rent_charge=charge,
+        payment_request=payment_request,
+    )
+    return payment_request
+
+
+def _payment_method_for_operator(operator: str) -> str:
+    return {
+        PaymentRequest.Operator.CASH: Payment.Method.CASH,
+        PaymentRequest.Operator.BANK_TRANSFER: Payment.Method.BANK_TRANSFER,
+        PaymentRequest.Operator.MTN_MOMO: Payment.Method.EXTERNAL_MOBILE_MONEY,
+        PaymentRequest.Operator.ORANGE_MONEY: Payment.Method.EXTERNAL_MOBILE_MONEY,
+        PaymentRequest.Operator.MOOV_MONEY: Payment.Method.EXTERNAL_MOBILE_MONEY,
+        PaymentRequest.Operator.WAVE: Payment.Method.EXTERNAL_MOBILE_MONEY,
+        PaymentRequest.Operator.OTHER: Payment.Method.OTHER,
+    }[operator]
+
+
+@transaction.atomic
+def confirm_payment_request(
+    *,
+    owner: User,
+    payment_request: PaymentRequest,
+    received_amount: Decimal | None = None,
+    note: str = "",
+) -> PaymentRequest:
+    """Le bailleur confirme la réception ; crée le paiement et la quittance."""
+
+    payment_request = (
+        PaymentRequest.objects.select_for_update()
+        .select_related("rent_charge__lease__tenant", "rent_charge__lease__property")
+        .get(id=payment_request.id)
+    )
+    charge = payment_request.rent_charge
+    if payment_request.status != PaymentRequest.Status.PENDING:
+        raise ValidationError("Cette demande a déjà été traitée.")
+    if charge.status == RentCharge.Status.CANCELLED:
+        raise ValidationError("Une échéance annulée ne peut pas recevoir de paiement.")
+    _assert_can_manage_charge(actor=owner, charge=charge)
+
+    received = received_amount if received_amount is not None else payment_request.amount
+    if received <= 0:
+        raise ValidationError("Le montant reçu doit être strictement positif.")
+    outstanding = _outstanding_balance(charge)
+    if received > outstanding:
+        raise ValidationError(
+            f"Le montant reçu dépasse le solde restant de {outstanding} "
+            f"{charge.currency}."
+        )
+
+    idempotency_key = uuid5(
+        NAMESPACE_URL, f"immolib:payment-request:{payment_request.id}"
+    )
+    payment = Payment(
+        amount=received,
+        currency=payment_request.currency,
+        method=_payment_method_for_operator(payment_request.operator),
+        status=Payment.Status.RECORDED_BY_OWNER,
+        received_at=timezone.now(),
+        external_reference=payment_request.reference,
+        note=note.strip() or f"Demande {payment_request.reference}",
+        idempotency_key=idempotency_key,
+        recorded_by=owner,
+    )
+    payment.full_clean()
+    payment.save()
+    allocation = PaymentAllocation(
+        payment=payment,
+        rent_charge=charge,
+        amount=received,
+    )
+    allocation.full_clean()
+    allocation.save()
+    PaymentEvent.objects.create(
+        payment=payment,
+        event_type=PaymentEvent.Type.RECORDED,
+        actor_user=owner,
+        metadata={
+            "source": "PAYMENT_REQUEST",
+            "payment_request_id": str(payment_request.id),
+            "payment_request_reference": payment_request.reference,
+        },
+    )
+    _recalculate_charge(charge)
+
+    payment_request.status = PaymentRequest.Status.CONFIRMED
+    payment_request.amount_received = received
+    payment_request.processing_note = note.strip()
+    payment_request.processed_by = owner
+    payment_request.processed_at = timezone.now()
+    payment_request.payment = payment
+    payment_request.save(
+        update_fields=[
+            "status",
+            "amount_received",
+            "processing_note",
+            "processed_by",
+            "processed_at",
+            "payment",
+            "updated_at",
+        ]
+    )
+
+    from modules.documents.services import issue_documents_for_payment
+
+    issue_documents_for_payment(payment=payment)
+    _enqueue_notification(
+        recipient=payment_request.requested_by,
+        kind="PAYMENT_CONFIRMED",
+        rent_charge=charge,
+        payment_request=payment_request,
+    )
+    return payment_request
+
+
+@transaction.atomic
+def refuse_payment_request(
+    *, owner: User, payment_request: PaymentRequest, reason: str
+) -> PaymentRequest:
+    """Le bailleur signale qu'il n'a pas reçu les fonds."""
+
+    payment_request = PaymentRequest.objects.select_for_update().get(
+        id=payment_request.id
+    )
+    if payment_request.status != PaymentRequest.Status.PENDING:
+        raise ValidationError("Cette demande a déjà été traitée.")
+    if not reason.strip():
+        raise ValidationError("Le motif est obligatoire.")
+    _assert_can_manage_charge(actor=owner, charge=payment_request.rent_charge)
+
+    payment_request.status = PaymentRequest.Status.NOT_RECEIVED
+    payment_request.processing_note = reason.strip()
+    payment_request.processed_by = owner
+    payment_request.processed_at = timezone.now()
+    payment_request.save(
+        update_fields=[
+            "status",
+            "processing_note",
+            "processed_by",
+            "processed_at",
+            "updated_at",
+        ]
+    )
+    return payment_request
+
+
+@transaction.atomic
+def cancel_payment_request(
+    *, tenant: User, payment_request: PaymentRequest, reason: str = ""
+) -> PaymentRequest:
+    """Le locataire annule sa demande tant qu'elle est en attente."""
+
+    payment_request = PaymentRequest.objects.select_for_update().get(
+        id=payment_request.id
+    )
+    if payment_request.requested_by_id != tenant.id:
+        raise PermissionDenied("Tu ne peux pas annuler cette demande.")
+    if payment_request.status != PaymentRequest.Status.PENDING:
+        raise ValidationError("Cette demande a déjà été traitée.")
+
+    payment_request.status = PaymentRequest.Status.CANCELLED
+    payment_request.processing_note = reason.strip()
+    payment_request.save(
+        update_fields=["status", "processing_note", "updated_at"]
+    )
+    return payment_request

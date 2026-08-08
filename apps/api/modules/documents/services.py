@@ -10,9 +10,11 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
 from django.utils.crypto import salted_hmac
+from django.utils.translation import gettext_lazy as _
 
 from modules.accounts.models import User
 from modules.billing.models import RentCharge
+from modules.i18n.utils import resolve_language
 from modules.leases.models import Tenant
 from modules.leases.selectors import manageable_properties_for
 from modules.payments.models import Payment, SecurityDepositMovement
@@ -277,7 +279,7 @@ def void_documents_after_cancellation(*, payment: Payment) -> int:
 def _assert_can_share(*, actor: User, document: RentalDocument) -> None:
     property_id = document.rent_charge.lease.property_id
     if not manageable_properties_for(actor).filter(id=property_id).exists():
-        raise PermissionDenied("Tu ne peux pas partager ce document.")
+        raise PermissionDenied(_("Tu ne peux pas partager ce document."))
 
 
 def sign_access_link(link: DocumentAccessLink) -> str:
@@ -291,35 +293,41 @@ def resolve_access_link(token: str) -> DocumentAccessLink:
             "document__rent_charge__lease__tenant"
         ).get(id=payload["link_id"])
     except (signing.BadSignature, KeyError, DocumentAccessLink.DoesNotExist) as exc:
-        raise ValidationError("Lien invalide ou expire.") from exc
+        raise ValidationError(_("Lien invalide ou expire.")) from exc
     if link.revoked_at or link.expires_at <= timezone.now():
-        raise ValidationError("Lien invalide ou expire.")
+        raise ValidationError(_("Lien invalide ou expire."))
     if link.document.status != RentalDocument.Status.ACTIVE:
-        raise ValidationError("Ce document n'est plus valide.")
+        raise ValidationError(_("Ce document n'est plus valide."))
     return link
 
 
 def _destination_for(document: RentalDocument, channel: str) -> str:
     if channel == NotificationDelivery.Channel.EMAIL:
         if not document.tenant_email:
-            raise ValidationError("Le locataire ne possede pas d'adresse email.")
+            raise ValidationError(_("Le locataire ne possede pas d'adresse email."))
         return document.tenant_email
     if channel in [
         NotificationDelivery.Channel.SMS,
         NotificationDelivery.Channel.WHATSAPP,
     ]:
         return document.tenant_phone
-    raise ValidationError("Canal d'envoi invalide.")
+    raise ValidationError(_("Canal d'envoi invalide."))
 
 
 def _document_link_message(
     *, document: RentalDocument, secure_url: str, expires_at
 ) -> tuple[str, str]:
-    subject = f"ImmoLib - {document.get_document_type_display()}"
-    message = (
-        f"Bonjour {document.tenant_name}, consultez votre "
-        f"{document.get_document_type_display().lower()} ImmoLib : {secure_url} "
-        f"(lien valable jusqu'au {expires_at:%d/%m/%Y})."
+    subject = _("ImmoLib - {document_type}").format(
+        document_type=document.get_document_type_display()
+    )
+    message = _(
+        "Bonjour {tenant}, consultez votre {document_type} ImmoLib : {url} "
+        "(lien valable jusqu'au {expires_at})."
+    ).format(
+        tenant=document.tenant_name,
+        document_type=document.get_document_type_display().lower(),
+        url=secure_url,
+        expires_at=timezone.localtime(expires_at).strftime("%d/%m/%Y"),
     )
     return subject, message
 
@@ -330,16 +338,17 @@ def share_document(
 ) -> ShareResult:
     _assert_can_share(actor=actor, document=document)
     if document.status != RentalDocument.Status.ACTIVE:
-        raise ValidationError("Un document invalide ne peut pas etre partage.")
+        raise ValidationError(_("Un document invalide ne peut pas etre partage."))
     unique_channels = tuple(dict.fromkeys(channels))
     if not unique_channels:
-        raise ValidationError("Selectionne au moins un canal d'envoi.")
+        raise ValidationError(_("Selectionne au moins un canal d'envoi."))
 
     link = DocumentAccessLink.objects.create(
         document=document,
         created_by=actor,
         expires_at=timezone.now() + timedelta(days=30),
     )
+    recipient = document.rent_charge.lease.tenant.linked_user
     deliveries = []
     for channel in unique_channels:
         deliveries.append(
@@ -348,6 +357,7 @@ def share_document(
                 kind=NotificationDelivery.Kind.DOCUMENT_LINK,
                 channel=channel,
                 destination=_destination_for(document, channel),
+                language=resolve_language(user=recipient or actor),
             )
         )
     token = sign_access_link(link)
@@ -365,9 +375,9 @@ def prepare_manual_share(
 ) -> ManualShareResult:
     _assert_can_share(actor=actor, document=document)
     if document.status != RentalDocument.Status.ACTIVE:
-        raise ValidationError("Un document invalide ne peut pas être partagé.")
+        raise ValidationError(_("Un document invalide ne peut pas être partagé."))
     if channel not in ManualShareEvent.Channel.values:
-        raise ValidationError("Canal de partage manuel invalide.")
+        raise ValidationError(_("Canal de partage manuel invalide."))
 
     link = DocumentAccessLink.objects.create(
         document=document,
@@ -393,7 +403,7 @@ def prepare_manual_share(
         action_url = f"sms:{destination}?body={quote(message)}"
     elif channel == ManualShareEvent.Channel.EMAIL:
         if not document.tenant_email:
-            raise ValidationError("Le locataire ne possède pas d'adresse email.")
+            raise ValidationError(_("Le locataire ne possède pas d'adresse email."))
         destination = document.tenant_email
         action_url = (
             f"mailto:{destination}?subject={quote(subject)}&body={quote(message)}"
@@ -464,12 +474,14 @@ def request_document_otp(*, access_token: str, channel: str) -> OtpRequestResult
         destination=destination,
         expires_at=now + timedelta(minutes=OTP_LIFETIME_MINUTES),
     )
+    recipient = link.document.rent_charge.lease.tenant.linked_user
     NotificationDelivery.objects.create(
         access_link=link,
         otp_challenge=challenge,
         kind=NotificationDelivery.Kind.OTP,
         channel=channel,
         destination=destination,
+        language=resolve_language(user=recipient),
     )
     return OtpRequestResult(
         challenge=challenge,
@@ -487,13 +499,13 @@ def verify_document_otp(*, challenge_id, code: str) -> str:
                 "access_link__document"
             ).get(id=challenge_id)
         except OtpChallenge.DoesNotExist as exc:
-            raise ValidationError("Code invalide ou expire.") from exc
+            raise ValidationError(_("Code invalide ou expire.")) from exc
         resolve_access_link(sign_access_link(challenge.access_link))
         if (
             challenge.expires_at <= timezone.now()
             or challenge.attempts >= MAX_OTP_ATTEMPTS
         ):
-            raise ValidationError("Code invalide ou expire.")
+            raise ValidationError(_("Code invalide ou expire."))
         if not compare_digest(otp_code_for(challenge), code.strip()):
             challenge.attempts += 1
             update_fields = ["attempts"]
@@ -507,7 +519,7 @@ def verify_document_otp(*, challenge_id, code: str) -> str:
             challenge.save(update_fields=["verified_at"])
 
     if invalid_code:
-        raise ValidationError("Code invalide ou expire.")
+        raise ValidationError(_("Code invalide ou expire."))
     return signing.dumps(
         {"challenge_id": str(challenge.id)}, salt=GRANT_SALT, compress=True
     )
@@ -520,12 +532,11 @@ def resolve_document_grant(grant_token: str) -> RentalDocument:
         )
         challenge = OtpChallenge.objects.select_related(
             "access_link__document__rent_charge__lease__tenant",
-            "access_link__document__payment",
         ).get(id=payload["challenge_id"])
     except (signing.BadSignature, KeyError, OtpChallenge.DoesNotExist) as exc:
-        raise ValidationError("Acces invalide ou expire.") from exc
+        raise ValidationError(_("Acces invalide ou expire.")) from exc
     if not challenge.verified_at:
-        raise ValidationError("Acces non verifie.")
+        raise ValidationError(_("Acces non verifie."))
     resolve_access_link(sign_access_link(challenge.access_link))
     return challenge.access_link.document
 

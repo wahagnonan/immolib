@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import F
 
 from modules.billing.models import RentCharge
+from modules.i18n.utils import resolve_language
 from modules.notifications.services import preferred_route_for_tenant
 
 from .models import NotificationDelivery
@@ -102,7 +103,12 @@ def queue_rent_reminders(
                 kind=NotificationDelivery.Kind.RENT_REMINDER,
                 channel=channel,
                 scheduled_for=today,
-                defaults={"destination": destination},
+                defaults={
+                    "destination": destination,
+                    "language": resolve_language(
+                        user=charge.lease.tenant.linked_user
+                    ),
+                },
             )
             if was_created:
                 created += 1

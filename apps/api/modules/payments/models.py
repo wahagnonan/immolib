@@ -331,3 +331,170 @@ class PaymentProviderEvent(models.Model):
 
     def __str__(self) -> str:
         return f"{self.provider} - {self.external_event_id}"
+
+
+class PaymentMethodAccount(models.Model):
+    """Compte de réception (Mobile Money, virement, espèces) d'un bailleur."""
+
+    class Operator(models.TextChoices):
+        MTN_MOMO = "MTN_MOMO", "MTN Mobile Money"
+        ORANGE_MONEY = "ORANGE_MONEY", "Orange Money"
+        MOOV_MONEY = "MOOV_MONEY", "Moov Money"
+        WAVE = "WAVE", "Wave"
+        BANK_TRANSFER = "BANK_TRANSFER", "Virement bancaire"
+        CASH = "CASH", "Espèces"
+        OTHER = "OTHER", "Autre"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="payment_method_accounts",
+        verbose_name="bailleur",
+    )
+    operator = models.CharField("opérateur", max_length=32, choices=Operator.choices)
+    account_identifier = models.CharField(
+        "identifiant du compte", max_length=120
+    )
+    account_holder = models.CharField("titulaire", max_length=120, blank=True)
+    is_default = models.BooleanField("compte par défaut", default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-is_default", "created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["owner", "operator", "account_identifier"],
+                name="one_method_account_per_owner_operator_identifier",
+            )
+        ]
+        verbose_name = "compte de paiement"
+        verbose_name_plural = "comptes de paiement"
+
+    def __str__(self) -> str:
+        return (
+            f"{self.get_operator_display()} - {self.account_identifier}"
+            f"{' (défaut)' if self.is_default else ''}"
+        )
+
+
+class PaymentRequest(models.Model):
+    """Demande de paiement initiée par un locataire, traitée par le bailleur.
+
+    La confirmation crée un Payment (et sa quittance) ; le montant reçu
+    peut différer du montant demandé.
+    """
+
+    class Operator(models.TextChoices):
+        MTN_MOMO = "MTN_MOMO", "MTN Mobile Money"
+        ORANGE_MONEY = "ORANGE_MONEY", "Orange Money"
+        MOOV_MONEY = "MOOV_MONEY", "Moov Money"
+        WAVE = "WAVE", "Wave"
+        BANK_TRANSFER = "BANK_TRANSFER", "Virement bancaire"
+        CASH = "CASH", "Espèces"
+        OTHER = "OTHER", "Autre"
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "En attente"
+        CONFIRMED = "CONFIRMED", "Confirmé"
+        NOT_RECEIVED = "NOT_RECEIVED", "Non reçu"
+        CANCELLED = "CANCELLED", "Annulé"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.CharField("référence", max_length=24, unique=True)
+    rent_charge = models.ForeignKey(
+        RentCharge,
+        on_delete=models.PROTECT,
+        related_name="payment_requests",
+        verbose_name="échéance",
+    )
+    amount = models.DecimalField(
+        "montant demandé",
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    amount_received = models.DecimalField(
+        "montant reçu",
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+    currency = models.CharField("devise", max_length=3, default="XOF")
+    operator = models.CharField("moyen", max_length=32, choices=Operator.choices)
+    method_account = models.ForeignKey(
+        PaymentMethodAccount,
+        on_delete=models.PROTECT,
+        related_name="payment_requests",
+        null=True,
+        blank=True,
+        verbose_name="compte de réception",
+    )
+    payee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="received_payment_requests",
+        verbose_name="bailleur bénéficiaire",
+    )
+    payee_name = models.CharField("nom du bénéficiaire", max_length=160, blank=True)
+    payee_phone = models.CharField("téléphone du bénéficiaire", max_length=20, blank=True)
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="initiated_payment_requests",
+        verbose_name="initié par",
+    )
+    status = models.CharField(
+        "statut",
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    note = models.TextField("note du locataire", blank=True)
+    processing_note = models.TextField("note de traitement", blank=True)
+    processed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="processed_payment_requests",
+        null=True,
+        blank=True,
+        verbose_name="traité par",
+    )
+    processed_at = models.DateTimeField("traité le", null=True, blank=True)
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.PROTECT,
+        related_name="payment_request",
+        null=True,
+        blank=True,
+        verbose_name="paiement créé",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(amount__gt=0),
+                name="payment_request_amount_positive",
+            ),
+            models.UniqueConstraint(
+                fields=["rent_charge"],
+                condition=Q(status="PENDING"),
+                name="one_pending_payment_request_per_charge",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["status", "created_at"],
+                name="payment_request_status_idx",
+            )
+        ]
+        verbose_name = "demande de paiement"
+        verbose_name_plural = "demandes de paiement"
+
+    def __str__(self) -> str:
+        return f"{self.reference} - {self.amount} {self.currency}"

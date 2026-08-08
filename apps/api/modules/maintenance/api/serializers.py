@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils.translation import gettext_lazy as _
 
 from ..models import MaintenanceEvent, MaintenanceIncident
 
@@ -129,6 +130,6 @@ class TenantMaintenanceResponseSerializer(serializers.Serializer):
     def validate(self, attrs):
         if attrs["action"] == "REOPEN" and not attrs.get("message", "").strip():
             raise serializers.ValidationError(
-                {"message": "Expliquez pourquoi le problème persiste."}
+                {"message": _("Expliquez pourquoi le problème persiste.")}
             )
         return attrs

@@ -1,4 +1,5 @@
 from datetime import date
+from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -40,10 +41,10 @@ from ..throttles import (
 from .serializers import (
     GrantSerializer,
     ManualShareSerializer,
-    PaymentResponseSerializer,
-    PublicPaymentStatusSerializer,
     PublicDocumentVerificationSerializer,
     NotificationDeliverySerializer,
+    PaymentResponseSerializer,
+    PublicPaymentStatusSerializer,
     RentalDocumentSerializer,
     RequestOtpSerializer,
     ShareDocumentSerializer,
@@ -65,7 +66,7 @@ def _date_filter(value: str, field: str) -> date:
     try:
         return date.fromisoformat(value)
     except ValueError as exc:
-        raise ValidationError({field: "Utilisez le format AAAA-MM-JJ."}) from exc
+        raise ValidationError({field: _("Utilisez le format AAAA-MM-JJ.")}) from exc
 
 
 def _pdf_response(document: RentalDocument) -> HttpResponse:
@@ -89,7 +90,7 @@ class RentalDocumentViewSet(
 
     def get_queryset(self):
         queryset = visible_documents_for(self.request.user).select_related(
-            "payment", "rent_charge__lease__property", "rent_charge__lease__tenant"
+            "rent_charge__lease__property", "rent_charge__lease__tenant"
         )
         document_type = self.request.query_params.get("document_type")
         status_filter = self.request.query_params.get("status")
@@ -227,12 +228,12 @@ class PublicDocumentAccessViewSet(viewsets.GenericViewSet):
         reference = request.query_params.get("reference", "").strip().upper()
         if not reference:
             raise ValidationError(
-                {"reference": "Saisissez le numéro du document."}
+                {"reference": _("Saisissez le numéro du document.")}
             )
         document = RentalDocument.objects.filter(reference__iexact=reference).first()
         if document is None:
             raise NotFound(
-                "Aucun document ImmoLib ne correspond à cette référence."
+                _("Aucun document ImmoLib ne correspond à cette référence.")
             )
         return Response(PublicDocumentVerificationSerializer(document).data)
 

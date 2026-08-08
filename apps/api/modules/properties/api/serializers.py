@@ -1,4 +1,5 @@
 from decimal import Decimal
+from django.utils.translation import gettext_lazy as _
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
@@ -109,7 +110,7 @@ class UpdateCoOwnerSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if not attrs:
-            raise serializers.ValidationError("Indique au moins une modification.")
+            raise serializers.ValidationError(_("Indique au moins une modification."))
         return attrs
 
 
@@ -171,5 +172,5 @@ class CreateCoOwnerInvitationSerializer(serializers.Serializer):
             return normalize_e164(value)
         except DjangoValidationError as exc:
             raise serializers.ValidationError(
-                "Utilisez le format international, par exemple +2250700000000."
+                _("Utilisez le format international, par exemple +2250700000000.")
             ) from exc

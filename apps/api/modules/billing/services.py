@@ -2,6 +2,7 @@ import calendar
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
+from django.utils.translation import gettext_lazy as _
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -29,7 +30,7 @@ class PreparedObligations:
 
 def month_bounds(period_start: date) -> tuple[date, date]:
     if period_start.day != 1:
-        raise ValidationError("La periode doit commencer le premier du mois.")
+        raise ValidationError(_("La periode doit commencer le premier du mois."))
     last_day = calendar.monthrange(period_start.year, period_start.month)[1]
     return period_start, date(period_start.year, period_start.month, last_day)
 
@@ -167,8 +168,6 @@ def prepare_payment_obligations(
         if period_end < period_start:
             raise ValidationError("Le dernier mois doit suivre le premier mois.")
 
-        # Cette limite technique protège l'API d'une requête accidentelle géante,
-        # sans imposer la limite métier de trois mois évoquée au départ.
         cursor = period_start
         month_count = 0
         while cursor <= period_end:

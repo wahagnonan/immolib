@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from modules.i18n.languages import LANGUAGES
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,15 +22,16 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "modules.i18n",
     "modules.accounts",
     "modules.properties",
     "modules.leases",
     "modules.billing",
-    "modules.payments",
     "modules.documents",
     "modules.notifications",
     "modules.tenant_portal",
     "modules.maintenance",
+    "modules.payments",
 ]
 
 MIDDLEWARE = [
@@ -37,6 +40,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "modules.i18n.middleware.ImmoLocaleMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -86,10 +90,13 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "fr-fr"
+LANGUAGES = LANGUAGES
+LANGUAGE_CODE = "fr"
 TIME_ZONE = "Africa/Abidjan"
 USE_I18N = True
 USE_TZ = True
+LOCALE_PATHS = [BASE_DIR / "locale"]
+LANGUAGE_COOKIE_NAME = "immolib_language"
 
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

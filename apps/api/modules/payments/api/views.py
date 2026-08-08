@@ -15,17 +15,35 @@ from modules.billing.models import RentCharge
 from modules.leases.selectors import manageable_properties_for
 from config.pagination import LargeListPagination
 
-from ..selectors import visible_payments_for
+from ..models import PaymentMethodAccount
+from ..selectors import (
+    payment_method_accounts_for,
+    payment_requests_for_owner,
+    payment_requests_for_tenant,
+    visible_payments_for,
+)
 from ..services import (
+    InitiatePaymentRequestData,
     PaymentAllocationData,
     RecordOfflinePaymentData,
     SettleSecurityDepositData,
     cancel_payment,
+    cancel_payment_request,
+    confirm_payment_request,
+    initiate_payment_request,
     record_allocated_offline_payment,
+    refuse_payment_request,
     settle_security_deposit,
 )
 from .serializers import (
     CancelPaymentSerializer,
+    PaymentMethodAccountCreateSerializer,
+    PaymentMethodAccountSerializer,
+    PaymentRequestCancelSerializer,
+    PaymentRequestConfirmSerializer,
+    PaymentRequestCreateSerializer,
+    PaymentRequestRefuseSerializer,
+    PaymentRequestSerializer,
     PaymentSerializer,
     RecordOfflinePaymentSerializer,
     SecurityDepositSerializer,
@@ -235,4 +253,201 @@ class SecurityDepositViewSet(
         return Response(
             SecurityDepositSerializer(deposit).data,
             status=response_status,
+        )
+
+
+class PaymentMethodAccountViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return payment_method_accounts_for(self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return PaymentMethodAccountCreateSerializer
+        return PaymentMethodAccountSerializer
+
+    def create(self, request: Request, *args, **kwargs) -> Response:
+        input_serializer = self.get_serializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        values = input_serializer.validated_data
+        if values.get("is_default"):
+            self.get_queryset().update(is_default=False)
+        account = PaymentMethodAccount(
+            owner=request.user,
+            operator=values["operator"],
+            account_identifier=values["account_identifier"].strip(),
+            account_holder=values.get("account_holder", "").strip(),
+            is_default=values.get("is_default", False),
+        )
+        try:
+            account.full_clean()
+        except DjangoValidationError as exc:
+            _raise_api_validation_error(exc)
+        account.save()
+        if not self.get_queryset().filter(is_default=True).exists():
+            account.is_default = True
+            account.save(update_fields=["is_default", "updated_at"])
+        return Response(
+            PaymentMethodAccountSerializer(account).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    def destroy(self, request: Request, pk=None) -> Response:
+        account = self.get_object()
+        account.delete()
+        if not self.get_queryset().filter(is_default=True).exists():
+            first = self.get_queryset().first()
+            if first:
+                first.is_default = True
+                first.save(update_fields=["is_default", "updated_at"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["post"], url_path="make-default")
+    def make_default(self, request: Request, pk=None) -> Response:
+        account = self.get_object()
+        self.get_queryset().update(is_default=False)
+        account.is_default = True
+        account.save(update_fields=["is_default", "updated_at"])
+        return Response(
+            PaymentMethodAccountSerializer(account).data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class PaymentRequestViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        queryset = payment_requests_for_tenant(self.request.user)
+        if self.action in ("list", "confirm", "refuse"):
+            queryset = payment_requests_for_owner(self.request.user)
+        status_filter = self.request.query_params.get("status")
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        return queryset.select_related(
+            "rent_charge__lease__tenant",
+            "rent_charge__lease__property",
+            "method_account",
+            "payee",
+            "requested_by",
+        )
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return PaymentRequestCreateSerializer
+        if self.action == "confirm":
+            return PaymentRequestConfirmSerializer
+        if self.action == "refuse":
+            return PaymentRequestRefuseSerializer
+        if self.action == "cancel":
+            return PaymentRequestCancelSerializer
+        return PaymentRequestSerializer
+
+    @action(detail=False, methods=["get"])
+    def my(self, request: Request) -> Response:
+        queryset = payment_requests_for_tenant(request.user).select_related(
+            "rent_charge__lease__tenant",
+            "rent_charge__lease__property",
+            "method_account",
+            "payee",
+            "requested_by",
+        )
+        status_filter = request.query_params.get("status")
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        return Response(
+            PaymentRequestSerializer(queryset, many=True).data,
+            status=status.HTTP_200_OK,
+        )
+
+    def create(self, request: Request, *args, **kwargs) -> Response:
+        input_serializer = self.get_serializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        values = input_serializer.validated_data
+        try:
+            payment_request = initiate_payment_request(
+                tenant=request.user,
+                data=InitiatePaymentRequestData(
+                    rent_charge_id=values["rent_charge_id"],
+                    amount=values["amount"],
+                    operator=values["operator"],
+                    method_account_id=values.get("method_account_id"),
+                    note=values.get("note", ""),
+                ),
+            )
+        except DjangoValidationError as exc:
+            _raise_api_validation_error(exc)
+        payment_request = self.get_queryset().get(id=payment_request.id)
+        return Response(
+            PaymentRequestSerializer(payment_request).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(detail=True, methods=["post"])
+    def confirm(self, request: Request, pk=None) -> Response:
+        payment_request = self.get_object()
+        input_serializer = self.get_serializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        values = input_serializer.validated_data
+        try:
+            payment_request = confirm_payment_request(
+                owner=request.user,
+                payment_request=payment_request,
+                received_amount=values.get("received_amount"),
+                note=values.get("note", ""),
+            )
+        except DjangoValidationError as exc:
+            _raise_api_validation_error(exc)
+        payment_request = self.get_queryset().get(id=payment_request.id)
+        return Response(
+            PaymentRequestSerializer(payment_request).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"])
+    def refuse(self, request: Request, pk=None) -> Response:
+        payment_request = self.get_object()
+        input_serializer = self.get_serializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        try:
+            payment_request = refuse_payment_request(
+                owner=request.user,
+                payment_request=payment_request,
+                reason=input_serializer.validated_data["reason"],
+            )
+        except DjangoValidationError as exc:
+            _raise_api_validation_error(exc)
+        payment_request = self.get_queryset().get(id=payment_request.id)
+        return Response(
+            PaymentRequestSerializer(payment_request).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"])
+    def cancel(self, request: Request, pk=None) -> Response:
+        payment_request = self.get_object()
+        input_serializer = self.get_serializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        try:
+            payment_request = cancel_payment_request(
+                tenant=request.user,
+                payment_request=payment_request,
+                reason=input_serializer.validated_data.get("reason", ""),
+            )
+        except DjangoValidationError as exc:
+            _raise_api_validation_error(exc)
+        payment_request = self.get_queryset().get(id=payment_request.id)
+        return Response(
+            PaymentRequestSerializer(payment_request).data,
+            status=status.HTTP_200_OK,
         )

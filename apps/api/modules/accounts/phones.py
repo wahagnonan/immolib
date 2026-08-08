@@ -1,10 +1,11 @@
 import re
 
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 
 E164_PATTERN = re.compile(r"^\+[1-9]\d{7,14}$")
-E164_ERROR = (
+E164_ERROR = _(
     "Utilisez le format international E.164, par exemple +2250700000000."
 )
 

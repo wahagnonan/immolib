@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
 from urllib.parse import quote
+from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 from django.core import signing
@@ -59,7 +60,7 @@ TENANT_INVITATION_SALT = "immolib.tenant-invitation.v1"
 
 def _assert_can_manage(*, actor: User, property: Property) -> None:
     if not manageable_properties_for(actor).filter(id=property.id).exists():
-        raise PermissionDenied("Tu ne peux pas modifier cette maison.")
+        raise PermissionDenied(_("Tu ne peux pas modifier cette maison."))
 
 
 def _emails_match(first: str, second: str) -> bool:
@@ -101,7 +102,7 @@ def resolve_tenant_invitation(token: str) -> TenantInvitation:
         KeyError,
         TenantInvitation.DoesNotExist,
     ) as exc:
-        raise ValidationError("Invitation invalide ou expirée.") from exc
+        raise ValidationError(_("Invitation invalide ou expirée.")) from exc
 
     if invitation.is_expired:
         TenantInvitation.objects.filter(
@@ -114,9 +115,9 @@ def resolve_tenant_invitation(token: str) -> TenantInvitation:
 
 def _assert_active_invitation(invitation: TenantInvitation) -> None:
     if invitation.status != TenantInvitation.Status.PENDING:
-        raise ValidationError("Cette invitation n'est plus active.")
+        raise ValidationError(_("Cette invitation n'est plus active."))
     if invitation.expires_at <= timezone.now():
-        raise ValidationError("Cette invitation est expirée.")
+        raise ValidationError(_("Cette invitation est expirée."))
 
 
 @transaction.atomic
@@ -130,7 +131,7 @@ def create_tenant_invitation(
     )
     _assert_can_manage(actor=actor, property=tenant.property)
     if tenant.linked_user_id:
-        raise ValidationError("Ce locataire possède déjà un compte ImmoLib.")
+        raise ValidationError(_("Ce locataire possède déjà un compte ImmoLib."))
 
     now = timezone.now()
     tenant.invitations.filter(
@@ -161,12 +162,17 @@ def _invitation_message(
     owner_name = (
         invitation.invited_by.get_full_name() or invitation.invited_by.phone
     )
-    subject = "Invitation à rejoindre ImmoLib"
-    message = (
-        f"Bonjour {invitation.tenant.full_name}, {owner_name} vous invite à "
-        f"rejoindre ImmoLib pour la maison {invitation.tenant.property.name}. "
-        f"Créez ou rattachez votre compte ici : {secure_url} "
-        f"(invitation valable jusqu'au {invitation.expires_at:%d/%m/%Y})."
+    subject = _("Invitation à rejoindre ImmoLib")
+    message = _(
+        "Bonjour {tenant}, {owner} vous invite à rejoindre ImmoLib pour la "
+        "maison {house}. Créez ou rattachez votre compte ici : {url} "
+        "(invitation valable jusqu'au {expires_at})."
+    ).format(
+        tenant=invitation.tenant.full_name,
+        owner=owner_name,
+        house=invitation.tenant.property.name,
+        url=secure_url,
+        expires_at=timezone.localtime(invitation.expires_at).strftime("%d/%m/%Y"),
     )
     return secure_url, subject, message
 
@@ -184,14 +190,20 @@ def share_tenant_invitation(
 
     if channel == "EMAIL_AUTOMATIC":
         if not invitation.tenant.email:
-            raise ValidationError("Le locataire ne possède pas d'adresse email.")
+            raise ValidationError(_("Le locataire ne possède pas d'adresse email."))
         from modules.documents.models import NotificationDelivery
+        from modules.i18n.utils import resolve_language
 
         delivery, _ = NotificationDelivery.objects.get_or_create(
             tenant_invitation=invitation,
             kind=NotificationDelivery.Kind.TENANT_INVITATION,
             channel=NotificationDelivery.Channel.EMAIL,
-            defaults={"destination": invitation.tenant.email},
+            defaults={
+                "destination": invitation.tenant.email,
+                "language": resolve_language(
+                    user=invitation.tenant.linked_user or actor
+                ),
+            },
         )
         return TenantInvitationShareResult(
             invitation=invitation,
@@ -203,7 +215,7 @@ def share_tenant_invitation(
         )
 
     if channel not in TenantInvitationShareEvent.Channel.values:
-        raise ValidationError("Canal de partage invalide.")
+        raise ValidationError(_("Canal de partage invalide."))
 
     destination = ""
     action_url = secure_url
@@ -218,7 +230,7 @@ def share_tenant_invitation(
         action_url = f"sms:{destination}?body={quote(message)}"
     elif channel == TenantInvitationShareEvent.Channel.EMAIL:
         if not invitation.tenant.email:
-            raise ValidationError("Le locataire ne possède pas d'adresse email.")
+            raise ValidationError(_("Le locataire ne possède pas d'adresse email."))
         destination = invitation.tenant.email
         action_url = (
             f"mailto:{destination}?subject={quote(subject)}&body={quote(message)}"
@@ -296,7 +308,7 @@ def reserve_tenant_invitation(
     ).get(id=invitation.id)
     _assert_active_invitation(invitation)
     if invitation.claimed_by_id and invitation.claimed_by_id != user.id:
-        raise ValidationError("Cette invitation est déjà réclamée par un autre compte.")
+        raise ValidationError(_("Cette invitation est déjà réclamée par un autre compte."))
     invitation.claimed_by = user
     invitation.claimed_at = timezone.now()
     invitation.save(update_fields=["claimed_by", "claimed_at", "updated_at"])
@@ -327,7 +339,7 @@ def accept_tenant_invitation(
     )
     _assert_active_invitation(invitation)
     if invitation.claimed_by_id and invitation.claimed_by_id != user.id:
-        raise ValidationError("Cette invitation appartient à un autre compte.")
+        raise ValidationError(_("Cette invitation appartient à un autre compte."))
     if not _user_has_tenant_proof(invitation=invitation, user=user):
         raise ValidationError(
             "Vérifiez le téléphone ou l'email indiqué dans l'invitation."
@@ -336,7 +348,7 @@ def accept_tenant_invitation(
     now = timezone.now()
     tenant = Tenant.objects.select_for_update().get(id=invitation.tenant_id)
     if tenant.linked_user_id and tenant.linked_user_id != user.id:
-        raise ValidationError("Ce locataire est déjà lié à un autre compte.")
+        raise ValidationError(_("Ce locataire est déjà lié à un autre compte."))
     tenant.linked_user = user
     tenant.status = Tenant.Status.ACTIVE
     tenant.save(update_fields=["linked_user", "status", "updated_at"])
@@ -463,13 +475,13 @@ def activate_lease(*, actor: User, lease: Lease) -> Lease:
     _assert_can_manage(actor=actor, property=lease.property)
 
     if lease.status != Lease.Status.DRAFT:
-        raise ValidationError("Seul un bail brouillon peut etre active.")
+        raise ValidationError(_("Seul un bail brouillon peut etre active."))
     if lease.property.status == Property.Status.UNAVAILABLE:
-        raise ValidationError("Une maison indisponible ne peut pas etre louee.")
+        raise ValidationError(_("Une maison indisponible ne peut pas etre louee."))
     if Lease.objects.filter(
         property=lease.property, status=Lease.Status.ACTIVE
     ).exists():
-        raise ValidationError("Cette maison possede deja un bail actif.")
+        raise ValidationError(_("Cette maison possede deja un bail actif."))
 
     lease.status = Lease.Status.ACTIVE
     lease.activated_at = timezone.now()
@@ -488,7 +500,7 @@ def close_lease(*, actor: User, lease: Lease) -> Lease:
     _assert_can_manage(actor=actor, property=lease.property)
 
     if lease.status != Lease.Status.ACTIVE:
-        raise ValidationError("Seul un bail actif peut etre termine.")
+        raise ValidationError(_("Seul un bail actif peut etre termine."))
 
     lease.status = Lease.Status.ENDED
     lease.ended_at = timezone.now()

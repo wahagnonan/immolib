@@ -1,4 +1,5 @@
 import uuid
+from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 from django.db import models
@@ -8,11 +9,11 @@ class NotificationPreference(models.Model):
     """Choix de canaux d'un compte, séparés de ses coordonnées."""
 
     class PreferredChannel(models.TextChoices):
-        AUTO = "AUTO", "Automatique"
-        PUSH = "PUSH", "Notification push"
-        EMAIL = "EMAIL", "Email"
-        WHATSAPP = "WHATSAPP", "WhatsApp"
-        SMS = "SMS", "SMS"
+        AUTO = "AUTO", _("Automatique")
+        PUSH = "PUSH", _("Notification push")
+        EMAIL = "EMAIL", _("Email")
+        WHATSAPP = "WHATSAPP", _("WhatsApp")
+        SMS = "SMS", _("SMS")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(
@@ -44,7 +45,7 @@ class PushSubscription(models.Model):
     """Jeton FCM d'un navigateur autorisé par son utilisateur."""
 
     class Platform(models.TextChoices):
-        WEB = "WEB", "Navigateur web"
+        WEB = "WEB", _("Navigateur web")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from django.utils.translation import gettext_lazy as _
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
@@ -125,13 +126,13 @@ def accept_coowner_invitation(
         .get(id=invitation.id)
     )
     if invitation.status != CoOwnerInvitation.Status.PENDING:
-        raise ValidationError("Cette invitation n'est plus en attente.")
+        raise ValidationError(_("Cette invitation n'est plus en attente."))
     if invitation.expires_at <= timezone.now():
-        raise ValidationError("Cette invitation a expiré.")
+        raise ValidationError(_("Cette invitation a expiré."))
     if invitation.phone != user.phone:
-        raise PermissionDenied("Cette invitation ne correspond pas à ce compte.")
+        raise PermissionDenied(_("Cette invitation ne correspond pas à ce compte."))
     if invitation.property.ownerships.filter(user=user).exists():
-        raise ValidationError("Ce compte possède déjà un rôle pour cette maison.")
+        raise ValidationError(_("Ce compte possède déjà un rôle pour cette maison."))
 
     _assert_coowner_share_available(
         property=invitation.property,
@@ -264,7 +265,7 @@ def revoke_coowner_invitation(
     )
     _assert_is_primary_owner(actor=actor, property=invitation.property)
     if invitation.status != CoOwnerInvitation.Status.PENDING:
-        raise ValidationError("Seule une invitation en attente peut être révoquée.")
+        raise ValidationError(_("Seule une invitation en attente peut être révoquée."))
     invitation.status = CoOwnerInvitation.Status.REVOKED
     invitation.revoked_at = timezone.now()
     invitation.save(update_fields=["status", "revoked_at", "updated_at"])
