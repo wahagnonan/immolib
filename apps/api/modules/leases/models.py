@@ -1,5 +1,6 @@
 import uuid
 from decimal import Decimal
+from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -16,10 +17,10 @@ class Tenant(models.Model):
     """Identite du locataire telle qu'elle est connue pour une maison."""
 
     class Status(models.TextChoices):
-        UNREGISTERED = "UNREGISTERED", "Sans compte ImmoLib"
-        INVITED = "INVITED", "Invite"
-        ACTIVE = "ACTIVE", "Compte active"
-        BLOCKED = "BLOCKED", "Bloque"
+        UNREGISTERED = "UNREGISTERED", _("Sans compte ImmoLib")
+        INVITED = "INVITED", _("Invite")
+        ACTIVE = "ACTIVE", _("Compte active")
+        BLOCKED = "BLOCKED", _("Bloque")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(
@@ -66,8 +67,8 @@ class Tenant(models.Model):
                 name="one_tenant_phone_per_property",
             )
         ]
-        verbose_name = "locataire"
-        verbose_name_plural = "locataires"
+        verbose_name = _("locataire")
+        verbose_name_plural = _("locataires")
 
     def __str__(self) -> str:
         return f"{self.full_name} - {self.property}"
@@ -77,10 +78,10 @@ class TenantInvitation(models.Model):
     """Invitation signée permettant au locataire de réclamer sa fiche."""
 
     class Status(models.TextChoices):
-        PENDING = "PENDING", "En attente"
-        ACCEPTED = "ACCEPTED", "Acceptée"
-        REVOKED = "REVOKED", "Révoquée"
-        EXPIRED = "EXPIRED", "Expirée"
+        PENDING = "PENDING", _("En attente")
+        ACCEPTED = "ACCEPTED", _("Acceptée")
+        REVOKED = "REVOKED", _("Révoquée")
+        EXPIRED = "EXPIRED", _("Expirée")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tenant = models.ForeignKey(
@@ -147,11 +148,11 @@ class TenantInvitationShareEvent(models.Model):
     """Trace un partage préparé sur l'appareil du bailleur."""
 
     class Channel(models.TextChoices):
-        WHATSAPP = "WHATSAPP", "WhatsApp"
-        EMAIL = "EMAIL", "Email"
-        SMS = "SMS", "SMS"
-        NATIVE = "NATIVE", "Partage de l'appareil"
-        COPY = "COPY", "Copie du message"
+        WHATSAPP = "WHATSAPP", _("WhatsApp")
+        EMAIL = "EMAIL", _("Email")
+        SMS = "SMS", _("SMS")
+        NATIVE = "NATIVE", _("Partage de l'appareil")
+        COPY = "COPY", _("Copie du message")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     invitation = models.ForeignKey(
@@ -179,10 +180,10 @@ class Lease(models.Model):
     """Conditions de location d'une maison pour une periode donnee."""
 
     class Status(models.TextChoices):
-        DRAFT = "DRAFT", "Brouillon"
-        ACTIVE = "ACTIVE", "Actif"
-        ENDED = "ENDED", "Termine"
-        CANCELLED = "CANCELLED", "Annule"
+        DRAFT = "DRAFT", _("Brouillon")
+        ACTIVE = "ACTIVE", _("Actif")
+        ENDED = "ENDED", _("Termine")
+        CANCELLED = "CANCELLED", _("Annule")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(
@@ -276,8 +277,8 @@ class Lease(models.Model):
                 name="lease_rent_advance_non_negative",
             ),
         ]
-        verbose_name = "bail"
-        verbose_name_plural = "baux"
+        verbose_name = _("bail")
+        verbose_name_plural = _("baux")
 
     def clean(self) -> None:
         super().clean()

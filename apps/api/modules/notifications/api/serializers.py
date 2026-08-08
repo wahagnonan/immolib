@@ -1,5 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers
+from django.utils.translation import gettext_lazy as _
 
 from ..models import NotificationPreference, PushSubscription
 from ..services import available_routes_for_user, preference_for
@@ -56,7 +57,7 @@ class NotificationPreferenceSerializer(serializers.ModelSerializer):
         if whatsapp_enabled and not opted_in:
             raise serializers.ValidationError(
                 {
-                    "whatsapp_opt_in": (
+                    "whatsapp_opt_in": _(
                         "Le consentement WhatsApp est obligatoire pour activer ce canal."
                     )
                 }

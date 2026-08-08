@@ -2,6 +2,7 @@ from html import escape
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.translation import gettext_lazy as _
 
 from modules.documents.notifications import DeliveryReceipt, NotificationMessage
 
@@ -12,13 +13,13 @@ class AmazonSesEmailAdapter:
     def __init__(self, *, client=None, source: str | None = None):
         self.source = source if source is not None else settings.AWS_SES_FROM_EMAIL
         if not self.source:
-            raise ImproperlyConfigured("AWS_SES_FROM_EMAIL doit être configuré.")
+            raise ImproperlyConfigured(_("AWS_SES_FROM_EMAIL doit être configuré."))
         if client is None:
             try:
                 import boto3
             except ImportError as exc:
                 raise ImproperlyConfigured(
-                    "Installez boto3 pour utiliser Amazon SES."
+                    _("Installez boto3 pour utiliser Amazon SES.")
                 ) from exc
             client = boto3.client("ses", region_name=settings.AWS_SES_REGION)
         self.client = client

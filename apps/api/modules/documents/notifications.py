@@ -1,3 +1,10 @@
+"""Construction des messages de notification (sujets et corps).
+
+Tous les textes passent par gettext ; la langue utilisee est celle figuree
+sur la NotificationDelivery a la mise en file (``delivery.language``), car
+le worker de traitement est asynchrone et n'a pas acces a la requete HTTP.
+"""
+
 import logging
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -7,10 +14,12 @@ from typing import Protocol
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import F, Q
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.module_loading import import_string
+from django.utils.translation import gettext_lazy as _
 
 from modules.billing.models import RentCharge
+from modules.i18n.format import format_date, format_money
 
 from .models import NotificationDelivery, RentalDocument
 from .services import otp_code_for, sign_access_link
@@ -91,38 +100,49 @@ def build_notification_message(
     delivery: NotificationDelivery, *, now=None
 ) -> NotificationMessage:
     now = now or timezone.now()
+    language = delivery.language or "fr"
+    with translation.override(language):
+        return _build_notification_message(delivery, now=now)
+
+
+def _build_notification_message(
+    delivery: NotificationDelivery, *, now
+) -> NotificationMessage:
     if delivery.kind == NotificationDelivery.Kind.ACCOUNT_OTP:
         challenge = delivery.account_challenge
         if challenge is None:
-            raise PermanentNotificationError("Le code de compte est introuvable.")
+            raise PermanentNotificationError(_("Le code de compte est introuvable."))
         if (
             challenge.expires_at <= now
             or challenge.verified_at is not None
             or challenge.consumed_at is not None
         ):
-            raise PermanentNotificationError("Le code de compte n'est plus actif.")
+            raise PermanentNotificationError(_("Le code de compte n'est plus actif."))
         from modules.accounts.models import AccountOtpChallenge
         from modules.accounts.services import account_otp_code_for
 
         code = account_otp_code_for(challenge)
         if challenge.purpose == AccountOtpChallenge.Purpose.PASSWORD_RESET:
-            subject = "Réinitialisation de votre mot de passe ImmoLib"
-            action = "réinitialiser votre mot de passe"
+            subject = _("Réinitialisation de votre mot de passe ImmoLib")
+            action = _("réinitialiser votre mot de passe")
         elif challenge.purpose == AccountOtpChallenge.Purpose.EMAIL_VERIFICATION:
-            subject = "Vérification de votre email ImmoLib"
-            action = "vérifier votre adresse email"
+            subject = _("Vérification de votre email ImmoLib")
+            action = _("vérifier votre adresse email")
         else:
-            subject = "Vérification de votre téléphone ImmoLib"
-            action = "vérifier votre numéro de téléphone"
+            subject = _("Vérification de votre téléphone ImmoLib")
+            action = _("vérifier votre numéro de téléphone")
         return NotificationMessage(
             delivery_id=str(delivery.id),
             channel=delivery.channel,
             destination=delivery.destination,
             subject=subject,
-            body=(
-                f"Votre code ImmoLib pour {action} est {code}. "
-                f"Il expire à {challenge.expires_at:%H:%M}. "
-                "Ne le partagez avec personne."
+            body=_(
+                "Votre code ImmoLib pour {action} est {code}. "
+                "Il expire à {expires_at}. Ne le partagez avec personne."
+            ).format(
+                action=action,
+                code=code,
+                expires_at=timezone.localtime(challenge.expires_at).strftime("%H:%M"),
             ),
             metadata={
                 "kind": delivery.kind,
@@ -134,13 +154,15 @@ def build_notification_message(
     if delivery.kind == NotificationDelivery.Kind.TENANT_INVITATION:
         invitation = delivery.tenant_invitation
         if invitation is None:
-            raise PermanentNotificationError("L'invitation du locataire est introuvable.")
+            raise PermanentNotificationError(
+                _("L'invitation du locataire est introuvable.")
+            )
         if (
             invitation.status != invitation.Status.PENDING
             or invitation.expires_at <= now
         ):
             raise PermanentNotificationError(
-                "L'invitation du locataire n'est plus active."
+                _("L'invitation du locataire n'est plus active.")
             )
         from modules.leases.services import tenant_invitation_url
 
@@ -152,13 +174,17 @@ def build_notification_message(
             delivery_id=str(delivery.id),
             channel=delivery.channel,
             destination=delivery.destination,
-            subject="Invitation à rejoindre ImmoLib",
-            body=(
-                f"Bonjour {invitation.tenant.full_name}, {owner_name} vous invite "
-                f"à rejoindre ImmoLib pour la maison "
-                f"{invitation.tenant.property.name}. Créez ou rattachez votre "
-                f"compte ici : {secure_url} (invitation valable jusqu'au "
-                f"{invitation.expires_at:%d/%m/%Y})."
+            subject=_("Invitation à rejoindre ImmoLib"),
+            body=_(
+                "Bonjour {tenant}, {owner} vous invite à rejoindre ImmoLib pour "
+                "la maison {house}. Créez ou rattachez votre compte ici : "
+                "{url} (invitation valable jusqu'au {expires_at})."
+            ).format(
+                tenant=invitation.tenant.full_name,
+                owner=owner_name,
+                house=invitation.tenant.property.name,
+                url=secure_url,
+                expires_at=format_date(invitation.expires_at.date()),
             ),
             metadata={
                 "kind": delivery.kind,
@@ -173,36 +199,50 @@ def build_notification_message(
     if delivery.kind == NotificationDelivery.Kind.RENT_REMINDER:
         charge = delivery.rent_charge
         if charge is None:
-            raise PermanentNotificationError("L'echeance du rappel est introuvable.")
+            raise PermanentNotificationError(
+                _("L'echeance du rappel est introuvable.")
+            )
         if charge.status in (
             RentCharge.Status.PAID,
             RentCharge.Status.DISPUTED,
             RentCharge.Status.CANCELLED,
         ) or charge.balance_due <= 0:
-            raise PermanentNotificationError("L'echeance ne doit plus etre relancee.")
+            raise PermanentNotificationError(_("L'echeance ne doit plus etre relancee."))
         today = timezone.localdate(now)
         days_after_due = (today - charge.due_date).days
-        balance = f"{charge.balance_due:,.0f}".replace(",", " ")
+        balance = format_money(charge.balance_due, charge.currency)
         house = charge.lease.property.name
         tenant = charge.lease.tenant.full_name
         if days_after_due < 0:
-            timing = f"arrive a echeance le {charge.due_date:%d/%m/%Y}"
+            timing = _("arrive a echeance le {date}").format(
+                date=format_date(charge.due_date)
+            )
         elif days_after_due == 0:
-            timing = "est a regler aujourd'hui"
+            timing = _("est a regler aujourd'hui")
         else:
-            suffix = "jour" if days_after_due == 1 else "jours"
-            timing = (
-                f"est en retard depuis {days_after_due} {suffix} "
-                f"(echeance du {charge.due_date:%d/%m/%Y})"
+            timing = _(
+                "est en retard depuis {days} {unit} (echeance du {date})"
+            ).format(
+                days=days_after_due,
+                unit=_("jour") if days_after_due == 1 else _("jours"),
+                date=format_date(charge.due_date),
             )
         return NotificationMessage(
             delivery_id=str(delivery.id),
             channel=delivery.channel,
             destination=delivery.destination,
-            subject=f"ImmoLib - Rappel de loyer {charge.period_label}",
-            body=(
-                f"Bonjour {tenant}, votre loyer pour {house} ({charge.period_label}), "
-                f"avec un solde de {balance} {charge.currency}, {timing}."
+            subject=_("ImmoLib - Rappel de loyer {period}").format(
+                period=charge.period_label
+            ),
+            body=_(
+                "Bonjour {tenant}, votre loyer pour {house} ({period}), avec un "
+                "solde de {balance}, {timing}."
+            ).format(
+                tenant=tenant,
+                house=house,
+                period=charge.period_label,
+                balance=balance,
+                timing=timing,
             ),
             metadata={
                 "kind": delivery.kind,
@@ -213,9 +253,78 @@ def build_notification_message(
             },
         )
 
+    if delivery.kind in (
+        NotificationDelivery.Kind.PAYMENT_REQUEST,
+        NotificationDelivery.Kind.PAYMENT_CONFIRMED,
+    ):
+        payment_request = delivery.payment_request
+        if payment_request is None:
+            raise PermanentNotificationError(
+                _("La transaction de paiement est introuvable.")
+            )
+        charge = payment_request.rent_charge
+        operator = payment_request.get_operator_display()
+        if delivery.kind == NotificationDelivery.Kind.PAYMENT_REQUEST:
+            return NotificationMessage(
+                delivery_id=str(delivery.id),
+                channel=delivery.channel,
+                destination=delivery.destination,
+                subject=_("ImmoLib - Paiement a confirmer {reference}").format(
+                    reference=payment_request.reference
+                ),
+                body=_(
+                    "Bonjour {payee}, le locataire {tenant} a initie un paiement "
+                    "de {amount} par {operator} ({phone}) pour {house} ({period}). "
+                    "Verifiez la reception puis confirmez dans ImmoLib : "
+                    "reference {reference}."
+                ).format(
+                    payee=payment_request.payee_name,
+                    tenant=charge.lease.tenant.full_name,
+                    amount=format_money(payment_request.amount, payment_request.currency),
+                    operator=operator,
+                    phone=payment_request.payee_phone,
+                    house=charge.lease.property.name,
+                    period=charge.period_label,
+                    reference=payment_request.reference,
+                ),
+                metadata={
+                    "kind": delivery.kind,
+                    "channel": delivery.channel,
+                    "payment_request_id": str(payment_request.id),
+                    "reference": payment_request.reference,
+                },
+            )
+        received = payment_request.amount_received or payment_request.amount
+        return NotificationMessage(
+            delivery_id=str(delivery.id),
+            channel=delivery.channel,
+            destination=delivery.destination,
+            subject=_("ImmoLib - Paiement confirme {reference}").format(
+                reference=payment_request.reference
+            ),
+            body=_(
+                "Bonjour {tenant}, le bailleur a confirme votre paiement de "
+                "{amount} pour {house} ({period}). Votre quittance est disponible "
+                "dans ImmoLib : reference {reference}."
+            ).format(
+                tenant=charge.lease.tenant.full_name,
+                amount=format_money(received, payment_request.currency),
+                house=charge.lease.property.name,
+                period=charge.period_label,
+                reference=payment_request.reference,
+            ),
+            metadata={
+                "kind": delivery.kind,
+                "channel": delivery.channel,
+                "payment_request_id": str(payment_request.id),
+                "reference": payment_request.reference,
+                "received_amount": str(received),
+            },
+        )
+
     link = delivery.access_link
     if link is None:
-        raise PermanentNotificationError("Le lien de notification est introuvable.")
+        raise PermanentNotificationError(_("Le lien de notification est introuvable."))
     document = link.document
     metadata = {
         "kind": delivery.kind,
@@ -225,21 +334,27 @@ def build_notification_message(
 
     if delivery.kind == NotificationDelivery.Kind.DOCUMENT_LINK:
         if link.revoked_at or link.expires_at <= now:
-            raise PermanentNotificationError("Le lien du document n'est plus actif.")
+            raise PermanentNotificationError(_("Le lien du document n'est plus actif."))
         if document.status != RentalDocument.Status.ACTIVE:
-            raise PermanentNotificationError("Le document n'est plus actif.")
+            raise PermanentNotificationError(_("Le document n'est plus actif."))
         token = sign_access_link(link)
         secure_url = f"{settings.PUBLIC_APP_URL}/documents/{token}"
-        body = (
-            f"Bonjour {document.tenant_name}, consultez votre "
-            f"{document.get_document_type_display().lower()} ImmoLib : {secure_url} "
-            f"(lien valable jusqu'au {link.expires_at:%d/%m/%Y})."
+        body = _(
+            "Bonjour {tenant}, consultez votre {document_type} ImmoLib : {url} "
+            "(lien valable jusqu'au {expires_at})."
+        ).format(
+            tenant=document.tenant_name,
+            document_type=document.get_document_type_display().lower(),
+            url=secure_url,
+            expires_at=format_date(link.expires_at.date()),
         )
         return NotificationMessage(
             delivery_id=str(delivery.id),
             channel=delivery.channel,
             destination=delivery.destination,
-            subject=f"ImmoLib - {document.get_document_type_display()}",
+            subject=_("ImmoLib - {document_type}").format(
+                document_type=document.get_document_type_display()
+            ),
             body=body,
             metadata=metadata,
         )
@@ -247,23 +362,23 @@ def build_notification_message(
     if delivery.kind == NotificationDelivery.Kind.OTP:
         challenge = delivery.otp_challenge
         if challenge is None:
-            raise PermanentNotificationError("Le code OTP est introuvable.")
+            raise PermanentNotificationError(_("Le code OTP est introuvable."))
         if challenge.expires_at <= now or challenge.verified_at:
-            raise PermanentNotificationError("Le code OTP n'est plus actif.")
+            raise PermanentNotificationError(_("Le code OTP n'est plus actif."))
         code = otp_code_for(challenge)
         return NotificationMessage(
             delivery_id=str(delivery.id),
             channel=delivery.channel,
             destination=delivery.destination,
-            subject="Votre code de verification ImmoLib",
-            body=(
-                f"Votre code ImmoLib est {code}. Il expire dans 10 minutes. "
+            subject=_("Votre code de verification ImmoLib"),
+            body=_(
+                "Votre code ImmoLib est {code}. Il expire dans 10 minutes. "
                 "Ne le partagez avec personne."
-            ),
+            ).format(code=code),
             metadata=metadata,
         )
 
-    raise PermanentNotificationError("Type de notification inconnu.")
+    raise PermanentNotificationError(_("Type de notification inconnu."))
 
 
 def recover_stale_deliveries(*, now=None) -> int:
@@ -328,6 +443,8 @@ def _claim_next_delivery(*, channels, now) -> NotificationDelivery | None:
                 "rent_charge__lease__property",
                 "tenant_invitation__tenant__property",
                 "tenant_invitation__invited_by",
+                "payment_request__rent_charge__lease__tenant",
+                "payment_request__rent_charge__lease__property",
             ).get(id=delivery_id)
 
 

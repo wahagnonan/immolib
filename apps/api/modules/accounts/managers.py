@@ -1,5 +1,6 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .phones import normalize_e164
 
@@ -11,7 +12,7 @@ class UserManager(BaseUserManager):
 
     def create_user(self, phone: str, password: str | None = None, **extra_fields):
         if not phone:
-            raise ValueError("Le numero de telephone est obligatoire.")
+            raise ValueError(_("Le numero de telephone est obligatoire."))
 
         # Les comptes crees par l'administration ou les services internes sont
         # consideres verifies. L'inscription publique passe explicitement None.
@@ -28,8 +29,8 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_active", True)
 
         if extra_fields.get("is_staff") is not True:
-            raise ValueError("Un superutilisateur doit avoir is_staff=True.")
+            raise ValueError(_("Un superutilisateur doit avoir is_staff=True."))
         if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Un superutilisateur doit avoir is_superuser=True.")
+            raise ValueError(_("Un superutilisateur doit avoir is_superuser=True."))
 
         return self.create_user(phone, password, **extra_fields)

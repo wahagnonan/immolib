@@ -2,6 +2,7 @@ import builtins
 import uuid
 from datetime import timedelta
 from decimal import Decimal
+from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -17,15 +18,15 @@ def default_invitation_expiry():
 
 
 class Property(models.Model):
-    """Bien locatif. Seul le type HOUSE est disponible dans le MVP."""
+    """Bien locatif. Seul le type HOUSE est disponible pour le moment."""
 
     class Type(models.TextChoices):
-        HOUSE = "HOUSE", "Maison"
+        HOUSE = "HOUSE", _("Maison")
 
     class Status(models.TextChoices):
-        VACANT = "VACANT", "Vacante"
-        OCCUPIED = "OCCUPIED", "Occupee"
-        UNAVAILABLE = "UNAVAILABLE", "Indisponible"
+        VACANT = "VACANT", _("Vacante")
+        OCCUPIED = "OCCUPIED", _("Occupee")
+        UNAVAILABLE = "UNAVAILABLE", _("Indisponible")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property_type = models.CharField(
@@ -54,8 +55,8 @@ class Property(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = "maison"
-        verbose_name_plural = "maisons"
+        verbose_name = _("maison")
+        verbose_name_plural = _("maisons")
 
     def __str__(self) -> str:
         return self.name
@@ -65,12 +66,12 @@ class Ownership(models.Model):
     """Separe ce qu'une personne possede de ce qu'elle peut faire."""
 
     class Role(models.TextChoices):
-        PRIMARY = "PRIMARY", "Proprietaire principal"
-        CO_OWNER = "CO_OWNER", "Coproprietaire"
+        PRIMARY = "PRIMARY", _("Proprietaire principal")
+        CO_OWNER = "CO_OWNER", _("Coproprietaire")
 
     class AccessLevel(models.TextChoices):
-        ACTIVE = "ACTIVE", "Actif"
-        OBSERVER = "OBSERVER", "Observateur"
+        ACTIVE = "ACTIVE", _("Actif")
+        OBSERVER = "OBSERVER", _("Observateur")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(
@@ -115,8 +116,8 @@ class Ownership(models.Model):
                 name="one_primary_owner_per_property",
             ),
         ]
-        verbose_name = "propriete"
-        verbose_name_plural = "proprietes"
+        verbose_name = _("propriete")
+        verbose_name_plural = _("proprietes")
 
     def __str__(self) -> str:
         return f"{self.user} - {self.property} ({self.get_role_display()})"
@@ -126,10 +127,10 @@ class CoOwnerInvitation(models.Model):
     """Invitation traçable avant qu'un copropriétaire possède un compte."""
 
     class Status(models.TextChoices):
-        PENDING = "PENDING", "En attente"
-        ACCEPTED = "ACCEPTED", "Acceptée"
-        REVOKED = "REVOKED", "Révoquée"
-        EXPIRED = "EXPIRED", "Expirée"
+        PENDING = "PENDING", _("En attente")
+        ACCEPTED = "ACCEPTED", _("Acceptée")
+        REVOKED = "REVOKED", _("Révoquée")
+        EXPIRED = "EXPIRED", _("Expirée")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(
@@ -194,8 +195,8 @@ class CoOwnerInvitation(models.Model):
                 name="one_pending_coowner_invitation_per_phone_and_property",
             )
         ]
-        verbose_name = "invitation de copropriétaire"
-        verbose_name_plural = "invitations de copropriétaires"
+        verbose_name = _("invitation de copropriétaire")
+        verbose_name_plural = _("invitations de copropriétaires")
 
     @builtins.property
     def is_expired(self) -> bool:

@@ -1,5 +1,6 @@
 import uuid
 from decimal import Decimal
+from django.utils.translation import gettext_lazy as _
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
@@ -18,17 +19,17 @@ class RentCharge(models.Model):
     """
 
     class Type(models.TextChoices):
-        RENT = "RENT", "Loyer"
-        SECURITY_DEPOSIT = "SECURITY_DEPOSIT", "Caution"
+        RENT = "RENT", _("Loyer")
+        SECURITY_DEPOSIT = "SECURITY_DEPOSIT", _("Caution")
 
     class Status(models.TextChoices):
-        UPCOMING = "UPCOMING", "A venir"
-        DUE = "DUE", "A payer"
-        PARTIALLY_PAID = "PARTIALLY_PAID", "Partiellement payee"
-        PAID = "PAID", "Payee"
-        OVERDUE = "OVERDUE", "En retard"
-        DISPUTED = "DISPUTED", "Contestee"
-        CANCELLED = "CANCELLED", "Annulee"
+        UPCOMING = "UPCOMING", _("A venir")
+        DUE = "DUE", _("A payer")
+        PARTIALLY_PAID = "PARTIALLY_PAID", _("Partiellement payee")
+        PAID = "PAID", _("Payee")
+        OVERDUE = "OVERDUE", _("En retard")
+        DISPUTED = "DISPUTED", _("Contestee")
+        CANCELLED = "CANCELLED", _("Annulee")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     charge_type = models.CharField(
@@ -125,8 +126,8 @@ class RentCharge(models.Model):
                 name="deposit_released_between_zero_and_paid",
             ),
         ]
-        verbose_name = "echeance de loyer"
-        verbose_name_plural = "echeances de loyer"
+        verbose_name = _("echeance de loyer")
+        verbose_name_plural = _("echeances de loyer")
         indexes = [
             models.Index(
                 fields=["charge_type", "status", "period_start"],

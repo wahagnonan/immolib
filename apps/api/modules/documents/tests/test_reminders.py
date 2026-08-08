@@ -160,7 +160,7 @@ class RentReminderTests(APITestCase):
             now=timezone.make_aware(datetime(2026, 8, 8, 8, 0)),
         )
 
-        self.assertIn("100 000 XOF", message.body)
+        self.assertIn("100 000 FCFA", message.body)
         self.assertIn("retard depuis 3 jours", message.body)
         self.assertIn("Maison Rappels", message.body)
         self.assertEqual(message.metadata["rent_charge_id"], str(self.charge.id))

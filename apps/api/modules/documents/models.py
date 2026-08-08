@@ -1,5 +1,6 @@
 import uuid
 from decimal import Decimal
+from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
@@ -14,14 +15,14 @@ class RentalDocument(models.Model):
     """Instantane verifiable d'un recu ou d'une quittance."""
 
     class Type(models.TextChoices):
-        PAYMENT_RECEIPT = "PAYMENT_RECEIPT", "Recu de paiement"
-        RENT_RECEIPT = "RENT_RECEIPT", "Quittance de loyer"
-        DEPOSIT_RECEIPT = "DEPOSIT_RECEIPT", "Reçu de caution"
-        DEPOSIT_SETTLEMENT = "DEPOSIT_SETTLEMENT", "Relevé de caution"
+        PAYMENT_RECEIPT = "PAYMENT_RECEIPT", _("Recu de paiement")
+        RENT_RECEIPT = "RENT_RECEIPT", _("Quittance de loyer")
+        DEPOSIT_RECEIPT = "DEPOSIT_RECEIPT", _("Reçu de caution")
+        DEPOSIT_SETTLEMENT = "DEPOSIT_SETTLEMENT", _("Relevé de caution")
 
     class Status(models.TextChoices):
-        ACTIVE = "ACTIVE", "Actif"
-        VOIDED = "VOIDED", "Invalide"
+        ACTIVE = "ACTIVE", _("Actif")
+        VOIDED = "VOIDED", _("Invalide")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField("reference", max_length=40, unique=True)
@@ -110,8 +111,8 @@ class RentalDocument(models.Model):
                 name="rental_doc_status_issued_idx",
             )
         ]
-        verbose_name = "document locatif"
-        verbose_name_plural = "documents locatifs"
+        verbose_name = _("document locatif")
+        verbose_name_plural = _("documents locatifs")
 
     def __str__(self) -> str:
         return f"{self.reference} - {self.get_document_type_display()}"
@@ -163,23 +164,25 @@ class NotificationDelivery(models.Model):
     """Message a remettre plus tard à un adaptateur de canal."""
 
     class Kind(models.TextChoices):
-        DOCUMENT_LINK = "DOCUMENT_LINK", "Lien du document"
-        OTP = "OTP", "Code d'acces au document"
-        ACCOUNT_OTP = "ACCOUNT_OTP", "Code de verification du compte"
-        RENT_REMINDER = "RENT_REMINDER", "Rappel de loyer"
-        TENANT_INVITATION = "TENANT_INVITATION", "Invitation du locataire"
+        DOCUMENT_LINK = "DOCUMENT_LINK", _("Lien du document")
+        OTP = "OTP", _("Code d'acces au document")
+        ACCOUNT_OTP = "ACCOUNT_OTP", _("Code de verification du compte")
+        RENT_REMINDER = "RENT_REMINDER", _("Rappel de loyer")
+        TENANT_INVITATION = "TENANT_INVITATION", _("Invitation du locataire")
+        PAYMENT_REQUEST = "PAYMENT_REQUEST", _("Paiement à confirmer")
+        PAYMENT_CONFIRMED = "PAYMENT_CONFIRMED", _("Paiement confirmé")
 
     class Channel(models.TextChoices):
-        SMS = "SMS", "SMS"
-        EMAIL = "EMAIL", "Email"
-        WHATSAPP = "WHATSAPP", "WhatsApp"
-        PUSH = "PUSH", "Notification push"
+        SMS = "SMS", _("SMS")
+        EMAIL = "EMAIL", _("Email")
+        WHATSAPP = "WHATSAPP", _("WhatsApp")
+        PUSH = "PUSH", _("Notification push")
 
     class Status(models.TextChoices):
-        QUEUED = "QUEUED", "En attente"
-        PROCESSING = "PROCESSING", "Traitement en cours"
-        SENT = "SENT", "Envoye"
-        FAILED = "FAILED", "Echec"
+        QUEUED = "QUEUED", _("En attente")
+        PROCESSING = "PROCESSING", _("Traitement en cours")
+        SENT = "SENT", _("Envoye")
+        FAILED = "FAILED", _("Echec")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     access_link = models.ForeignKey(
@@ -217,10 +220,24 @@ class NotificationDelivery(models.Model):
         null=True,
         blank=True,
     )
+    payment_request = models.ForeignKey(
+        "payments.PaymentRequest",
+        on_delete=models.PROTECT,
+        related_name="notification_deliveries",
+        null=True,
+        blank=True,
+    )
     scheduled_for = models.DateField(null=True, blank=True)
     kind = models.CharField(max_length=20, choices=Kind.choices)
     channel = models.CharField(max_length=16, choices=Channel.choices)
     destination = models.CharField(max_length=255)
+    language = models.CharField(
+        "langue du destinataire",
+        max_length=10,
+        blank=True,
+        default="",
+        help_text="Langue figee a la mise en file ; le worker est asynchrone.",
+    )
     status = models.CharField(
         max_length=12, choices=Status.choices, default=Status.QUEUED
     )
@@ -275,6 +292,7 @@ class NotificationDelivery(models.Model):
                         account_challenge__isnull=True,
                         rent_charge__isnull=True,
                         tenant_invitation__isnull=True,
+                        payment_request__isnull=True,
                         scheduled_for__isnull=True,
                     )
                     | Q(
@@ -284,6 +302,7 @@ class NotificationDelivery(models.Model):
                         account_challenge__isnull=True,
                         rent_charge__isnull=True,
                         tenant_invitation__isnull=True,
+                        payment_request__isnull=True,
                         scheduled_for__isnull=True,
                     )
                     | Q(
@@ -293,6 +312,7 @@ class NotificationDelivery(models.Model):
                         account_challenge__isnull=False,
                         rent_charge__isnull=True,
                         tenant_invitation__isnull=True,
+                        payment_request__isnull=True,
                         scheduled_for__isnull=True,
                     )
                     | Q(
@@ -302,6 +322,7 @@ class NotificationDelivery(models.Model):
                         account_challenge__isnull=True,
                         rent_charge__isnull=False,
                         tenant_invitation__isnull=True,
+                        payment_request__isnull=True,
                         scheduled_for__isnull=False,
                     )
                     | Q(
@@ -311,6 +332,17 @@ class NotificationDelivery(models.Model):
                         account_challenge__isnull=True,
                         rent_charge__isnull=True,
                         tenant_invitation__isnull=False,
+                        payment_request__isnull=True,
+                        scheduled_for__isnull=True,
+                    )
+                    | Q(
+                        kind__in=("PAYMENT_REQUEST", "PAYMENT_CONFIRMED"),
+                        access_link__isnull=True,
+                        otp_challenge__isnull=True,
+                        account_challenge__isnull=True,
+                        rent_charge__isnull=False,
+                        tenant_invitation__isnull=True,
+                        payment_request__isnull=False,
                         scheduled_for__isnull=True,
                     )
                 ),
@@ -323,11 +355,11 @@ class ManualShareEvent(models.Model):
     """Préparation tracée d'un partage réalisé depuis l'appareil du bailleur."""
 
     class Channel(models.TextChoices):
-        WHATSAPP = "WHATSAPP", "WhatsApp"
-        EMAIL = "EMAIL", "Email"
-        SMS = "SMS", "SMS"
-        NATIVE = "NATIVE", "Partage de l'appareil"
-        COPY = "COPY", "Copie du lien"
+        WHATSAPP = "WHATSAPP", _("WhatsApp")
+        EMAIL = "EMAIL", _("Email")
+        SMS = "SMS", _("SMS")
+        NATIVE = "NATIVE", _("Partage de l'appareil")
+        COPY = "COPY", _("Copie du lien")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     document = models.ForeignKey(

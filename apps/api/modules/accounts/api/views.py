@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.middleware.csrf import get_token
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -42,7 +43,7 @@ from .serializers import (
 )
 
 
-GENERIC_OTP_SENT = "Si le compte est éligible, un code a été mis en file d’envoi."
+GENERIC_OTP_SENT = _("Si le compte est éligible, un code a été mis en file d’envoi.")
 
 
 def _user_response(user) -> dict:
@@ -218,7 +219,7 @@ class PasswordResetConfirmView(APIView):
             )
         except InvalidAccountOtp as exc:
             raise ValidationError({"detail": INVALID_ACCOUNT_OTP_MESSAGE}) from exc
-        return Response({"detail": "Votre mot de passe a été modifié."})
+        return Response({"detail": _("Votre mot de passe a été modifié.")})
 
 
 @method_decorator(csrf_protect, name="dispatch")
@@ -236,11 +237,13 @@ class LoginView(APIView):
             password=serializer.validated_data["password"],
         )
         if user is None:
-            raise ValidationError({"detail": "Téléphone ou mot de passe incorrect."})
+            raise ValidationError({"detail": _("Téléphone ou mot de passe incorrect.")})
         if not user.has_verified_contact:
             return Response(
                 {
-                    "detail": "Vérifiez votre email ou votre téléphone avant de vous connecter.",
+                    "detail": _(
+                        "Vérifiez votre email ou votre téléphone avant de vous connecter."
+                    ),
                     "contact_verification_required": True,
                 },
                 status=status.HTTP_403_FORBIDDEN,

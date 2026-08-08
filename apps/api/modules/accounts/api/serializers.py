@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from ..phones import normalize_e164
@@ -28,6 +29,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             "has_verified_contact",
             "has_owner_access",
             "has_tenant_access",
+            "preferred_language",
+            "preferred_timezone",
+            "preferred_currency",
+            "preferred_date_format",
+            "preferred_number_format",
             "created_at",
         )
 
@@ -67,14 +73,14 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(exc.messages) from exc
         if User.objects.filter(phone=phone).exists():
             raise serializers.ValidationError(
-                "Un compte utilise déjà ce numéro de téléphone."
+                _("Un compte utilise déjà ce numéro de téléphone.")
             )
         return phone
 
     def validate(self, attrs):
         if attrs["password"] != attrs["password_confirmation"]:
             raise serializers.ValidationError(
-                {"password_confirmation": "Les mots de passe ne correspondent pas."}
+                {"password_confirmation": _("Les mots de passe ne correspondent pas.")}
             )
         candidate = User(
             phone=attrs["phone"],
@@ -145,7 +151,7 @@ class PasswordResetConfirmSerializer(PhoneCodeSerializer):
     def validate(self, attrs):
         if attrs["password"] != attrs["password_confirmation"]:
             raise serializers.ValidationError(
-                {"password_confirmation": "Les mots de passe ne correspondent pas."}
+                {"password_confirmation": _("Les mots de passe ne correspondent pas.")}
             )
         candidate = User(phone=attrs["phone"])
         validate_password(attrs["password"], user=candidate)

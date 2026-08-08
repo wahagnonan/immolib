@@ -1,4 +1,5 @@
 import uuid
+from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -12,27 +13,27 @@ class MaintenanceIncident(models.Model):
     """Incident signalé pour une location et suivi jusqu'à sa clôture."""
 
     class Category(models.TextChoices):
-        PLUMBING = "PLUMBING", "Plomberie"
-        ELECTRICITY = "ELECTRICITY", "Électricité"
-        SECURITY = "SECURITY", "Sécurité"
-        ROOF = "ROOF", "Toiture"
-        STRUCTURE = "STRUCTURE", "Structure"
-        EQUIPMENT = "EQUIPMENT", "Équipement"
-        OTHER = "OTHER", "Autre"
+        PLUMBING = "PLUMBING", _("Plomberie")
+        ELECTRICITY = "ELECTRICITY", _("Électricité")
+        SECURITY = "SECURITY", _("Sécurité")
+        ROOF = "ROOF", _("Toiture")
+        STRUCTURE = "STRUCTURE", _("Structure")
+        EQUIPMENT = "EQUIPMENT", _("Équipement")
+        OTHER = "OTHER", _("Autre")
 
     class Priority(models.TextChoices):
-        LOW = "LOW", "Faible"
-        NORMAL = "NORMAL", "Normale"
-        HIGH = "HIGH", "Élevée"
-        URGENT = "URGENT", "Urgente"
+        LOW = "LOW", _("Faible")
+        NORMAL = "NORMAL", _("Normale")
+        HIGH = "HIGH", _("Élevée")
+        URGENT = "URGENT", _("Urgente")
 
     class Status(models.TextChoices):
-        REPORTED = "REPORTED", "Signalé"
-        ACKNOWLEDGED = "ACKNOWLEDGED", "Pris en compte"
-        IN_PROGRESS = "IN_PROGRESS", "Intervention en cours"
-        RESOLVED = "RESOLVED", "Résolu par le bailleur"
-        CLOSED = "CLOSED", "Clôturé par le locataire"
-        CANCELLED = "CANCELLED", "Annulé"
+        REPORTED = "REPORTED", _("Signalé")
+        ACKNOWLEDGED = "ACKNOWLEDGED", _("Pris en compte")
+        IN_PROGRESS = "IN_PROGRESS", _("Intervention en cours")
+        RESOLVED = "RESOLVED", _("Résolu par le bailleur")
+        CLOSED = "CLOSED", _("Clôturé par le locataire")
+        CANCELLED = "CANCELLED", _("Annulé")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(
@@ -95,8 +96,8 @@ class MaintenanceIncident(models.Model):
                 name="maintenance_tenant_date_idx",
             ),
         ]
-        verbose_name = "incident de maintenance"
-        verbose_name_plural = "incidents de maintenance"
+        verbose_name = _("incident de maintenance")
+        verbose_name_plural = _("incidents de maintenance")
 
     def clean(self) -> None:
         super().clean()
@@ -119,13 +120,13 @@ class MaintenanceEvent(models.Model):
     """Journal append-only des échanges et transitions d'un incident."""
 
     class Type(models.TextChoices):
-        REPORTED = "REPORTED", "Incident signalé"
-        STATUS_CHANGED = "STATUS_CHANGED", "Statut modifié"
-        COMMENTED = "COMMENTED", "Commentaire ajouté"
+        REPORTED = "REPORTED", _("Incident signalé")
+        STATUS_CHANGED = "STATUS_CHANGED", _("Statut modifié")
+        COMMENTED = "COMMENTED", _("Commentaire ajouté")
 
     class ActorRole(models.TextChoices):
-        OWNER = "OWNER", "Bailleur"
-        TENANT = "TENANT", "Locataire"
+        OWNER = "OWNER", _("Bailleur")
+        TENANT = "TENANT", _("Locataire")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     incident = models.ForeignKey(
@@ -155,8 +156,8 @@ class MaintenanceEvent(models.Model):
 
     class Meta:
         ordering = ["created_at"]
-        verbose_name = "événement de maintenance"
-        verbose_name_plural = "événements de maintenance"
+        verbose_name = _("événement de maintenance")
+        verbose_name_plural = _("événements de maintenance")
 
     def __str__(self) -> str:
         return f"{self.incident_id} - {self.get_event_type_display()}"

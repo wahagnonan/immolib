@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from django.utils.translation import gettext_lazy as _
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
@@ -45,7 +46,7 @@ def _actor_role(*, actor: User, lease: Lease) -> str:
         return MaintenanceEvent.ActorRole.TENANT
     if manageable_properties_for(actor).filter(id=lease.property_id).exists():
         return MaintenanceEvent.ActorRole.OWNER
-    raise PermissionDenied("Tu ne peux pas signaler un incident pour ce bail.")
+    raise PermissionDenied(_("Tu ne peux pas signaler un incident pour ce bail."))
 
 
 def _assert_tenant_access(*, actor: User, incident: MaintenanceIncident) -> None:
@@ -53,14 +54,14 @@ def _assert_tenant_access(*, actor: User, incident: MaintenanceIncident) -> None
         incident.tenant.linked_user_id != actor.id
         or incident.tenant.status != Tenant.Status.ACTIVE
     ):
-        raise PermissionDenied("Cet incident n'appartient pas à ce locataire.")
+        raise PermissionDenied(_("Cet incident n'appartient pas à ce locataire."))
 
 
 def _assert_owner_can_manage(*, actor: User, incident: MaintenanceIncident) -> None:
     if not manageable_properties_for(actor).filter(
         id=incident.property_id
     ).exists():
-        raise PermissionDenied("Tu ne peux pas modifier cet incident.")
+        raise PermissionDenied(_("Tu ne peux pas modifier cet incident."))
 
 
 @transaction.atomic
@@ -72,14 +73,14 @@ def create_incident(
         "tenant__linked_user",
     ).get(id=lease.id)
     if lease.status != Lease.Status.ACTIVE:
-        raise ValidationError("Un incident doit concerner un bail actif.")
+        raise ValidationError(_("Un incident doit concerner un bail actif."))
     actor_role = _actor_role(actor=actor, lease=lease)
     if data.category not in MaintenanceIncident.Category.values:
-        raise ValidationError("Catégorie d'incident invalide.")
+        raise ValidationError(_("Catégorie d'incident invalide."))
     if data.priority not in MaintenanceIncident.Priority.values:
-        raise ValidationError("Priorité d'incident invalide.")
+        raise ValidationError(_("Priorité d'incident invalide."))
     if not data.title.strip() or not data.description.strip():
-        raise ValidationError("Le titre et la description sont obligatoires.")
+        raise ValidationError(_("Le titre et la description sont obligatoires."))
 
     incident = MaintenanceIncident(
         property=lease.property,
@@ -172,9 +173,9 @@ def respond_to_resolution_by_tenant(
             "Le locataire peut répondre uniquement après une résolution."
         )
     if action not in ("CLOSE", "REOPEN"):
-        raise ValidationError("Réponse locataire invalide.")
+        raise ValidationError(_("Réponse locataire invalide."))
     if action == "REOPEN" and not message.strip():
-        raise ValidationError("Expliquez pourquoi le problème persiste.")
+        raise ValidationError(_("Expliquez pourquoi le problème persiste."))
 
     previous_status = incident.status
     now = timezone.now()
@@ -226,9 +227,9 @@ def add_incident_comment(
         MaintenanceIncident.Status.CLOSED,
         MaintenanceIncident.Status.CANCELLED,
     ):
-        raise ValidationError("Cet incident est clôturé.")
+        raise ValidationError(_("Cet incident est clôturé."))
     if not message.strip():
-        raise ValidationError("Le commentaire ne peut pas être vide.")
+        raise ValidationError(_("Le commentaire ne peut pas être vide."))
     return MaintenanceEvent.objects.create(
         incident=incident,
         event_type=MaintenanceEvent.Type.COMMENTED,

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from django.utils.translation import gettext_lazy as _
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
@@ -49,7 +50,7 @@ class CreateTenantSerializer(serializers.Serializer):
             return normalize_e164(value)
         except DjangoValidationError as exc:
             raise serializers.ValidationError(
-                "Utilisez le format international, par exemple +2250700000000."
+                _("Utilisez le format international, par exemple +2250700000000.")
             ) from exc
 
 
@@ -193,12 +194,12 @@ class CreateLeaseSerializer(serializers.Serializer):
         end_date = attrs.get("end_date")
         if end_date and end_date < attrs["start_date"]:
             raise serializers.ValidationError(
-                {"end_date": "La date de fin doit suivre la date de debut."}
+                {"end_date": _("La date de fin doit suivre la date de debut.")}
             )
         if not attrs.get("accepts_mobile_money", True) and not attrs.get(
             "accepts_cash", True
         ):
             raise serializers.ValidationError(
-                "Au moins un moyen de paiement doit etre accepte."
+                _("Au moins un moyen de paiement doit etre accepte.")
             )
         return attrs
