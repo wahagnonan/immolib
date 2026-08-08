@@ -388,6 +388,92 @@ export type RecordPaymentPayload = {
   idempotency_key: string;
 };
 
+export type PaymentRequestOperator =
+  | "MTN_MOMO"
+  | "ORANGE_MONEY"
+  | "MOOV_MONEY"
+  | "WAVE"
+  | "BANK_TRANSFER"
+  | "CASH"
+  | "OTHER";
+
+export type PaymentRequestStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "NOT_RECEIVED"
+  | "CANCELLED";
+
+export type PaymentRequest = {
+  id: string;
+  reference: string;
+  amount: string;
+  amount_received: string | null;
+  currency: string;
+  rent_charge_id: string;
+  lease_id: string;
+  house_id: string;
+  house_name: string;
+  tenant_id: string;
+  tenant_name: string;
+  period: string;
+  charge_status: string;
+  charge_balance_due: string;
+  operator: PaymentRequestOperator;
+  operator_label: string;
+  method_account: PaymentMethodAccountBrief | null;
+  payee_name: string;
+  payee_phone: string;
+  status: PaymentRequestStatus;
+  status_label: string;
+  note: string;
+  processing_note: string;
+  payment_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PaymentMethodAccountBrief = {
+  id: string;
+  operator: PaymentRequestOperator;
+  operator_label: string;
+  account_identifier: string;
+  account_holder: string;
+};
+
+export type PaymentMethodAccount = PaymentMethodAccountBrief & {
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type InitiatePaymentRequestPayload = {
+  rent_charge_id: string;
+  amount: string;
+  operator: PaymentRequestOperator;
+  method_account_id?: string | null;
+  note?: string;
+};
+
+export type ConfirmPaymentRequestPayload = {
+  received_amount?: string;
+  note?: string;
+};
+
+export type RefusePaymentRequestPayload = {
+  reason: string;
+};
+
+export type CancelPaymentRequestPayload = {
+  reason?: string;
+};
+
+export type CreatePaymentMethodPayload = {
+  operator: PaymentRequestOperator;
+  account_identifier: string;
+  account_holder?: string;
+  is_default?: boolean;
+};
+
 export type TenantPortalHouse = {
   id: string;
   name: string;

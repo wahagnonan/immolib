@@ -25,6 +25,12 @@ import type {
   OtpRequestResult,
   Payment,
   PaymentStatus,
+  PaymentMethodAccount,
+  PaymentRequest,
+  PaymentRequestStatus,
+  CreatePaymentMethodPayload,
+  InitiatePaymentRequestPayload,
+  ConfirmPaymentRequestPayload,
   PreparePaymentObligationsPayload,
   PreparePaymentObligationsResult,
   RecordPaymentPayload,
@@ -553,6 +559,87 @@ export function recordPayment(payload: RecordPaymentPayload): Promise<Payment> {
 
 export function cancelPayment(id: string, reason: string): Promise<Payment> {
   return apiRequest<Payment>(`/payments/${id}/cancel/`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function listPaymentMethods(): Promise<PaymentMethodAccount[]> {
+  return apiRequest<PaymentMethodAccount[]>("/payment-methods/");
+}
+
+export function createPaymentMethod(
+  payload: CreatePaymentMethodPayload,
+): Promise<PaymentMethodAccount> {
+  return apiRequest<PaymentMethodAccount>("/payment-methods/", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deletePaymentMethod(id: string): Promise<void> {
+  return apiRequest<void>(`/payment-methods/${id}/`, {
+    method: "DELETE",
+  });
+}
+
+export function setDefaultPaymentMethod(id: string): Promise<PaymentMethodAccount> {
+  return apiRequest<PaymentMethodAccount>(`/payment-methods/${id}/make-default/`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export function listLandlordPaymentRequests(
+  status?: PaymentRequestStatus,
+): Promise<PaymentRequest[]> {
+  return apiRequest<PaymentRequest[]>(
+    `/payment-requests/${queryString({ status })}`,
+  );
+}
+
+export function listMyPaymentRequests(
+  status?: PaymentRequestStatus,
+): Promise<PaymentRequest[]> {
+  return apiRequest<PaymentRequest[]>(
+    `/payment-requests/my/${queryString({ status })}`,
+  );
+}
+
+export function initiatePayment(
+  payload: InitiatePaymentRequestPayload,
+): Promise<PaymentRequest> {
+  return apiRequest<PaymentRequest>("/payment-requests/", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function confirmPaymentRequest(
+  id: string,
+  payload: ConfirmPaymentRequestPayload = {},
+): Promise<PaymentRequest> {
+  return apiRequest<PaymentRequest>(`/payment-requests/${id}/confirm/`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function refusePaymentRequest(
+  id: string,
+  reason: string,
+): Promise<PaymentRequest> {
+  return apiRequest<PaymentRequest>(`/payment-requests/${id}/refuse/`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function cancelPaymentRequest(
+  id: string,
+  reason = "",
+): Promise<PaymentRequest> {
+  return apiRequest<PaymentRequest>(`/payment-requests/${id}/cancel/`, {
     method: "POST",
     body: JSON.stringify({ reason }),
   });
