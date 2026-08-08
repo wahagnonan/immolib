@@ -114,7 +114,7 @@ class PaymentRequestApiTests(APITestCase):
 
         response = self._initiate()
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(PaymentRequest.objects.count(), 0)
 
     def test_only_one_pending_request_per_charge(self):
@@ -137,7 +137,7 @@ class PaymentRequestApiTests(APITestCase):
         self._initiate()
 
         self.client.force_authenticate(self.owner)
-        owner_list = self.client.get("/api/v1/payment-requests/")
+        owner_list = self.client.get("/api/v1/payment-requests/?page=1")
         self.assertEqual(owner_list.status_code, status.HTTP_200_OK)
         self.assertEqual(len(owner_list.data["results"]), 1)
 
@@ -147,7 +147,7 @@ class PaymentRequestApiTests(APITestCase):
         self.assertEqual(len(my_list.data), 1)
 
         self.client.force_authenticate(self.outsider)
-        outsider_list = self.client.get("/api/v1/payment-requests/")
+        outsider_list = self.client.get("/api/v1/payment-requests/?page=1")
         self.assertEqual(len(outsider_list.data["results"]), 0)
 
     def test_owner_confirms_request_and_receipt_is_generated(self):
@@ -169,6 +169,7 @@ class PaymentRequestApiTests(APITestCase):
         self.assertEqual(payment.amount, Decimal("30000.00"))
         self.assertEqual(payment.method, Payment.Method.EXTERNAL_MOBILE_MONEY)
         self.assertEqual(payment.status, Payment.Status.RECORDED_BY_OWNER)
+        self.charge.refresh_from_db()
         self.assertEqual(self.charge.amount_paid, Decimal("30000.00"))
         self.assertTrue(
             RentalDocument.objects.filter(
@@ -197,6 +198,7 @@ class PaymentRequestApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["amount_received"], "50000.00")
+        self.charge.refresh_from_db()
         self.assertEqual(self.charge.amount_paid, Decimal("50000.00"))
 
     def test_owner_cannot_confirm_request_of_another_property(self):

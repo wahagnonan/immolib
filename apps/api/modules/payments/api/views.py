@@ -326,6 +326,7 @@ class PaymentRequestViewSet(
     viewsets.GenericViewSet,
 ):
     permission_classes = (IsAuthenticated,)
+    pagination_class = LargeListPagination
 
     def get_queryset(self):
         queryset = payment_requests_for_tenant(self.request.user)
