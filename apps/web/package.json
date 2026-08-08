@@ -7,13 +7,26 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:unit": "vitest run",
+    "test:integration": "vitest run src/lib",
+    "test:e2e": "playwright test",
+    "test:regression": "npm run test:unit && npm run test:e2e",
+    "test:a11y": "playwright test --project=accessibilite",
+    "test:responsive": "playwright test --project=responsive",
+    "test:liens": "node scripts/check-links.mjs",
+    "test:perf": "node scripts/lighthouse.mjs",
+    "test:charge": "docker run --rm -v \"%CD%/scripts/k6:/scripts\" grafana/k6 run /scripts/load.js",
+    "test:stress": "docker run --rm -v \"%CD%/scripts/k6:/scripts\" grafana/k6 run /scripts/stress.js",
+    "security:audit": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
     "firebase": "^12.16.0",
+    "i18n-iso-countries": "^7.14.0",
+    "libphonenumber-js": "^1.13.10",
     "lucide-react": "^1.25.0",
     "next": "16.2.11",
     "react": "19.2.4",
@@ -21,6 +34,7 @@
     "recharts": "^3.10.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.0",

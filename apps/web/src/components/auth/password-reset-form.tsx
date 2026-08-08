@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 import { Feedback } from "@/components/ui/feedback";
+import { PhoneField } from "@/components/ui/phone-field";
 import {
   confirmPasswordReset,
   requestPasswordReset,
@@ -92,14 +93,10 @@ export function PasswordResetForm() {
         <Feedback message={error} tone="error" />
         <label className="mt-4 block">
           <span className="form-label">Numéro de téléphone du compte</span>
-          <input
-            autoComplete="tel"
-            className="form-input"
+          <PhoneField
             disabled={saving}
-            onChange={(event) => setPhone(event.target.value)}
-            placeholder="+225 07 00 00 00 00"
+            onChange={setPhone}
             required
-            type="tel"
             value={phone}
           />
         </label>

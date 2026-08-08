@@ -10,18 +10,19 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/inscription",
 }));
 
+const defaultContext = {
+  user: null as RegistrationResult["user"] | null,
+  loading: false,
+  sessionError: null as string | null,
+  login: vi.fn(),
+  register: vi.fn(),
+  verifyPhone: vi.fn(),
+  verifyEmail: vi.fn(),
+  logout: vi.fn(),
+  refresh: vi.fn(),
+};
+
 function renderRegisterForm(contextValues?: Partial<typeof defaultContext>) {
-  const defaultContext = {
-    user: null,
-    loading: false,
-    sessionError: null,
-    login: vi.fn(),
-    register: vi.fn(),
-    verifyPhone: vi.fn(),
-    verifyEmail: vi.fn(),
-    logout: vi.fn(),
-    refresh: vi.fn(),
-  };
   const ctx = { ...defaultContext, ...contextValues };
   return render(
     <AuthContext.Provider value={ctx}>
@@ -41,6 +42,9 @@ describe("RegisterForm", () => {
     vi.clearAllMocks();
   });
 
+  // La saisie utilisateur simulée est lente sur les machines chargées (jsdom).
+  vi.setConfig({ testTimeout: 20_000 });
+
   it("renders all required fields", () => {
     renderRegisterForm();
     expect(screen.getByText("Prénom *")).toBeInTheDocument();
@@ -58,7 +62,8 @@ describe("RegisterForm", () => {
 
     await user.type(screen.getByLabelText(/Prénom \*/), "Jean");
     await user.type(screen.getByLabelText(/Nom \*/), "Dupont");
-    await user.type(screen.getByLabelText(/Numéro de téléphone \*/), "+22507000000");
+    await user.type(screen.getByRole("textbox", { name: "Numéro de téléphone" }), "07000000");
+    await user.type(screen.getByLabelText(/Adresse email/), "jean@example.com");
     await user.type(password, "secret123");
     await user.type(confirmation, "different");
     await user.click(screen.getByText("Créer mon compte"));
@@ -78,7 +83,8 @@ describe("RegisterForm", () => {
 
     await user.type(screen.getByLabelText(/Prénom \*/), "Jean");
     await user.type(screen.getByLabelText(/Nom \*/), "Dupont");
-    await user.type(screen.getByLabelText(/Numéro de téléphone \*/), "+22507000000");
+    await user.type(screen.getByRole("textbox", { name: "Numéro de téléphone" }), "07000000");
+    await user.type(screen.getByLabelText(/Adresse email/), "jean@example.com");
     await user.type(password, "secret123");
     await user.type(confirmation, "secret123");
     await user.click(screen.getByText("Créer mon compte"));
@@ -106,7 +112,8 @@ describe("RegisterForm", () => {
 
     await user.type(screen.getByLabelText(/Prénom \*/), "Jean");
     await user.type(screen.getByLabelText(/Nom \*/), "Dupont");
-    await user.type(screen.getByLabelText(/Numéro de téléphone \*/), "+22507000000");
+    await user.type(screen.getByRole("textbox", { name: "Numéro de téléphone" }), "07000000");
+    await user.type(screen.getByLabelText(/Adresse email/), "jean@example.com");
     await user.type(password, "secret123");
     await user.type(confirmation, "secret123");
     await user.click(screen.getByText("Créer mon compte"));
@@ -133,7 +140,8 @@ describe("RegisterForm", () => {
 
     await user.type(screen.getByLabelText(/Prénom \*/), "Jean");
     await user.type(screen.getByLabelText(/Nom \*/), "Dupont");
-    await user.type(screen.getByLabelText(/Numéro de téléphone \*/), "+22507000000");
+    await user.type(screen.getByRole("textbox", { name: "Numéro de téléphone" }), "07000000");
+    await user.type(screen.getByLabelText(/Adresse email/), "jean@example.com");
     await user.type(password, "secret123");
     await user.type(confirmation, "secret123");
     await user.click(screen.getByText("Créer mon compte"));

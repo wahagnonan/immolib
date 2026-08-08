@@ -111,14 +111,11 @@ class RegisterSerializer(serializers.Serializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    phone = serializers.CharField(max_length=20)
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True, trim_whitespace=False)
 
-    def validate_phone(self, value: str) -> str:
-        try:
-            return normalize_e164(value)
-        except DjangoValidationError as exc:
-            raise serializers.ValidationError(exc.messages) from exc
+    def validate_email(self, value: str) -> str:
+        return value.strip().lower()
 
 
 class PhoneCodeSerializer(serializers.Serializer):

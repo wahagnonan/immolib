@@ -19,7 +19,7 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   return (
-    <AuthShell eyebrow="Ravi de vous revoir" title="Connectez-vous à ImmoLib" description="Retrouvez vos maisons, vos loyers et vos documents avec votre numéro de téléphone.">
+    <AuthShell eyebrow="Ravi de vous revoir" title="Connectez-vous à ImmoLib" description="Retrouvez vos maisons, vos loyers et vos documents avec votre adresse email.">
       <LoginForm nextPath={safeNextPath(params.next)} />
     </AuthShell>
   );

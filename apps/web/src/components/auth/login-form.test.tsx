@@ -25,18 +25,19 @@ const baseUser: CurrentUser = {
   created_at: "2025-01-01T00:00:00Z",
 };
 
+const defaultContext = {
+  user: null as CurrentUser | null,
+  loading: false,
+  sessionError: null as string | null,
+  login: vi.fn(),
+  register: vi.fn(),
+  verifyPhone: vi.fn(),
+  verifyEmail: vi.fn(),
+  logout: vi.fn(),
+  refresh: vi.fn(),
+};
+
 function renderLoginForm(contextValues?: Partial<typeof defaultContext>) {
-  const defaultContext = {
-    user: null,
-    loading: false,
-    sessionError: null,
-    login: vi.fn(),
-    register: vi.fn(),
-    verifyPhone: vi.fn(),
-    verifyEmail: vi.fn(),
-    logout: vi.fn(),
-    refresh: vi.fn(),
-  };
   const ctx = { ...defaultContext, ...contextValues };
   return render(
     <AuthContext.Provider value={ctx}>
@@ -50,9 +51,10 @@ describe("LoginForm", () => {
     vi.clearAllMocks();
   });
 
-  it("renders phone and password fields", () => {
+  it("renders email and password fields", () => {
     renderLoginForm();
-    expect(screen.getByPlaceholderText("+225 07 00 00 00 00")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("nom@exemple.com")).toBeInTheDocument();
+    expect(screen.getByText("Adresse email")).toBeInTheDocument();
     expect(screen.getByText("Mot de passe")).toBeInTheDocument();
     expect(screen.getByText("Se connecter")).toBeInTheDocument();
   });
@@ -78,26 +80,26 @@ describe("LoginForm", () => {
     const login = vi.fn().mockResolvedValue({ ...baseUser, has_owner_access: true });
     renderLoginForm({ login });
 
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("nom@exemple.com"), "awa@example.com");
     await user.type(screen.getByLabelText(/Mot de passe/), "secret123");
     await user.click(screen.getByText("Se connecter"));
 
     expect(login).toHaveBeenCalledWith({
-      phone: "+22507000000",
+      email: "awa@example.com",
       password: "secret123",
     });
   });
 
   it("shows error message on login failure", async () => {
     const user = userEvent.setup();
-    const login = vi.fn().mockRejectedValue(new Error("Téléphone ou mot de passe incorrect."));
+    const login = vi.fn().mockRejectedValue(new Error("Email ou mot de passe incorrect."));
     renderLoginForm({ login });
 
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("nom@exemple.com"), "awa@example.com");
     await user.type(screen.getByLabelText(/Mot de passe/), "wrong");
     await user.click(screen.getByText("Se connecter"));
 
-    expect(await screen.findByText("Téléphone ou mot de passe incorrect.")).toBeInTheDocument();
+    expect(await screen.findByText("Email ou mot de passe incorrect.")).toBeInTheDocument();
   });
 
   it("redirects authenticated users without owner access to tenant space", () => {
@@ -121,7 +123,7 @@ describe("LoginForm", () => {
     const login = vi.fn().mockImplementation(() => new Promise(() => {}));
     renderLoginForm({ login });
 
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("nom@exemple.com"), "awa@example.com");
     await user.type(screen.getByLabelText(/Mot de passe/), "secret123");
     await user.click(screen.getByText("Se connecter"));
 

@@ -15,6 +15,7 @@ import { TenantInvitationModal } from "@/components/tenants/tenant-invitation-mo
 import { Feedback } from "@/components/ui/feedback";
 import { Modal } from "@/components/ui/modal";
 import { ModuleHeader } from "@/components/ui/module-header";
+import { PhoneField } from "@/components/ui/phone-field";
 import {
   createTenant,
   createTenantInvitation,
@@ -380,13 +381,9 @@ export function TenantWorkspace() {
             </label>
             <label>
               <span className="form-label">Téléphone *</span>
-              <input
-                className="form-input"
-                maxLength={20}
-                onChange={(event) => updateField("phone", event.target.value)}
-                placeholder="+225 07 00 00 00 00"
+              <PhoneField
+                onChange={(value) => updateField("phone", value)}
                 required
-                type="tel"
                 value={form.phone}
               />
             </label>

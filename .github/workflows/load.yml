@@ -1,0 +1,25 @@
+name: Charge & Stress (k6)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  load:
+    name: Test de charge (50 VU)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lancer le test de charge k6
+        run: docker run --rm -v "$PWD/apps/web/scripts/k6:/scripts" grafana/k6 run /scripts/load.js
+        env:
+          BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:3000' }}
+
+  stress:
+    name: Test de stress (500 VU)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lancer le test de stress k6
+        run: docker run --rm -v "$PWD/apps/web/scripts/k6:/scripts" grafana/k6 run /scripts/stress.js
+        env:
+          BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:3000' }}

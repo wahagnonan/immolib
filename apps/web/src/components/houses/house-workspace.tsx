@@ -272,7 +272,7 @@ export function HouseWorkspace() {
 
             <form className="p-5 sm:p-6" onSubmit={handleSubmit}>
               <p className="mb-6 text-sm leading-6 text-muted">
-                Seules les maisons sont disponibles dans le MVP. Le créateur devient
+                Seules les maisons sont disponibles pour le moment. Le créateur devient
                 automatiquement propriétaire principal avec un accès actif.
               </p>
               <div className="grid gap-5 sm:grid-cols-2">

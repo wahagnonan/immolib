@@ -7,7 +7,7 @@ const assurances = [
   {
     icon: House,
     title: "Pensé pour les maisons",
-    text: "Le MVP reste volontairement concentré sur la gestion de maisons.",
+    text: "ImmoLib reste volontairement concentré sur la gestion de maisons.",
   },
   {
     icon: ShieldCheck,
@@ -90,7 +90,7 @@ export function AuthShell({
           </div>
           <div>{children}</div>
         </div>
-        <p className="text-center text-xs text-muted">ImmoLib MVP · Gestion locative en Côte d’Ivoire</p>
+        <p className="text-center text-xs text-muted">ImmoLib · Gestion locative en Côte d’Ivoire</p>
       </section>
     </main>
   );

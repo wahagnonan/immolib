@@ -71,7 +71,7 @@ describe("PhoneVerificationForm", () => {
       masked_destination: "+225****0000",
     });
 
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir mon code"));
 
     expect(await screen.findByText("Code envoyé par SMS")).toBeInTheDocument();
@@ -85,7 +85,7 @@ describe("PhoneVerificationForm", () => {
       masked_destination: "+225****0000",
     });
 
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir mon code"));
 
     expect(await screen.findByText("Code reçu par SMS")).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe("PhoneVerificationForm", () => {
       masked_destination: "+225****0000",
     });
 
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir mon code"));
     await screen.findByText("Code reçu par SMS");
 
@@ -118,7 +118,7 @@ describe("PhoneVerificationForm", () => {
       masked_destination: "j***@example.com",
     });
 
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir mon code"));
     await screen.findByText("Code reçu par email");
 
@@ -136,7 +136,7 @@ describe("PhoneVerificationForm", () => {
       masked_destination: "+225****0000",
     });
 
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir mon code"));
 
     expect(await screen.findByText(/Renvoyer dans \d+/)).toBeInTheDocument();
@@ -149,7 +149,7 @@ describe("PhoneVerificationForm", () => {
       new Error("Trop de tentatives. Réessayez plus tard."),
     );
 
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir mon code"));
 
     expect(await screen.findByText("Trop de tentatives. Réessayez plus tard.")).toBeInTheDocument();

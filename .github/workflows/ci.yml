@@ -3,7 +3,7 @@ name: CI
 on:
   workflow_dispatch:
   push:
-    branches: [main, "feat/**", "ci/**", "ops/**", "docs/**"]
+    branches: [main, "feat/**", "ci/**", "ops/**", "docs/**", "test/**", "correction/**"]
   pull_request:
     branches: [main]
 
@@ -42,11 +42,11 @@ jobs:
       - name: Vérifier la configuration Django
         run: python manage.py check
 
-      - name: Exécuter les tests Django
+      - name: Exécuter les tests Django (unitaires + intégration)
         run: python manage.py test --verbosity=2
 
   frontend-lint:
-    name: Frontend (Lint & Build)
+    name: Frontend (Lint, Types, Build, Audit)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -66,16 +66,19 @@ jobs:
         run: npm ci
 
       - name: Auditer les dépendances de production
-        run: npm audit --omit=dev
+        run: npm run security:audit
 
       - name: ESLint
         run: npm run lint
+
+      - name: TypeScript
+        run: npm run typecheck
 
       - name: Build Next.js
         run: npm run build
 
   frontend-unit:
-    name: Frontend (Tests unitaires)
+    name: Frontend (Tests unitaires + intégration)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -94,11 +97,11 @@ jobs:
       - name: Installer les dépendances
         run: npm ci
 
-      - name: Tests Vitest
-        run: npm run test
+      - name: Tests Vitest (unitaires + intégration)
+        run: npm run test:unit
 
   e2e:
-    name: E2E (Playwright)
+    name: E2E (Playwright multi-navigateur)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -145,7 +148,7 @@ jobs:
         working-directory: apps/web
 
       - name: Installer les navigateurs Playwright
-        run: npx playwright install chromium
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Appliquer les migrations Django
         run: python manage.py migrate
@@ -162,6 +165,7 @@ jobs:
         env:
           DATABASE_ENGINE: postgresql
           POSTGRES_HOST: localhost
+          EXPOSE_TEST_OTP: "true"
 
       - name: Démarrer le frontend Next.js
         run: |
@@ -172,9 +176,13 @@ jobs:
           NEXT_PUBLIC_API_URL: /backend
           API_INTERNAL_URL: http://127.0.0.1:8000
 
-      - name: Exécuter les tests Playwright
+      - name: Exécuter les tests Playwright (E2E, responsive, accessibilité)
         run: npx playwright test
-        working-directory: apps/web
+        env:
+          E2E_BASE_URL: http://localhost:3000
+
+      - name: Vérifier les liens internes
+        run: npm run test:liens -- http://localhost:3000
         env:
           E2E_BASE_URL: http://localhost:3000
 

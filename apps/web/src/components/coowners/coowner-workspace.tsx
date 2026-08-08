@@ -22,6 +22,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { Feedback } from "@/components/ui/feedback";
 import { Modal } from "@/components/ui/modal";
 import { ModuleHeader } from "@/components/ui/module-header";
+import { PhoneField } from "@/components/ui/phone-field";
 import {
   inviteCoOwner,
   listCoOwnerInvitations,
@@ -351,7 +352,7 @@ export function CoOwnerWorkspace() {
         <form className="p-5 sm:p-6" onSubmit={handleInvite}>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="sm:col-span-2"><span className="form-label">Maison *</span><select className="form-input" onChange={(event) => setInvitationForm((current) => ({ ...current, house_id: event.target.value }))} required value={invitationForm.house_id}><option value="">Sélectionner une maison</option>{managedHouses.map((house) => <option key={house.id} value={house.id}>{house.name} — {house.commune || house.city}</option>)}</select></label>
-            <label><span className="form-label">Téléphone *</span><input className="form-input" onChange={(event) => setInvitationForm((current) => ({ ...current, phone: event.target.value }))} placeholder="+225 07 00 00 00 00" required type="tel" value={invitationForm.phone} /></label>
+            <label><span className="form-label">Téléphone *</span><PhoneField onChange={(value) => setInvitationForm((current) => ({ ...current, phone: value }))} required value={invitationForm.phone} /></label>
             <label><span className="form-label">Email (facultatif)</span><input className="form-input" onChange={(event) => setInvitationForm((current) => ({ ...current, email: event.target.value }))} placeholder="nom@exemple.com" type="email" value={invitationForm.email ?? ""} /></label>
             <label><span className="form-label">Quote-part en %</span><input className="form-input" max="99.99" min="0.01" onChange={(event) => setInvitationForm((current) => ({ ...current, ownership_percentage: event.target.value || null }))} placeholder="Ex. 40" step="0.01" type="number" value={invitationForm.ownership_percentage ?? ""} /><span className="mt-1.5 block text-xs text-muted">Laissez vide si elle n’est pas encore connue.</span></label>
             <label><span className="form-label">Niveau d’accès *</span><select className="form-input" onChange={(event) => setInvitationForm((current) => ({ ...current, access_level: event.target.value as InviteCoOwnerPayload["access_level"] }))} value={invitationForm.access_level}><option value="OBSERVER">Observateur — consulter</option><option value="ACTIVE">Actif — agir</option></select><span className="mt-1.5 block text-xs text-muted">Ce choix ne modifie pas la quote-part.</span></label>

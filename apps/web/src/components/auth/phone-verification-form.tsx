@@ -7,6 +7,7 @@ import { FormEvent, useEffect, useState } from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { Feedback } from "@/components/ui/feedback";
+import { PhoneField } from "@/components/ui/phone-field";
 import {
   requestEmailVerification,
   requestPhoneVerification,
@@ -114,14 +115,10 @@ export function PhoneVerificationForm({
         <Feedback message={error} tone="error" />
         <label className="mt-4 block">
           <span className="form-label">Numéro de téléphone</span>
-          <input
-            autoComplete="tel"
-            className="form-input"
+          <PhoneField
             disabled={saving}
-            onChange={(event) => setPhone(event.target.value)}
-            placeholder="+225 07 00 00 00 00"
+            onChange={setPhone}
             required
-            type="tel"
             value={phone}
           />
         </label>

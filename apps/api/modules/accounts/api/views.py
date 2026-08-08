@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.middleware.csrf import get_token
 from django.utils import timezone
@@ -43,6 +43,7 @@ from .serializers import (
 )
 
 
+User = get_user_model()
 GENERIC_OTP_SENT = _("Si le compte est éligible, un code a été mis en file d’envoi.")
 
 
@@ -231,13 +232,20 @@ class LoginView(APIView):
     def post(self, request: Request) -> Response:
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = authenticate(
-            request=request,
-            phone=serializer.validated_data["phone"],
-            password=serializer.validated_data["password"],
+        user = (
+            User.objects.filter(
+                email__iexact=serializer.validated_data["email"],
+                is_active=True,
+            ).first()
         )
+        if user is not None:
+            user = authenticate(
+                request=request,
+                username=user.phone,
+                password=serializer.validated_data["password"],
+            )
         if user is None:
-            raise ValidationError({"detail": _("Téléphone ou mot de passe incorrect.")})
+            raise ValidationError({"detail": _("Email ou mot de passe incorrect.")})
         if not user.has_verified_contact:
             return Response(
                 {

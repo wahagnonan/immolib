@@ -39,7 +39,7 @@ describe("PasswordResetForm", () => {
     });
 
     render(<PasswordResetForm />);
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir un code"));
 
     expect(await screen.findByText("Code reçu par SMS")).toBeInTheDocument();
@@ -55,7 +55,7 @@ describe("PasswordResetForm", () => {
     });
 
     render(<PasswordResetForm />);
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir un code"));
     await screen.findByText("Code reçu par SMS");
 
@@ -76,7 +76,7 @@ describe("PasswordResetForm", () => {
     vi.mocked(confirmPasswordReset).mockResolvedValue({ detail: "Mot de passe modifié." });
 
     render(<PasswordResetForm />);
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir un code"));
     await screen.findByText("Code reçu par SMS");
 
@@ -97,7 +97,7 @@ describe("PasswordResetForm", () => {
     });
 
     render(<PasswordResetForm />);
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir un code"));
     await screen.findByText("Code reçu par SMS");
 
@@ -112,7 +112,7 @@ describe("PasswordResetForm", () => {
     );
 
     render(<PasswordResetForm />);
-    await user.type(screen.getByPlaceholderText("+225 07 00 00 00 00"), "+22507000000");
+    await user.type(screen.getByPlaceholderText("07 00 00 00 00"), "07000000");
     await user.click(screen.getByText("Recevoir un code"));
 
     expect(await screen.findByText("Aucun compte trouvé avec ce numéro.")).toBeInTheDocument();

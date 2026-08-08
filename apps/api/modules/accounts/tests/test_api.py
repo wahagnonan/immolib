@@ -31,7 +31,7 @@ class AuthenticationApiTests(APITestCase):
         return self.client.post(
             "/api/v1/auth/login/",
             {
-                "phone": self.user.phone,
+                "email": self.user.email,
                 "password": "Une-phrase-secrete-2026!",
             },
             format="json",
@@ -48,7 +48,7 @@ class AuthenticationApiTests(APITestCase):
     def test_login_rejects_request_without_csrf_token(self):
         response = self.client.post(
             "/api/v1/auth/login/",
-            {"phone": self.user.phone, "password": "Une-phrase-secrete-2026!"},
+            {"email": self.user.email, "password": "Une-phrase-secrete-2026!"},
             format="json",
         )
 
@@ -72,14 +72,14 @@ class AuthenticationApiTests(APITestCase):
         token = self._csrf_token()
         response = self.client.post(
             "/api/v1/auth/login/",
-            {"phone": self.user.phone, "password": "mot-de-passe-incorrect"},
+            {"email": self.user.email, "password": "mot-de-passe-incorrect"},
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.data["detail"], "Téléphone ou mot de passe incorrect."
+            response.data["detail"], "Email ou mot de passe incorrect."
         )
 
     def test_inactive_user_cannot_login(self):
@@ -89,14 +89,14 @@ class AuthenticationApiTests(APITestCase):
 
         response = self.client.post(
             "/api/v1/auth/login/",
-            {"phone": self.user.phone, "password": "Une-phrase-secrete-2026!"},
+            {"email": self.user.email, "password": "Une-phrase-secrete-2026!"},
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.data["detail"], "Téléphone ou mot de passe incorrect."
+            response.data["detail"], "Email ou mot de passe incorrect."
         )
 
     @override_settings(EXPOSE_TEST_OTP=True)
@@ -147,7 +147,7 @@ class AuthenticationApiTests(APITestCase):
 
         blocked_login = self.client.post(
             "/api/v1/auth/login/",
-            {"phone": payload["phone"], "password": payload["password"]},
+            {"email": "mariam@example.com", "password": payload["password"]},
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )

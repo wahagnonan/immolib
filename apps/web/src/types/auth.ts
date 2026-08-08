@@ -15,13 +15,13 @@ export type CurrentUser = {
 
 export type AuthResponse = { user: CurrentUser };
 
-export type LoginPayload = { phone: string; password: string };
+export type LoginPayload = { email: string; password: string };
 
 export type RegisterPayload = LoginPayload & {
+  phone: string;
   password_confirmation: string;
   first_name?: string;
   last_name?: string;
-  email?: string;
   tenant_invitation_token?: string;
 };
 

@@ -8,6 +8,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { PhoneVerificationForm } from "@/components/auth/phone-verification-form";
 import { Feedback } from "@/components/ui/feedback";
+import { PhoneField } from "@/components/ui/phone-field";
 import type { RegisterPayload, RegistrationResult } from "@/types/auth";
 
 const EMPTY_FORM: RegisterPayload = {
@@ -110,8 +111,8 @@ export function RegisterForm({
           <label><span className="form-label">Prénom *</span><input autoComplete="given-name" className="form-input" disabled={saving} onChange={(event) => updateField("first_name", event.target.value)} required value={form.first_name} /></label>
           <label><span className="form-label">Nom *</span><input autoComplete="family-name" className="form-input" disabled={saving} onChange={(event) => updateField("last_name", event.target.value)} required value={form.last_name} /></label>
         </div>
-        <label><span className="form-label">Numéro de téléphone *</span><input autoComplete="tel" className="form-input" disabled={saving} onChange={(event) => updateField("phone", event.target.value)} placeholder="+225 07 00 00 00 00" readOnly={Boolean(tenantInvitationToken)} required type="tel" value={form.phone} /></label>
-        <label><span className="form-label">Email (recommandé)</span><input autoComplete="email" className="form-input" disabled={saving} onChange={(event) => updateField("email", event.target.value)} placeholder="nom@exemple.com" readOnly={Boolean(tenantInvitationToken)} type="email" value={form.email} /><span className="mt-1.5 block text-xs leading-5 text-muted">{tenantInvitationToken ? "Ces coordonnées proviennent de l’invitation du bailleur." : "L’email permet d’activer gratuitement le compte. Sans email, le code est envoyé par SMS."}</span></label>
+        <label><span className="form-label">Numéro de téléphone *</span><PhoneField autoComplete="tel" disabled={saving} onChange={(value) => updateField("phone", value)} readOnly={Boolean(tenantInvitationToken)} required value={form.phone} /></label>
+        <label><span className="form-label">{tenantInvitationToken ? "Adresse email" : "Adresse email *"}</span><input autoComplete="email" className="form-input" disabled={saving} onChange={(event) => updateField("email", event.target.value)} placeholder="nom@exemple.com" readOnly={Boolean(tenantInvitationToken)} required={!tenantInvitationToken} type="email" value={form.email} /><span className="mt-1.5 block text-xs leading-5 text-muted">{tenantInvitationToken ? "Ces coordonnées proviennent de l’invitation du bailleur." : "L’email sert à vous connecter et à recevoir le code de vérification."}</span></label>
         <label>
           <span className="form-label">Mot de passe *</span>
           <span className="relative block"><input autoComplete="new-password" className="form-input pr-12" disabled={saving} minLength={8} onChange={(event) => updateField("password", event.target.value)} required type={showPassword ? "text" : "password"} value={form.password} /><button aria-label={showPassword ? "Masquer les mots de passe" : "Afficher les mots de passe"} className="absolute right-1.5 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-muted hover:bg-canvas hover:text-ink" onClick={() => setShowPassword((current) => !current)} type="button">{showPassword ? <EyeOff aria-hidden="true" size={18} /> : <Eye aria-hidden="true" size={18} />}</button></span>

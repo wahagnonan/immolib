@@ -1,0 +1,49 @@
+name: Perf (Core Web Vitals)
+
+on:
+  workflow_dispatch:
+
+env:
+  DJANGO_SECRET_KEY: ci-test-key-not-for-production
+  DJANGO_DEBUG: "false"
+  DJANGO_ALLOWED_HOSTS: localhost
+  DATABASE_ENGINE: sqlite
+  NEXT_PUBLIC_API_URL: /backend
+  PUBLIC_APP_URL: http://localhost:3000
+
+jobs:
+  lighthouse:
+    name: Lighthouse (desktop)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Installer Chromium (Playwright)
+        run: npx playwright install chromium
+
+      - name: Construire l'application
+        run: npm run build
+
+      - name: Démarrer le serveur
+        run: |
+          npm run start &
+          npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Analyser les Core Web Vitals
+        run: node scripts/lighthouse.mjs http://localhost:3000
+        env:
+          CHROME_PATH: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}/chromium-*/chrome-linux/chrome

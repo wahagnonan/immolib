@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, LogIn, Phone } from "lucide-react";
+import { Eye, EyeOff, LogIn, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
@@ -9,7 +9,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { Feedback } from "@/components/ui/feedback";
 import type { CurrentUser, LoginPayload } from "@/types/auth";
 
-const EMPTY_FORM: LoginPayload = { phone: "", password: "" };
+const EMPTY_FORM: LoginPayload = { email: "", password: "" };
 
 export function LoginForm({
   nextPath = "/tableau-de-bord",
@@ -47,7 +47,7 @@ export function LoginForm({
     setError(null);
     try {
       const authenticatedUser = await login({
-        phone: form.phone.trim(),
+        email: form.email.trim(),
         password: form.password,
       });
       router.replace(destinationFor(authenticatedUser));
@@ -67,10 +67,10 @@ export function LoginForm({
         <Feedback message={error ?? sessionError} tone="error" />
 
         <label>
-          <span className="form-label">Numéro de téléphone</span>
+          <span className="form-label">Adresse email</span>
           <span className="relative block">
-            <Phone aria-hidden="true" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" size={18} />
-            <input autoComplete="tel" className="form-input pl-10" disabled={saving} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} placeholder="+225 07 00 00 00 00" required type="tel" value={form.phone} />
+            <Mail aria-hidden="true" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" size={18} />
+            <input autoComplete="email" className="form-input pl-10" disabled={saving} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} placeholder="nom@exemple.com" required type="email" value={form.email} />
           </span>
         </label>
 
