@@ -6,8 +6,11 @@ import {
   House,
   Landmark,
   Menu,
+  MessageSquareText,
+  Receipt,
   Users,
   UsersRound,
+  WalletCards,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -18,8 +21,11 @@ export const adminNavigation = [
   { href: "/admin", label: "Dashboard", icon: Gauge },
   { href: "/admin/users", label: "Utilisateurs", icon: Users },
   { href: "/admin/landlords", label: "Bailleurs", icon: Landmark },
+  { href: "/admin/tenants", label: "Locataires", icon: UsersRound },
   { href: "/admin/houses", label: "Maisons", icon: House },
-  { href: "/admin/subscriptions", label: "Abonnements", icon: UsersRound },
+  { href: "/admin/subscriptions", label: "Abonnements", icon: Receipt },
+  { href: "/admin/payments", label: "Paiements", icon: WalletCards },
+  { href: "/admin/notifications", label: "Notifications", icon: MessageSquareText },
   { href: "/admin/audit-logs", label: "Journal d’audit", icon: FileClock },
 ];
 
