@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "modules.maintenance",
     "modules.payments",
     "modules.subscriptions",
+    "modules.admin_panel",
 ]
 
 MIDDLEWARE = [

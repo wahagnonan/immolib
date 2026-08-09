@@ -22,6 +22,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "id",
+            "role",
             "phone",
             "email",
             "first_name",

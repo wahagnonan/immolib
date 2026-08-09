@@ -263,6 +263,16 @@ class LoginView(APIView):
             accept_pending_coowner_invitations(user=user)
         accept_pending_tenant_invitations(user=user)
         login(request, user)
+        if user.role == User.Role.ADMIN:
+            from modules.admin_panel.audit import log_admin_action
+            from modules.admin_panel.models import AuditLog
+
+            log_admin_action(
+                admin=user,
+                action=AuditLog.Action.ADMIN_LOGIN,
+                metadata={"session": True},
+                request=request,
+            )
         return Response(_user_response(user), status=status.HTTP_200_OK)
 
 

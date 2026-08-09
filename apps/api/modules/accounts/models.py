@@ -15,8 +15,22 @@ from .phones import validate_e164
 class User(AbstractUser):
     """Compte unique utilisable comme bailleur, coproprietaire ou locataire."""
 
+    class Role(models.TextChoices):
+        ADMIN = "ADMIN", "Administrateur ImmoLib"
+        USER = "USER", "Utilisateur"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
+    role = models.CharField(
+        "role",
+        max_length=16,
+        choices=Role.choices,
+        default=Role.USER,
+        help_text=_(
+            "Role systeme. Seul le role ADMIN ouvre l'espace d'administration. "
+            "Le statut bailleur ou locataire reste derive des donnees."
+        ),
+    )
     phone = models.CharField(
         "telephone",
         max_length=20,

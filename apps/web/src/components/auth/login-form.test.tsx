@@ -12,6 +12,7 @@ vi.mock("next/navigation", () => ({
 
 const baseUser: CurrentUser = {
   id: "1",
+  role: "USER",
   phone: "+22507000000",
   email: "",
   first_name: "Jean",

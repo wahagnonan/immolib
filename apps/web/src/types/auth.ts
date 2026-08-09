@@ -2,6 +2,7 @@ import type { SubscriptionSummary } from "@/types/domain";
 
 export type CurrentUser = {
   id: string;
+  role: "ADMIN" | "USER";
   phone: string;
   full_name: string;
   email: string;

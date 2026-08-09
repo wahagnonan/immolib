@@ -123,7 +123,7 @@ describe("RegisterForm", () => {
 
   it("redirects authenticated users", () => {
     renderRegisterForm({
-      user: { id: "1", phone: "+22507000000", first_name: "Jean", last_name: "Dupont",
+      user: { id: "1", role: "USER", phone: "+22507000000", first_name: "Jean", last_name: "Dupont",
         full_name: "Jean Dupont", email: "", phone_verified_at: null, email_verified_at: null,
         has_verified_contact: false, has_owner_access: true, has_tenant_access: false,
         created_at: "2025-01-01T00:00:00Z" },
