@@ -19,6 +19,7 @@ from modules.leases.services import (
     create_tenant,
 )
 from modules.properties.services import CreateHouseData, create_house
+from modules.subscriptions.services import upgrade
 
 from ..models import NotificationDelivery
 from ..notifications import build_notification_message, process_notification_batch
@@ -41,6 +42,7 @@ class RentReminderTests(APITestCase):
         self.outsider = get_user_model().objects.create_user(
             phone="+2250700000911", password="password"
         )
+        upgrade(self.owner, "essential")
         house = create_house(
             owner=self.owner,
             data=CreateHouseData(

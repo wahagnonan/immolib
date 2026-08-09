@@ -2,6 +2,7 @@
 
 import {
   Building2,
+  CreditCard,
   FileCheck2,
   Gauge,
   HandCoins,
@@ -28,6 +29,7 @@ const navigation = [
   { href: "/documents", label: "Documents", icon: Building2 },
   { href: "/incidents", label: "Incidents", icon: Wrench },
   { href: "/coproprietaires", label: "Copropriétaires", icon: UsersRound },
+  { href: "/abonnement", label: "Abonnement", icon: CreditCard },
   { href: "/parametres/notifications", label: "Notifications", icon: Settings2 },
 ];
 

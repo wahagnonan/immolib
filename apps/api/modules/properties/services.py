@@ -9,6 +9,11 @@ from django.utils import timezone
 
 from modules.accounts.models import User
 from modules.accounts.phones import normalize_e164
+from modules.subscriptions.services import (
+    assert_can_create_house,
+    assert_has_feature,
+    ensure_subscription,
+)
 
 from .models import CoOwnerInvitation, Ownership, Property
 from .selectors import primary_owned_properties_for
@@ -99,6 +104,9 @@ def _recalculate_primary_share(*, property: Property) -> None:
 def create_house(*, owner: User, data: CreateHouseData) -> Property:
     """Crée toujours la maison et son propriétaire principal ensemble."""
 
+    assert_can_create_house(owner)
+    ensure_subscription(owner)
+
     house = Property.objects.create(
         name=data.name,
         address=data.address,
@@ -161,6 +169,11 @@ def invite_coowner(
     *, actor: User, property: Property, data: InviteCoOwnerData
 ) -> CoOwnerInvitation:
     property = Property.objects.select_for_update().get(id=property.id)
+    assert_has_feature(
+        actor,
+        "co_owners",
+        message="La gestion des copropriétaires est disponible avec le plan Essentiel.",
+    )
     _assert_is_primary_owner(actor=actor, property=property)
     phone = normalize_e164(data.phone)
     property.co_owner_invitations.filter(

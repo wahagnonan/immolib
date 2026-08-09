@@ -56,7 +56,7 @@ const capabilities = [
 
 const plans = [
   {
-    name: "Découverte",
+    name: "Gratuit",
     price: "0 FCFA",
     limit: "1 maison",
     description: "Pour tester ImmoLib sur une première location.",
@@ -64,25 +64,18 @@ const plans = [
   },
   {
     name: "Essentiel",
-    price: "3 000 FCFA",
-    limit: "Jusqu’à 5 maisons",
-    description: "Pour automatiser le suivi courant d’un petit patrimoine.",
-    features: ["Rappels mensuels", "Email et notifications push", "Historique complet"],
+    price: "2 000 FCFA",
+    limit: "Jusqu'à 5 maisons",
+    description: "Pour automatiser le suivi courant d'un petit patrimoine.",
+    features: ["Rappels de paiement mensuels", "Copropriétaires", "Email et notifications push", "Historique complet"],
     highlighted: true,
   },
   {
     name: "Pro",
-    price: "7 500 FCFA",
-    limit: "Jusqu’à 20 maisons",
+    price: "4 000 FCFA",
+    limit: "Jusqu'à 15 maisons",
     description: "Pour un bailleur qui pilote plusieurs locations.",
-    features: ["Rapports consolidés", "Exports", "Assistance prioritaire"],
-  },
-  {
-    name: "Patrimoine",
-    price: "15 000 FCFA",
-    limit: "Jusqu’à 50 maisons",
-    description: "Pour une gestion familiale ou à distance plus étendue.",
-    features: ["Vue patrimoine", "Accompagnement au démarrage", "Rapports avancés"],
+    features: ["Rappels automatisés", "Exports et rapports", "Statistiques avancées", "Assistance prioritaire"],
   },
 ];
 
@@ -444,7 +437,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {plans.map((plan) => (
                 <article
                   className={`rounded-[16px] border p-6 ${

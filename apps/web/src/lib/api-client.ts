@@ -57,6 +57,10 @@ import type {
   PaginatedPage,
   SecurityDeposit,
   SettleSecurityDepositPayload,
+  SubscriptionDetail,
+  SubscriptionPlan,
+  SubscriptionTransaction,
+  UpgradeSubscriptionResult,
 } from "@/types/domain";
 
 const API_BASE_URL =
@@ -101,10 +105,40 @@ function errorMessage(body: ApiErrorBody | null) {
   return "La requête vers ImmoLib a échoué.";
 }
 
+function delay(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+// Le backend peut redémarrer en développement (rechargement automatique de
+// Django) et le proxy Next.js répond alors 500 ou coupe la connexion. Les
+// requêtes en lecture sont relancées avec un délai court, jamais les écritures.
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  maxAttempts = 4,
+): Promise<Response> {
+  const method = init.method?.toUpperCase() ?? "GET";
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      const response = await fetch(url, init);
+      const retriable =
+        method === "GET" &&
+        (response.status === 500 ||
+          response.status === 502 ||
+          response.status === 503 ||
+          response.status === 504);
+      if (!retriable || attempt >= maxAttempts) return response;
+    } catch (networkError) {
+      if (attempt >= maxAttempts || method !== "GET") throw networkError;
+    }
+    await delay(250 * attempt);
+  }
+}
+
 async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const method = init?.method?.toUpperCase() ?? "GET";
   const token = csrfToken();
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetchWithRetry(`${API_BASE_URL}${path}`, {
     ...init,
     credentials: "include",
     headers: {
@@ -128,7 +162,7 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
 async function apiFile(path: string, init?: RequestInit): Promise<Blob> {
   const method = init?.method?.toUpperCase() ?? "GET";
   const token = csrfToken();
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetchWithRetry(`${API_BASE_URL}${path}`, {
     ...init,
     credentials: "include",
     headers: {
@@ -874,4 +908,39 @@ export function respondToPayment(
     method: "POST",
     body: JSON.stringify({ grant_token: grantToken, action, reason }),
   });
+}
+
+export function getSubscription(): Promise<SubscriptionDetail> {
+  return apiRequest<SubscriptionDetail>("/subscription/");
+}
+
+export function listSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+  return apiRequest<SubscriptionPlan[]>("/subscription/plans/");
+}
+
+export function upgradeSubscription(
+  planSlug: string,
+): Promise<UpgradeSubscriptionResult> {
+  return apiRequest<UpgradeSubscriptionResult>("/subscription/upgrade/", {
+    method: "POST",
+    body: JSON.stringify({ plan_slug: planSlug }),
+  });
+}
+
+export function cancelSubscription(): Promise<{
+  status: string;
+  status_label: string;
+}> {
+  return apiRequest("/subscription/cancel/", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export function refreshSubscriptionTransaction(
+  transactionId: string,
+): Promise<SubscriptionTransaction> {
+  return apiRequest<SubscriptionTransaction>(
+    `/subscription/transactions/${transactionId}/refresh/`,
+  );
 }

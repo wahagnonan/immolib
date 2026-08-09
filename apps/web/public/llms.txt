@@ -47,3 +47,10 @@
 - Langue principale : français.
 - Devise actuelle du MVP : franc CFA BCEAO (XOF).
 - Fuseau horaire de référence : Africa/Abidjan.
+
+## Abonnements
+
+- Trois formules : Gratuit (0 FCFA, 1 maison), Essentiel (2 000 FCFA/mois, 5 maisons) et Pro (4 000 FCFA/mois, 15 maisons).
+- Paiement PayDunya (checkout heberge) ; sans clefs, activation immediate en mode pilote.
+- Le quota de maisons depend du plan ; l'expiration ramene au plan Gratuit sans perte de donnees.
+- Page /abonnement pour souscrire, verifier un paiement ou annuler.

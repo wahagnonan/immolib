@@ -20,6 +20,7 @@ from modules.leases.services import (
 from modules.payments.models import Payment
 from modules.payments.services import RecordOfflinePaymentData, record_offline_payment
 from modules.properties.services import CreateHouseData, create_house
+from modules.subscriptions.services import upgrade
 
 
 class TenantPortalApiTests(APITestCase):
@@ -42,6 +43,7 @@ class TenantPortalApiTests(APITestCase):
             phone="+2250100001500",
             password="password",
         )
+        upgrade(self.owner, "essential")
         self.house = create_house(
             owner=self.owner,
             data=CreateHouseData(

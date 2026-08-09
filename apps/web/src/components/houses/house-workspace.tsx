@@ -10,9 +10,10 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-import { createHouse, listHouses } from "@/lib/api-client";
+import { ApiError, createHouse, listHouses } from "@/lib/api-client";
 import type { CreateHousePayload, House, HouseStatus } from "@/types/domain";
 
 const STATUS_STYLE: Record<HouseStatus, string> = {
@@ -39,6 +40,7 @@ export function HouseWorkspace() {
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
 
   useEffect(() => {
     listHouses()
@@ -82,6 +84,7 @@ export function HouseWorkspace() {
     setSaving(true);
     setError(null);
     setFeedback(null);
+    setLimitReached(false);
 
     try {
       const house = await createHouse(form);
@@ -90,6 +93,10 @@ export function HouseWorkspace() {
       setFormOpen(false);
       setFeedback("Maison ajoutée avec succès.");
     } catch (caughtError) {
+      setLimitReached(
+        caughtError instanceof ApiError &&
+          caughtError.body?.code === "HOUSE_LIMIT_REACHED",
+      );
       setError(
         caughtError instanceof Error
           ? caughtError.message
@@ -116,6 +123,7 @@ export function HouseWorkspace() {
           onClick={() => {
             setFormOpen(true);
             setFeedback(null);
+            setLimitReached(false);
           }}
           type="button"
         >
@@ -262,7 +270,7 @@ export function HouseWorkspace() {
               <button
                 aria-label="Fermer le formulaire"
                 className="grid size-10 place-items-center rounded-[9px] text-muted hover:bg-canvas hover:text-ink"
-                onClick={() => setFormOpen(false)}
+                onClick={() => { setFormOpen(false); setLimitReached(false); }}
                 title="Fermer"
                 type="button"
               >
@@ -333,15 +341,20 @@ export function HouseWorkspace() {
               </div>
 
               {error ? (
-                <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-                  {error}
-                </p>
+                <div className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                  <p>{error}</p>
+                  {limitReached ? (
+                    <Link className="mt-3 inline-flex font-bold text-red-800 underline underline-offset-4" href="/abonnement">
+                      Voir les abonnements
+                    </Link>
+                  ) : null}
+                </div>
               ) : null}
 
               <div className="mt-7 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
                 <button
                   className="secondary-button"
-                  onClick={() => setFormOpen(false)}
+                  onClick={() => { setFormOpen(false); setLimitReached(false); }}
                   type="button"
                 >
                   Annuler

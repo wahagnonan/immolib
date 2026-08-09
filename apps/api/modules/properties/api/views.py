@@ -23,6 +23,7 @@ from ..services import (
     revoke_coowner_invitation,
     update_coowner,
 )
+from modules.subscriptions.services import FeatureDenied, HouseLimitReached
 from .serializers import (
     CoOwnerInvitationSerializer,
     CoOwnerSerializer,
@@ -66,16 +67,25 @@ class HouseViewSet(
         input_serializer.is_valid(raise_exception=True)
         values = input_serializer.validated_data
 
-        house = create_house(
-            owner=request.user,
-            data=CreateHouseData(
-                name=values["name"],
-                address=values["address"],
-                city=values["city"],
-                commune=values.get("commune", ""),
-                landmark=values.get("landmark", ""),
-            ),
-        )
+        try:
+            house = create_house(
+                owner=request.user,
+                data=CreateHouseData(
+                    name=values["name"],
+                    address=values["address"],
+                    city=values["city"],
+                    commune=values.get("commune", ""),
+                    landmark=values.get("landmark", ""),
+                ),
+            )
+        except HouseLimitReached as exc:
+            payload = {
+                "detail": str(exc),
+                "code": "HOUSE_LIMIT_REACHED",
+                "limit": exc.limit,
+                "required_plan": exc.next_plan_slug,
+            }
+            return Response(payload, status=status.HTTP_403_FORBIDDEN)
         output_serializer = HouseSerializer(house, context=self.get_serializer_context())
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -175,6 +185,16 @@ class CoOwnerInvitationViewSet(
                         "access_level", Ownership.AccessLevel.OBSERVER
                     ),
                 ),
+            )
+        except FeatureDenied as exc:
+            return Response(
+                {
+                    "detail": str(exc),
+                    "code": "FEATURE_NOT_AVAILABLE",
+                    "feature": exc.feature,
+                    "required_plan": exc.required_plan_slug,
+                },
+                status=status.HTTP_403_FORBIDDEN,
             )
         except DjangoValidationError as exc:
             _raise_api_validation_error(exc)

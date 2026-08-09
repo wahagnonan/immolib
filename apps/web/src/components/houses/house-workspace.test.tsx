@@ -2,10 +2,14 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HouseWorkspace } from "./house-workspace";
 
-vi.mock("@/lib/api-client", () => ({
-  listHouses: vi.fn(),
-  createHouse: vi.fn(),
-}));
+vi.mock("@/lib/api-client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api-client")>();
+  return {
+    ...actual,
+    listHouses: vi.fn(),
+    createHouse: vi.fn(),
+  };
+});
 
 import { listHouses, createHouse } from "@/lib/api-client";
 import type { House } from "@/types/domain";

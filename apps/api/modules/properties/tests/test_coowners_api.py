@@ -14,6 +14,7 @@ from modules.accounts.services import (
 )
 from modules.properties.models import CoOwnerInvitation, Ownership
 from modules.properties.services import CreateHouseData, create_house
+from modules.subscriptions.services import upgrade
 
 
 class CoOwnerApiTests(APITestCase):
@@ -25,6 +26,7 @@ class CoOwnerApiTests(APITestCase):
         self.existing_user = user_model.objects.create_user(
             phone="+2250500001101", password="password", first_name="Koffi"
         )
+        upgrade(self.owner, "essential")
         self.house = create_house(
             owner=self.owner,
             data=CreateHouseData(

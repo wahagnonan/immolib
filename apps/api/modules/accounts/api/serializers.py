@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from modules.subscriptions.services import get_subscription_summary
+
 from ..phones import normalize_e164
 
 
@@ -14,6 +16,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     has_owner_access = serializers.SerializerMethodField()
     has_tenant_access = serializers.SerializerMethodField()
+    subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -34,6 +37,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             "preferred_currency",
             "preferred_date_format",
             "preferred_number_format",
+            "subscription",
             "created_at",
         )
 
@@ -48,6 +52,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             status="ACTIVE",
             leases__status__in=("ACTIVE", "ENDED"),
         ).exists()
+
+    def get_subscription(self, obj) -> dict | None:
+        return get_subscription_summary(obj)
 
 
 class RegisterSerializer(serializers.Serializer):

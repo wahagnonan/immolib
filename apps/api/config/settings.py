@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "modules.tenant_portal",
     "modules.maintenance",
     "modules.payments",
+    "modules.subscriptions",
 ]
 
 MIDDLEWARE = [
@@ -177,6 +178,88 @@ FIREBASE_CREDENTIALS_FILE = os.getenv("FIREBASE_CREDENTIALS_FILE", "")
 MOBILE_MONEY_WEBHOOK_SECRET = os.getenv("MOBILE_MONEY_WEBHOOK_SECRET", "")
 MOBILE_MONEY_WEBHOOK_TOLERANCE_SECONDS = int(
     os.getenv("MOBILE_MONEY_WEBHOOK_TOLERANCE_SECONDS", "300")
+)
+
+# Abonnements ImmoLib : plans, limites et paiement PayDunya.
+SUBSCRIPTION_CURRENCY = os.getenv("SUBSCRIPTION_CURRENCY", "XOF")
+SUBSCRIPTION_DURATION_DAYS = int(
+    os.getenv("SUBSCRIPTION_DURATION_DAYS", "30")
+)
+SUBSCRIPTION_PLAN_DEFAULTS = {
+    "free": {
+        "name": "Gratuit",
+        "description": "Gestion locative essentielle pour démarrer.",
+        "price_monthly": 0,
+        "max_houses": int(os.getenv("FREE_MAX_HOUSES", "1")),
+        "features": [
+            "tenant_management",
+            "lease_management",
+            "payment_tracking",
+            "receipt_generation",
+            "receipt_verification",
+            "basic_dashboard",
+            "limited_notifications",
+        ],
+    },
+    "essential": {
+        "name": "Essentiel",
+        "description": "Notifications, rappels et copropriétaires.",
+        "price_monthly": int(os.getenv("ESSENTIAL_PRICE", "2000")),
+        "max_houses": int(os.getenv("ESSENTIAL_MAX_HOUSES", "5")),
+        "features": [
+            "tenant_management",
+            "lease_management",
+            "payment_tracking",
+            "receipt_generation",
+            "receipt_verification",
+            "basic_dashboard",
+            "limited_notifications",
+            "improved_notifications",
+            "payment_reminders",
+            "payment_history",
+            "co_owners",
+            "basic_statistics",
+        ],
+    },
+    "pro": {
+        "name": "Pro",
+        "description": "Statistiques avancées, export et multi-utilisateurs.",
+        "price_monthly": int(os.getenv("PRO_PRICE", "4000")),
+        "max_houses": int(os.getenv("PRO_MAX_HOUSES", "15")),
+        "features": [
+            "tenant_management",
+            "lease_management",
+            "payment_tracking",
+            "receipt_generation",
+            "receipt_verification",
+            "basic_dashboard",
+            "limited_notifications",
+            "improved_notifications",
+            "payment_reminders",
+            "payment_history",
+            "co_owners",
+            "basic_statistics",
+            "automated_notifications",
+            "advanced_statistics",
+            "unpaid_tracking",
+            "data_export",
+            "multi_user",
+            "financial_reports",
+        ],
+    },
+}
+
+# PayDunya (agrégateur mobile money / cartes). En l'absence de clés, les plans
+# payants s'activent immédiatement en mode pilote avec transaction tracée.
+PAYDUNYA_MASTER_KEY = os.getenv("PAYDUNYA_MASTER_KEY", "")
+PAYDUNYA_PRIVATE_KEY = os.getenv("PAYDUNYA_PRIVATE_KEY", "")
+PAYDUNYA_PUBLIC_KEY = os.getenv("PAYDUNYA_PUBLIC_KEY", "")
+PAYDUNYA_TOKEN = os.getenv("PAYDUNYA_TOKEN", "")
+PAYDUNYA_MODE = os.getenv("PAYDUNYA_MODE", "test")
+PAYDUNYA_STORE_NAME = os.getenv("PAYDUNYA_STORE_NAME", "ImmoLib")
+PAYDUNYA_CALLBACK_URL = os.getenv(
+    "PAYDUNYA_CALLBACK_URL",
+    f"{PUBLIC_APP_URL}/backend/api/v1/webhooks/paydunya/",
 )
 
 # Les sessions restent dans un cookie HttpOnly. Le cookie CSRF doit rester lisible

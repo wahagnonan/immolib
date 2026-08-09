@@ -14,6 +14,73 @@ export type CurrentUser = Owner & {
   has_owner_access: boolean;
   has_tenant_access: boolean;
   created_at: string;
+  subscription: SubscriptionSummary | null;
+};
+
+export type SubscriptionStatus = "ACTIVE" | "PENDING" | "EXPIRED" | "CANCELLED";
+
+export type SubscriptionSummary = {
+  plan_slug: string;
+  plan_name: string;
+  price_monthly: number;
+  currency: string;
+  status: SubscriptionStatus;
+  expires_at: string | null;
+  house_count: number;
+  max_houses: number | null;
+  features: string[];
+};
+
+export type SubscriptionPlan = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  price_monthly: number;
+  currency: string;
+  max_houses: number | null;
+  features: string[];
+  is_active: boolean;
+};
+
+export type SubscriptionTransactionStatus =
+  | "PENDING"
+  | "SUCCESSFUL"
+  | "FAILED"
+  | "CANCELLED"
+  | "EXPIRED";
+
+export type SubscriptionTransaction = {
+  id: string;
+  plan_slug: string;
+  plan_name: string;
+  amount: number;
+  currency: string;
+  status: SubscriptionTransactionStatus;
+  status_label: string;
+  provider: string;
+  provider_reference: string | null;
+  completed_at: string | null;
+  created_at: string;
+};
+
+export type SubscriptionDetail = {
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  status_label: string;
+  started_at: string;
+  expires_at: string | null;
+  house_count: number;
+  max_houses: number | null;
+  remaining_houses: number | null;
+  features: string[];
+  pending_transaction: SubscriptionTransaction | null;
+};
+
+export type UpgradeSubscriptionResult = {
+  transaction: SubscriptionTransaction;
+  redirect_url: string | null;
+  activated: boolean;
 };
 
 export type AuthResponse = {

@@ -7,6 +7,7 @@ from django.test import TestCase
 
 from modules.properties.models import Ownership, Property
 from modules.properties.services import CreateHouseData, create_house
+from modules.subscriptions.services import upgrade
 
 from ..models import Lease
 from ..services import (
@@ -31,6 +32,7 @@ class LeaseServiceTests(TestCase):
         self.observer = user_model.objects.create_user(
             phone="+2250700000102", password="password"
         )
+        upgrade(self.owner, "essential")
         self.house = create_house(
             owner=self.owner,
             data=CreateHouseData(

@@ -171,6 +171,27 @@ export function DashboardWorkspace() {
             </article>
           </section>
 
+          <section aria-label="Votre abonnement" className="panel flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center sm:p-6">
+            <div className="flex items-start gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-[10px] bg-brand-soft text-brand-dark">
+                <BadgeCheck aria-hidden="true" size={22} />
+              </span>
+              <div>
+                <p className="font-bold text-ink">
+                  Plan {user?.subscription?.plan_name ?? "Gratuit"}
+                </p>
+                <p className="mt-1 text-sm leading-5 text-muted">
+                  {user?.subscription
+                    ? `${user.subscription.house_count} maison${user.subscription.house_count > 1 ? "s" : ""} sur ${user.subscription.max_houses ?? "—"} incluse${(user.subscription.max_houses ?? 1) > 1 ? "s" : ""}`
+                    : "Abonnement non disponible"}
+                </p>
+              </div>
+            </div>
+            <Link className="secondary-button w-fit" href="/abonnement">
+              Gérer mon abonnement <ArrowRight aria-hidden="true" size={16} />
+            </Link>
+          </section>
+
           <section className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.8fr)]">
             <article className="panel p-5 sm:p-6">
               <p className="section-kicker">Encaissements</p>

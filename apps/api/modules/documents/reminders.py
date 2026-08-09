@@ -9,6 +9,8 @@ from django.db.models import F
 from modules.billing.models import RentCharge
 from modules.i18n.utils import resolve_language
 from modules.notifications.services import preferred_route_for_tenant
+from modules.properties.models import Ownership
+from modules.subscriptions.services import has_feature
 
 from .models import NotificationDelivery
 
@@ -79,6 +81,21 @@ def queue_rent_reminders(
         )
         .select_related("lease__tenant", "lease__property")
     )
+    property_ids = {charge.lease.property_id for charge in charges}
+    primary_owners = Ownership.objects.filter(
+        property_id__in=property_ids,
+        role=Ownership.Role.PRIMARY,
+    ).select_related("user")
+    allowed_property_ids = {
+        ownership.property_id
+        for ownership in primary_owners
+        if has_feature(ownership.user, "payment_reminders")
+    }
+    charges = [
+        charge
+        for charge in charges
+        if charge.lease.property_id in allowed_property_ids
+    ]
     created = existing = skipped = 0
     for charge in charges:
         selected_channels = [item for item in configured_channels if item != "AUTO"]

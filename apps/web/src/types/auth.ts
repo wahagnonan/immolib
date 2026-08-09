@@ -1,3 +1,5 @@
+import type { SubscriptionSummary } from "@/types/domain";
+
 export type CurrentUser = {
   id: string;
   phone: string;
@@ -11,6 +13,7 @@ export type CurrentUser = {
   has_owner_access: boolean;
   has_tenant_access: boolean;
   created_at: string;
+  subscription?: SubscriptionSummary | null;
 };
 
 export type AuthResponse = { user: CurrentUser };

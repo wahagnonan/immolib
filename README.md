@@ -34,6 +34,8 @@ Le projet est construit pas a pas. Il contient actuellement :
   cloture par le locataire ;
 - un webhook Mobile Money generique, signe et idempotent, qui confirme
   automatiquement les paiements authentiques d'un fournisseur ;
+- les abonnements Gratuit, Essentiel et Pro avec paiement PayDunya, quota de
+  maisons et fonctionnalites activees par plan (mode pilote sans clefs) ;
 - les rappels automatiques avant echeance et les relances de retard ;
 - les recus et quittances PDF telechargeables par le bailleur ou apres OTP ;
 - l'inscription avec verification gratuite de l'email ou repli SMS, la recuperation du mot de passe,
@@ -155,6 +157,12 @@ POST /api/v1/public-access/download-document/ PDF apres verification OTP
 POST /api/v1/public-access/payment-response/  Confirmation ou contestation
 GET  /api/v1/public-access/verify-reference/?reference=... Controle public
 POST /api/v1/webhooks/mobile-money/  Confirmation fournisseur signee
+GET  /api/v1/subscription/         Abonnement courant, quota et usage
+GET  /api/v1/subscription/plans/   Formules actives
+POST /api/v1/subscription/upgrade/ Souscription ou changement de plan
+POST /api/v1/subscription/cancel/  Retour au plan Gratuit
+GET  /api/v1/subscription/transactions/{id}/refresh/  Confirmation PayDunya
+POST /api/v1/webhooks/paydunya/    IPN PayDunya (confirmation du token)
 ```
 
 Les listes d'echeances, paiements et documents acceptent `page`, `page_size`
@@ -247,6 +255,43 @@ desactive tant que l'utilisateur ne le choisit pas.
 
 La creation passe par `modules/properties/services.py`. La vue HTTP ne contient
 pas la regle metier : elle valide la requete puis appelle ce service.
+
+## Abonnements
+
+Trois formules : Gratuit (0 FCFA, 1 maison), Essentiel (2 000 FCFA/mois,
+5 maisons, coproprietaires et rappels) et Pro (4 000 FCFA/mois, 15 maisons,
+exports et statistiques avancees). Le quota compte les maisons dont
+l'utilisateur est proprietaire principal. Sans clefs PayDunya, la souscription
+active immediatement le plan (mode pilote) en tracant une transaction
+`MANUAL/SUCCESSFUL`. Avec PayDunya, la souscription cree une facture et renvoie
+l'URL de paiement ; l'activation suit la confirmation authentifiee du token
+auprès de PayDunya. Les montants sont toujours calcules par le serveur.
+
+L'expiration replace l'abonnement sur le plan Gratuit sans jamais supprimer
+les donnees. Les nouveaux comptes obtiennent le plan Gratuit automatiquement.
+Les fonctionnalites payantes sont controlees dans les services metier
+(`assert_has_feature`), avec des erreurs 403 structurees
+(`FEATURE_NOT_AVAILABLE`, `HOUSE_LIMIT_REACHED` avec `limit` et `required_plan`).
+
+Configuration (fichier .env) :
+
+```text
+PAYDUNYA_MASTER_KEY=
+PAYDUNYA_PRIVATE_KEY=
+PAYDUNYA_PUBLIC_KEY=
+PAYDUNYA_TOKEN=
+PAYDUNYA_MODE=test|live
+SUBSCRIPTION_ESSENTIAL_PRICE=2000
+SUBSCRIPTION_ESSENTIAL_MAX_HOUSES=5
+SUBSCRIPTION_PRO_PRICE=4000
+SUBSCRIPTION_PRO_MAX_HOUSES=15
+```
+
+Verification manuelle des expirations :
+
+```bash
+python manage.py check_subscription_expirations
+```
 
 ## Tests
 

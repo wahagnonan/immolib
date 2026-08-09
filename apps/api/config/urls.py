@@ -107,6 +107,7 @@ urlpatterns = [
     path("api/v1/profile/", include("modules.i18n.api.urls")),
     path("api/v1/", include("modules.notifications.api.urls")),
     path("api/v1/tenant-portal/", include("modules.tenant_portal.api.urls")),
+    path("api/v1/", include("modules.subscriptions.api.urls")),
     path("api/v1/", include(router.urls)),
     path("admin/", admin.site.urls),
 ]
