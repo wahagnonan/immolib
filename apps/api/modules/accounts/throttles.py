@@ -38,9 +38,18 @@ class PhoneRateThrottle(SimpleRateThrottle):
         }
 
 
-class LoginPhoneThrottle(PhoneRateThrottle):
-    scope = "login_phone"
+class LoginEmailThrottle(SimpleRateThrottle):
+    scope = "login_email"
     rate = "10/minute"
+
+    def get_cache_key(self, request, view):
+        value = request.data.get("email")
+        if not value:
+            return None
+        return self.cache_format % {
+            "scope": self.scope,
+            "ident": _fingerprint(value),
+        }
 
 
 class RegisterPhoneThrottle(PhoneRateThrottle):

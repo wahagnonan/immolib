@@ -214,6 +214,10 @@ def set_user_active_status(*, user, is_active: bool, admin, request=None) -> Non
     futures et invalide les sessions existantes. Aucune donnee n'est supprimee."""
     if user.id == admin.id:
         raise ValidationError(_("Vous ne pouvez pas suspendre votre propre compte."))
+    if user.role == "ADMIN":
+        raise ValidationError(
+            _("Un compte administrateur ne peut pas être suspendu par ce canal.")
+        )
     if user.is_active == is_active:
         raise ValidationError(
             _("Ce compte est deja %s.")

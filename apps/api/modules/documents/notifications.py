@@ -22,7 +22,7 @@ from modules.billing.models import RentCharge
 from modules.i18n.format import format_date, format_money
 
 from .models import NotificationDelivery, RentalDocument
-from .services import otp_code_for, sign_access_link
+from .services import sign_access_link
 
 
 logger = logging.getLogger(__name__)
@@ -120,31 +120,17 @@ def _build_notification_message(
         ):
             raise PermanentNotificationError(_("Le code de compte n'est plus actif."))
         from modules.accounts.models import AccountOtpChallenge
-        from modules.accounts.services import account_otp_code_for
 
-        code = account_otp_code_for(challenge)
-        if challenge.purpose == AccountOtpChallenge.Purpose.PASSWORD_RESET:
-            subject = _("Réinitialisation de votre mot de passe ImmoLib")
-            action = _("réinitialiser votre mot de passe")
-        elif challenge.purpose == AccountOtpChallenge.Purpose.EMAIL_VERIFICATION:
-            subject = _("Vérification de votre email ImmoLib")
-            action = _("vérifier votre adresse email")
-        else:
-            subject = _("Vérification de votre téléphone ImmoLib")
-            action = _("vérifier votre numéro de téléphone")
+        if not delivery.subject or not delivery.body:
+            raise PermanentNotificationError(
+                _("Le contenu du code de compte n’est plus disponible.")
+            )
         return NotificationMessage(
             delivery_id=str(delivery.id),
             channel=delivery.channel,
             destination=delivery.destination,
-            subject=subject,
-            body=_(
-                "Votre code ImmoLib pour {action} est {code}. "
-                "Il expire à {expires_at}. Ne le partagez avec personne."
-            ).format(
-                action=action,
-                code=code,
-                expires_at=timezone.localtime(challenge.expires_at).strftime("%H:%M"),
-            ),
+            subject=delivery.subject,
+            body=delivery.body,
             metadata={
                 "kind": delivery.kind,
                 "channel": delivery.channel,
@@ -366,16 +352,16 @@ def _build_notification_message(
             raise PermanentNotificationError(_("Le code OTP est introuvable."))
         if challenge.expires_at <= now or challenge.verified_at:
             raise PermanentNotificationError(_("Le code OTP n'est plus actif."))
-        code = otp_code_for(challenge)
+        if not delivery.subject or not delivery.body:
+            raise PermanentNotificationError(
+                _("Le contenu du code n’est plus disponible.")
+            )
         return NotificationMessage(
             delivery_id=str(delivery.id),
             channel=delivery.channel,
             destination=delivery.destination,
-            subject=_("Votre code de verification ImmoLib"),
-            body=_(
-                "Votre code ImmoLib est {code}. Il expire dans 10 minutes. "
-                "Ne le partagez avec personne."
-            ).format(code=code),
+            subject=delivery.subject,
+            body=delivery.body,
             metadata=metadata,
         )
 

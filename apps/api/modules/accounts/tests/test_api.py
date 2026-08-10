@@ -6,7 +6,6 @@ from rest_framework.test import APIClient, APITestCase
 from modules.documents.models import NotificationDelivery
 
 from ..models import AccountOtpChallenge
-from ..services import account_otp_code_for
 
 
 class AuthenticationApiTests(APITestCase):
@@ -135,7 +134,8 @@ class AuthenticationApiTests(APITestCase):
             AccountOtpChallenge.Purpose.EMAIL_VERIFICATION,
         )
         self.assertEqual(challenge.destination, "mariam@example.com")
-        self.assertEqual(response.data["otp_code"], account_otp_code_for(challenge))
+        self.assertRegex(response.data["otp_code"], r"^\d{6}$")
+        self.assertTrue(challenge.code_hash)
         self.assertTrue(
             NotificationDelivery.objects.filter(
                 account_challenge=challenge,
@@ -252,7 +252,8 @@ class AuthenticationApiTests(APITestCase):
 
         self.assertEqual(first.status_code, status.HTTP_200_OK)
         self.assertEqual(first.data["detail"], second.data["detail"])
-        self.assertEqual(first.data["otp_code"], second.data["otp_code"])
+        self.assertIn("otp_code", first.data)
+        self.assertNotIn("otp_code", second.data)
         self.assertEqual(AccountOtpChallenge.objects.filter(user=user).count(), 1)
         self.assertEqual(
             NotificationDelivery.objects.filter(account_challenge__user=user).count(),
@@ -282,7 +283,8 @@ class AuthenticationApiTests(APITestCase):
             user=self.user,
             purpose=AccountOtpChallenge.Purpose.PASSWORD_RESET,
         )
-        self.assertEqual(known.data["otp_code"], account_otp_code_for(challenge))
+        self.assertRegex(known.data["otp_code"], r"^\d{6}$")
+        self.assertTrue(challenge.code_hash)
 
         payload = {
             "phone": self.user.phone,
@@ -319,7 +321,7 @@ class AuthenticationApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @override_settings(ACCOUNT_OTP_MAX_ATTEMPTS=2)
+    @override_settings(ACCOUNT_OTP_MAX_ATTEMPTS=2, EXPOSE_TEST_OTP=True)
     def test_account_otp_is_consumed_after_attempt_limit(self):
         user = get_user_model().objects.create_user(
             phone="+2250500000904",
@@ -327,14 +329,14 @@ class AuthenticationApiTests(APITestCase):
             phone_verified_at=None,
         )
         token = self._csrf_token()
-        self.client.post(
+        requested = self.client.post(
             "/api/v1/auth/phone-verification/request/",
             {"phone": user.phone},
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )
         challenge = AccountOtpChallenge.objects.get(user=user)
-        correct_code = account_otp_code_for(challenge)
+        correct_code = requested.data["otp_code"]
         wrong_codes = [code for code in ("000000", "000001", "000002") if code != correct_code]
 
         for code in wrong_codes[:2]:

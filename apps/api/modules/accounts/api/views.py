@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 
 from ..models import AccountOtpChallenge
 from ..throttles import (
-    LoginPhoneThrottle,
+    LoginEmailThrottle,
     OtpConfirmPhoneThrottle,
     OtpRequestPhoneThrottle,
     PublicAuthIpThrottle,
@@ -26,10 +26,12 @@ from ..services import (
     INVALID_ACCOUNT_OTP_MESSAGE,
     InvalidAccountOtp,
     RegisterUserData,
-    account_otp_code_for,
     confirm_password_reset,
     confirm_email_verification,
     confirm_phone_verification,
+    login_is_locked,
+    record_login_failure,
+    record_login_success,
     register_user,
     request_account_otp,
 )
@@ -65,8 +67,9 @@ def _otp_request_payload(issue=None) -> dict:
         and issue is not None
         and issue.challenge.consumed_at is None
         and issue.challenge.expires_at > timezone.now()
+        and issue.code
     ):
-        payload["otp_code"] = account_otp_code_for(issue.challenge)
+        payload["otp_code"] = issue.code
     return payload
 
 
@@ -227,11 +230,19 @@ class PasswordResetConfirmView(APIView):
 class LoginView(APIView):
     permission_classes = (AllowAny,)
     authentication_classes = ()
-    throttle_classes = (PublicAuthIpThrottle, LoginPhoneThrottle)
+    throttle_classes = (PublicAuthIpThrottle, LoginEmailThrottle)
 
     def post(self, request: Request) -> Response:
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        if login_is_locked(email=serializer.validated_data["email"]):
+            raise ValidationError(
+                {
+                    "detail": _(
+                        "Trop de tentatives échouées. Réessayez dans quelques minutes."
+                    )
+                }
+            )
         user = (
             User.objects.filter(
                 email__iexact=serializer.validated_data["email"],
@@ -245,7 +256,9 @@ class LoginView(APIView):
                 password=serializer.validated_data["password"],
             )
         if user is None:
+            record_login_failure(email=serializer.validated_data["email"])
             raise ValidationError({"detail": _("Email ou mot de passe incorrect.")})
+        record_login_success(email=serializer.validated_data["email"])
         if not user.has_verified_contact:
             return Response(
                 {

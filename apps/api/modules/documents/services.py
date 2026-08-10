@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import timedelta
-from secrets import compare_digest
+from secrets import compare_digest, randbelow
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core import signing
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.crypto import salted_hmac
 from django.utils.translation import gettext_lazy as _
 
@@ -31,7 +31,7 @@ from .models import (
 
 LINK_SALT = "immolib.document-link.v1"
 GRANT_SALT = "immolib.document-grant.v1"
-OTP_SALT = "immolib.document-otp.v1"
+OTP_CODE_SALT = "immolib.document-otp-code.v2"
 OTP_LIFETIME_MINUTES = 10
 GRANT_LIFETIME_SECONDS = 24 * 60 * 60
 MAX_OTP_ATTEMPTS = 5
@@ -426,9 +426,14 @@ def prepare_manual_share(
     )
 
 
-def otp_code_for(challenge: OtpChallenge) -> str:
-    digest = salted_hmac(OTP_SALT, str(challenge.id)).hexdigest()
-    return f"{int(digest, 16) % 1_000_000:06d}"
+def _otp_code() -> str:
+    return f"{randbelow(1_000_000):06d}"
+
+
+def _otp_code_hash(challenge_id: str, code: str) -> str:
+    return salted_hmac(
+        OTP_CODE_SALT, f"{challenge_id}:{code.strip()}"
+    ).hexdigest()
 
 
 def _mask_destination(destination: str) -> str:
@@ -458,7 +463,7 @@ def request_document_otp(*, access_token: str, channel: str) -> OtpRequestResult
     if latest and latest.created_at > now - cooldown:
         return OtpRequestResult(
             challenge=latest,
-            code=otp_code_for(latest),
+            code="",
             masked_destination=_mask_destination(latest.destination),
             created=False,
         )
@@ -468,24 +473,36 @@ def request_document_otp(*, access_token: str, channel: str) -> OtpRequestResult
         verified_at__isnull=True,
         expires_at__gt=now,
     ).update(expires_at=now)
+    code = _otp_code()
     challenge = OtpChallenge.objects.create(
         access_link=link,
         channel=channel,
         destination=destination,
         expires_at=now + timedelta(minutes=OTP_LIFETIME_MINUTES),
     )
+    challenge.code_hash = _otp_code_hash(challenge.id, code)
+    challenge.save(update_fields=["code_hash"])
     recipient = link.document.rent_charge.lease.tenant.linked_user
+    language = resolve_language(user=recipient)
+    with translation.override(language):
+        subject = _("Votre code de verification ImmoLib")
+        body = _(
+            "Votre code ImmoLib est {code}. Il expire dans 10 minutes. "
+            "Ne le partagez avec personne."
+        ).format(code=code)
     NotificationDelivery.objects.create(
         access_link=link,
         otp_challenge=challenge,
         kind=NotificationDelivery.Kind.OTP,
         channel=channel,
         destination=destination,
-        language=resolve_language(user=recipient),
+        language=language,
+        subject=subject,
+        body=body,
     )
     return OtpRequestResult(
         challenge=challenge,
-        code=otp_code_for(challenge),
+        code=code,
         masked_destination=_mask_destination(destination),
         created=True,
     )
@@ -506,7 +523,9 @@ def verify_document_otp(*, challenge_id, code: str) -> str:
             or challenge.attempts >= MAX_OTP_ATTEMPTS
         ):
             raise ValidationError(_("Code invalide ou expire."))
-        if not compare_digest(otp_code_for(challenge), code.strip()):
+        if not challenge.code_hash or not compare_digest(
+            challenge.code_hash, _otp_code_hash(challenge.id, code)
+        ):
             challenge.attempts += 1
             update_fields = ["attempts"]
             if challenge.attempts >= MAX_OTP_ATTEMPTS:

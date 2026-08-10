@@ -258,7 +258,7 @@ class PublicDocumentAccessViewSet(viewsets.GenericViewSet):
             "masked_destination": result.masked_destination,
             "expires_at": result.challenge.expires_at,
         }
-        if settings.EXPOSE_TEST_OTP:
+        if settings.EXPOSE_TEST_OTP and result.code:
             response["otp_code"] = result.code
         response_status = (
             status.HTTP_201_CREATED if result.created else status.HTTP_200_OK

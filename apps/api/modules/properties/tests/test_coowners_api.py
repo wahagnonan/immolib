@@ -8,7 +8,6 @@ from rest_framework.test import APITestCase
 
 from modules.accounts.services import (
     RegisterUserData,
-    account_otp_code_for,
     confirm_phone_verification,
     register_user,
 )
@@ -107,7 +106,7 @@ class CoOwnerApiTests(APITestCase):
         self.assertEqual(invitation.status, CoOwnerInvitation.Status.PENDING)
         confirm_phone_verification(
             phone=user.phone,
-            code=account_otp_code_for(registration.otp_issue.challenge),
+            code=registration.otp_issue.code,
         )
         invitation.refresh_from_db()
         self.assertEqual(invitation.status, CoOwnerInvitation.Status.ACCEPTED)
@@ -133,7 +132,7 @@ class CoOwnerApiTests(APITestCase):
         user = registration.user
         confirm_phone_verification(
             phone=user.phone,
-            code=account_otp_code_for(registration.otp_issue.challenge),
+            code=registration.otp_issue.code,
         )
         invitation.refresh_from_db()
         self.assertEqual(invitation.status, CoOwnerInvitation.Status.PENDING)

@@ -1,9 +1,12 @@
+import secrets
 from dataclasses import dataclass
 from datetime import timedelta
+from hashlib import sha256
 from hmac import compare_digest
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -17,8 +20,33 @@ from .phones import normalize_e164
 
 
 User = get_user_model()
-ACCOUNT_OTP_SALT = "immolib.account-otp.v1"
+ACCOUNT_OTP_CODE_SALT = "immolib.account-otp-code.v2"
 INVALID_ACCOUNT_OTP_MESSAGE = _("Code invalide ou expiré.")
+
+
+def _login_lockout_key(email: str) -> str:
+    return "immolib.login-lockout:" + sha256(
+        email.strip().casefold().encode()
+    ).hexdigest()
+
+
+def login_is_locked(*, email: str) -> bool:
+    failures = cache.get(_login_lockout_key(email), 0)
+    return failures >= settings.LOGIN_LOCKOUT_MAX_ATTEMPTS
+
+
+def record_login_failure(*, email: str) -> None:
+    key = _login_lockout_key(email)
+    failures = cache.get(key, 0) + 1
+    if failures >= settings.LOGIN_LOCKOUT_MAX_ATTEMPTS:
+        timeout = settings.LOGIN_LOCKOUT_DURATION_SECONDS
+    else:
+        timeout = settings.LOGIN_LOCKOUT_WINDOW_SECONDS
+    cache.set(key, failures, timeout=timeout)
+
+
+def record_login_success(*, email: str) -> None:
+    cache.delete(_login_lockout_key(email))
 
 
 class InvalidAccountOtp(Exception):
@@ -39,6 +67,7 @@ class RegisterUserData:
 class AccountOtpIssue:
     challenge: AccountOtpChallenge
     created: bool
+    code: str = ""
 
 
 @dataclass(frozen=True)
@@ -48,10 +77,38 @@ class RegistrationResult:
     verification_channel: str
 
 
-def account_otp_code_for(challenge: AccountOtpChallenge) -> str:
-    value = f"{challenge.purpose}:{challenge.id}"
-    digest = salted_hmac(ACCOUNT_OTP_SALT, value).hexdigest()
-    return f"{int(digest, 16) % 1_000_000:06d}"
+def _account_otp_code() -> str:
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
+def _account_otp_code_hash(challenge_id: str, code: str) -> str:
+    return salted_hmac(
+        ACCOUNT_OTP_CODE_SALT, f"{challenge_id}:{code.strip()}"
+    ).hexdigest()
+
+
+def account_otp_message_content(
+    challenge: AccountOtpChallenge, code: str
+) -> tuple[str, str]:
+    """Sujet et corps figes a la mise en file de la notification."""
+    if challenge.purpose == AccountOtpChallenge.Purpose.PASSWORD_RESET:
+        subject = _("Réinitialisation de votre mot de passe ImmoLib")
+        action = _("réinitialiser votre mot de passe")
+    elif challenge.purpose == AccountOtpChallenge.Purpose.EMAIL_VERIFICATION:
+        subject = _("Vérification de votre email ImmoLib")
+        action = _("vérifier votre adresse email")
+    else:
+        subject = _("Vérification de votre téléphone ImmoLib")
+        action = _("vérifier votre numéro de téléphone")
+    body = _(
+        "Votre code ImmoLib pour {action} est {code}. "
+        "Il expire à {expires_at}. Ne le partagez avec personne."
+    ).format(
+        action=action,
+        code=code,
+        expires_at=timezone.localtime(challenge.expires_at).strftime("%H:%M"),
+    )
+    return subject, body
 
 
 def _otp_route(*, user, purpose: str) -> tuple[str, str]:
@@ -85,11 +142,14 @@ def issue_account_otp(*, user, purpose: str, now=None) -> AccountOtpIssue:
     if latest and latest.created_at > now - cooldown:
         return AccountOtpIssue(challenge=latest, created=False)
 
+    from django.utils import translation
+
     AccountOtpChallenge.objects.filter(
         user=locked_user,
         purpose=purpose,
         consumed_at__isnull=True,
     ).update(consumed_at=now)
+    code = _account_otp_code()
     challenge = AccountOtpChallenge.objects.create(
         user=locked_user,
         purpose=purpose,
@@ -97,25 +157,42 @@ def issue_account_otp(*, user, purpose: str, now=None) -> AccountOtpIssue:
         destination=_otp_route(user=locked_user, purpose=purpose)[1],
         expires_at=now + timedelta(seconds=settings.ACCOUNT_OTP_LIFETIME_SECONDS),
     )
+    challenge.code_hash = _account_otp_code_hash(challenge.id, code)
+    challenge.save(update_fields=["code_hash"])
+    language = resolve_language(user=locked_user)
+    with translation.override(language):
+        subject, body = account_otp_message_content(challenge, code)
     NotificationDelivery.objects.create(
         account_challenge=challenge,
         kind=NotificationDelivery.Kind.ACCOUNT_OTP,
         channel=challenge.channel,
         destination=challenge.destination,
-        language=resolve_language(user=locked_user),
+        language=language,
+        subject=subject,
+        body=body,
     )
     if settings.DEBUG:
         print(
             f"[IMMOLIB] OTP {challenge.purpose} envoye par {challenge.channel} "
-            f"a {challenge.destination}: {account_otp_code_for(challenge)}"
+            f"a {challenge.destination}: {code}"
         )
-    return AccountOtpIssue(challenge=challenge, created=True)
+    return AccountOtpIssue(challenge=challenge, created=True, code=code)
 
 
 @transaction.atomic
 def register_user(*, data: RegisterUserData) -> RegistrationResult:
     """Crée un compte public et réserve son éventuelle invitation locataire."""
 
+    phone = normalize_e164(data.phone)
+    email = data.email.strip().lower() if data.email else ""
+    if User.objects.filter(phone=phone).exists():
+        raise ValidationError(
+            {"phone": _("Un compte utilise déjà ce numéro de téléphone.")}
+        )
+    if email and User.objects.filter(email__iexact=email).exists():
+        raise ValidationError(
+            {"email": _("Un compte utilise déjà cette adresse email.")}
+        )
     try:
         tenant_invitation = None
         if data.tenant_invitation_token:
@@ -129,11 +206,11 @@ def register_user(*, data: RegisterUserData) -> RegistrationResult:
                 email=data.email,
             )
         user = User.objects.create_user(
-            phone=normalize_e164(data.phone),
+            phone=phone,
             password=data.password,
             first_name=data.first_name.strip(),
             last_name=data.last_name.strip(),
-            email=data.email.strip().lower(),
+            email=email,
             phone_verified_at=None,
         )
         if tenant_invitation is not None:
@@ -156,6 +233,10 @@ def register_user(*, data: RegisterUserData) -> RegistrationResult:
             verification_channel=verification_channel,
         )
     except IntegrityError as exc:
+        if email and User.objects.filter(email__iexact=email).exists():
+            raise ValidationError(
+                {"email": _("Un compte utilise déjà cette adresse email.")}
+            ) from exc
         raise ValidationError(
             {"phone": _("Un compte utilise déjà ce numéro de téléphone.")}
         ) from exc
@@ -209,7 +290,9 @@ def _consume_valid_account_otp(
             challenge.consumed_at = now
             challenge.save(update_fields=["consumed_at"])
             invalid = True
-        elif not compare_digest(account_otp_code_for(challenge), code.strip()):
+        elif not challenge.code_hash or not compare_digest(
+            challenge.code_hash, _account_otp_code_hash(challenge.id, code)
+        ):
             challenge.attempts += 1
             update_fields = ["attempts"]
             if challenge.attempts >= settings.ACCOUNT_OTP_MAX_ATTEMPTS:
@@ -280,6 +363,14 @@ def confirm_password_reset(*, phone: str, code: str, password: str):
         user = challenge.user
         user.set_password(password)
         user.save(update_fields=["password", "updated_at"])
+        from django.contrib.sessions.models import Session
+
+        for session in Session.objects.all():
+            try:
+                if session.get_decoded().get("_auth_user_id") == str(user.id):
+                    session.delete()
+            except Exception:
+                continue
         return user
 
     return _consume_valid_account_otp(

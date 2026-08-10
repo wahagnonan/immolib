@@ -155,6 +155,7 @@ class OtpChallenge(models.Model):
     attempts = models.PositiveSmallIntegerField(default=0)
     verified_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    code_hash = models.CharField(max_length=64, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -231,6 +232,8 @@ class NotificationDelivery(models.Model):
     kind = models.CharField(max_length=20, choices=Kind.choices)
     channel = models.CharField(max_length=16, choices=Channel.choices)
     destination = models.CharField(max_length=255)
+    subject = models.CharField(max_length=255, blank=True)
+    body = models.TextField(blank=True)
     language = models.CharField(
         "langue du destinataire",
         max_length=10,

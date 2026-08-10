@@ -8,6 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-local-development-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+if DEBUG is False and SECRET_KEY == "unsafe-local-development-key":
+    raise RuntimeError("DJANGO_SECRET_KEY est obligatoire en dehors du mode DEBUG.")
+IS_PRODUCTION = os.getenv("DJANGO_IS_PRODUCTION", "false").lower() == "true"
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
@@ -112,6 +115,8 @@ CSRF_TRUSTED_ORIGINS = tuple(
     if origin.strip()
 )
 EXPOSE_TEST_OTP = os.getenv("EXPOSE_TEST_OTP", "false").lower() == "true"
+if EXPOSE_TEST_OTP and not DEBUG:
+    raise RuntimeError("EXPOSE_TEST_OTP doit rester désactivé en dehors du mode DEBUG.")
 ACCOUNT_OTP_LIFETIME_SECONDS = int(
     os.getenv("IMMOLIB_ACCOUNT_OTP_LIFETIME_SECONDS", "600")
 )
@@ -119,6 +124,15 @@ ACCOUNT_OTP_COOLDOWN_SECONDS = int(
     os.getenv("IMMOLIB_ACCOUNT_OTP_COOLDOWN_SECONDS", "60")
 )
 ACCOUNT_OTP_MAX_ATTEMPTS = int(os.getenv("IMMOLIB_ACCOUNT_OTP_MAX_ATTEMPTS", "5"))
+LOGIN_LOCKOUT_MAX_ATTEMPTS = int(
+    os.getenv("IMMOLIB_LOGIN_LOCKOUT_MAX_ATTEMPTS", "10")
+)
+LOGIN_LOCKOUT_WINDOW_SECONDS = int(
+    os.getenv("IMMOLIB_LOGIN_LOCKOUT_WINDOW_SECONDS", "900")
+)
+LOGIN_LOCKOUT_DURATION_SECONDS = int(
+    os.getenv("IMMOLIB_LOGIN_LOCKOUT_DURATION_SECONDS", "300")
+)
 DOCUMENT_OTP_COOLDOWN_SECONDS = int(
     os.getenv("IMMOLIB_DOCUMENT_OTP_COOLDOWN_SECONDS", "60")
 )
@@ -257,6 +271,11 @@ PAYDUNYA_PRIVATE_KEY = os.getenv("PAYDUNYA_PRIVATE_KEY", "")
 PAYDUNYA_PUBLIC_KEY = os.getenv("PAYDUNYA_PUBLIC_KEY", "")
 PAYDUNYA_TOKEN = os.getenv("PAYDUNYA_TOKEN", "")
 PAYDUNYA_MODE = os.getenv("PAYDUNYA_MODE", "test")
+# Le mode pilote (activation immédiate sans paiement) n’est autorisé qu’en
+# développement ou lorsqu’il est explicitement activé en production.
+SUBSCRIPTIONS_PILOT_MODE = (
+    os.getenv("IMMOLIB_SUBSCRIPTIONS_PILOT_MODE", "false").lower() == "true"
+)
 PAYDUNYA_STORE_NAME = os.getenv("PAYDUNYA_STORE_NAME", "ImmoLib")
 PAYDUNYA_CALLBACK_URL = os.getenv(
     "PAYDUNYA_CALLBACK_URL",
@@ -269,6 +288,9 @@ COOKIE_SECURE = os.getenv("DJANGO_COOKIE_SECURE", str(not DEBUG)).lower() == "tr
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = COOKIE_SECURE
 SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_AGE = int(
+    os.getenv("DJANGO_SESSION_COOKIE_AGE_SECONDS", "604800")
+)
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = COOKIE_SECURE
 CSRF_COOKIE_SAMESITE = "Lax"

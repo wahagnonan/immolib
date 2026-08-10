@@ -11,6 +11,7 @@ def required(name: str) -> str:
 
 
 DEBUG = False
+IS_PRODUCTION = True
 SECRET_KEY = required("DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = [value.strip() for value in required("DJANGO_ALLOWED_HOSTS").split(",")]
 DATABASES["default"].update(  # noqa: F405

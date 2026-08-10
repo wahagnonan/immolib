@@ -87,6 +87,13 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ["phone"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["email"],
+                condition=models.Q(email__gt=""),
+                name="user_email_unique_nonempty",
+            )
+        ]
 
     def __str__(self) -> str:
         return self.get_full_name() or self.phone
@@ -121,6 +128,7 @@ class AccountOtpChallenge(models.Model):
     destination = models.CharField(max_length=255)
     expires_at = models.DateTimeField()
     attempts = models.PositiveSmallIntegerField(default=0)
+    code_hash = models.CharField(max_length=64, blank=True)
     verified_at = models.DateTimeField(null=True, blank=True)
     consumed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

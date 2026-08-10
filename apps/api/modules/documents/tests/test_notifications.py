@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from modules.billing.services import generate_monthly_charges
 from modules.accounts.models import AccountOtpChallenge
-from modules.accounts.services import account_otp_code_for, issue_account_otp
+from modules.accounts.services import issue_account_otp
 from modules.leases.services import (
     CreateLeaseData,
     CreateTenantData,
@@ -140,7 +140,7 @@ class NotificationProcessingTests(TestCase):
 
         self.assertEqual(delivery.kind, NotificationDelivery.Kind.ACCOUNT_OTP)
         self.assertEqual(delivery.channel, NotificationDelivery.Channel.SMS)
-        self.assertIn(account_otp_code_for(issue.challenge), message.body)
+        self.assertIn(issue.code, message.body)
         self.assertEqual(
             message.metadata["purpose"],
             AccountOtpChallenge.Purpose.PASSWORD_RESET,

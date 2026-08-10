@@ -276,6 +276,11 @@ def upgrade(user: User, plan_slug: str) -> UpgradeResult:
             transaction=transaction_record, redirect_url=redirect_url, activated=False
         )
 
+    if settings.IS_PRODUCTION and not settings.SUBSCRIPTIONS_PILOT_MODE:
+        raise ValidationError(
+            _("Le paiement en ligne n’est pas configuré pour ce compte.")
+        )
+
     transaction_record = SubscriptionTransaction.objects.create(
         user=user,
         plan=plan,

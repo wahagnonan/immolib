@@ -1,11 +1,16 @@
+import logging
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from modules.accounts.models import User
 
 from .. import paydunya
 from ..models import Subscription, SubscriptionPlan, SubscriptionTransaction
@@ -83,8 +88,18 @@ class UpgradeSubscriptionView(APIView):
         except DjangoValidationError as exc:
             raise ValidationError(exc.messages) from exc
         except paydunya.PayDunyaError as exc:
+            logger.warning(
+                "Echec PayDunya (checkout) pour l\u2019utilisateur %s : %s",
+                request.user.id,
+                exc,
+            )
             return Response(
-                {"detail": str(exc)}, status=status.HTTP_502_BAD_GATEWAY
+                {
+                    "detail": _(
+                        "Le paiement en ligne est momentanément indisponible."
+                    )
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
             )
         return Response(
             {
@@ -162,9 +177,10 @@ class PayDunyaWebhookView(APIView):
 class SubscriptionExpiryCheckView(APIView):
     """Point d'accès admin manuel (réutilisé par la commande Django)."""
 
-    permission_classes = (AllowAny,)
-    authentication_classes = ()
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request) -> Response:
+        if request.user.role != User.Role.ADMIN:
+            raise PermissionDenied(_("Réservé aux administrateurs ImmoLib."))
         count = check_subscription_expirations()
         return Response({"expired": count})
