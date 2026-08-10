@@ -112,7 +112,7 @@ class OfflinePaymentApiTests(APITestCase):
             "/api/v1/payments/", self._payload(uuid4()), format="json"
         )
 
-        self.assertEqual(list_response.data, [])
+        self.assertEqual(list_response.data["results"], [])
         self.assertEqual(create_response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_owner_cancels_payment_with_reason(self):

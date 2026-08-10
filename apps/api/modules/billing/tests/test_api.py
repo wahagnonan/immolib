@@ -65,7 +65,7 @@ class RentChargeApiTests(APITestCase):
         self.assertEqual(generate_response.status_code, status.HTTP_200_OK)
         self.assertEqual(generate_response.data["created"], 1)
         self.assertEqual(generate_response.data["charges"][0]["amount_due"], "75000.00")
-        self.assertEqual(len(list_response.data), 1)
+        self.assertEqual(len(list_response.data["results"]), 1)
 
     @patch("modules.billing.api.views.timezone.localdate")
     def test_outsider_cannot_generate_or_see_owner_charge(self, localdate):
@@ -87,7 +87,7 @@ class RentChargeApiTests(APITestCase):
 
         self.assertEqual(generate_response.data["created"], 0)
         self.assertEqual(generate_response.data["charges"], [])
-        self.assertEqual(list_response.data, [])
+        self.assertEqual(list_response.data["results"], [])
 
     def test_invalid_period_format_is_rejected(self):
         self.client.force_authenticate(self.owner)

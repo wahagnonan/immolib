@@ -2,13 +2,13 @@ from rest_framework.pagination import PageNumberPagination
 
 
 class LargeListPagination(PageNumberPagination):
-    """Pagination explicite, compatible avec les anciens clients non paginés."""
+    """Pagination systématique : toutes les listes sont bornées par défaut.
+
+    Les anciens clients passaient par un tableau brut quand aucun paramètre
+    ``page`` n'était fourni ; le frontend utilise désormais un dépaquetage
+    explicite de l'enveloppe ``{count, next, previous, results}``.
+    """
 
     page_size = 25
     page_size_query_param = "page_size"
     max_page_size = 100
-
-    def paginate_queryset(self, queryset, request, view=None):
-        if "page" not in request.query_params:
-            return None
-        return super().paginate_queryset(queryset, request, view=view)

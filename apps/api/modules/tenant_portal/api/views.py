@@ -12,6 +12,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from config.pagination import LargeListPagination
 from modules.billing.api.serializers import RentChargeSerializer
 from modules.billing.models import RentCharge
 from modules.documents.api.serializers import RentalDocumentSerializer
@@ -126,6 +127,7 @@ class TenantPortalOverviewView(APIView):
 class TenantPortalLeaseListView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = TenantPortalLeaseSerializer
+    pagination_class = LargeListPagination
 
     def get_queryset(self):
         queryset = tenant_leases_for(self.request.user)
@@ -138,6 +140,7 @@ class TenantPortalLeaseListView(generics.ListAPIView):
 class TenantPortalChargeListView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = RentChargeSerializer
+    pagination_class = LargeListPagination
 
     def get_queryset(self):
         queryset = tenant_rent_charges_for(self.request.user)
@@ -153,6 +156,7 @@ class TenantPortalChargeListView(generics.ListAPIView):
 class TenantPortalPaymentListView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = PaymentSerializer
+    pagination_class = LargeListPagination
 
     def get_queryset(self):
         queryset = tenant_payments_for(self.request.user)
@@ -206,6 +210,7 @@ class TenantPortalPaymentDisputeView(APIView):
 class TenantPortalDocumentListView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = RentalDocumentSerializer
+    pagination_class = LargeListPagination
 
     def get_queryset(self):
         queryset = tenant_documents_for(self.request.user)

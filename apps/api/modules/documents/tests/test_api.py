@@ -196,16 +196,16 @@ class PublicDocumentFlowApiTests(APITestCase):
 
         self.assertEqual(shared.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-        self.assertEqual({item["status"] for item in response.data}, {"SENT"})
-        self.assertEqual({item["attempt_count"] for item in response.data}, {1})
+        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual({item["status"] for item in response.data["results"]}, {"SENT"})
+        self.assertEqual({item["attempt_count"] for item in response.data["results"]}, {1})
         self.assertEqual(
-            {item["masked_destination"] for item in response.data},
+            {item["masked_destination"] for item in response.data["results"]},
             {"***0800", "al***@example.com"},
         )
         self.assertNotContains(response, "+2250500000800")
         self.assertTrue(
-            all(item["document_id"] == str(self.document.id) for item in response.data)
+            all(item["document_id"] == str(self.document.id) for item in response.data["results"])
         )
 
     def test_owner_prepares_manual_whatsapp_share_without_delivery(self):
@@ -237,7 +237,7 @@ class PublicDocumentFlowApiTests(APITestCase):
         response = self.client.get("/api/v1/notification-deliveries/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data["results"], [])
 
     def test_owner_downloads_document_pdf(self):
         self.client.force_authenticate(self.owner)

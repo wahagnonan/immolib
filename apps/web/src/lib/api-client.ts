@@ -181,6 +181,18 @@ async function apiFile(path: string, init?: RequestInit): Promise<Blob> {
   return response.blob();
 }
 
+function unwrapList<T>(data: PaginatedPage<T> | T[]): T[] {
+  return Array.isArray(data) ? data : data.results;
+}
+
+async function listRequest<T>(path: string): Promise<T[]> {
+  const separator = path.includes("?") ? "&" : "?";
+  const data = await apiRequest<PaginatedPage<T> | T[]>(
+    `${path}${separator}page=1&page_size=100`,
+  );
+  return unwrapList(data);
+}
+
 function queryString(values: Record<string, string | undefined>) {
   const params = new URLSearchParams();
   Object.entries(values).forEach(([key, value]) => {
@@ -191,7 +203,7 @@ function queryString(values: Record<string, string | undefined>) {
 }
 
 export function listHouses(): Promise<House[]> {
-  return apiRequest<House[]>("/houses/");
+  return listRequest<House>("/houses/");
 }
 
 export function createHouse(payload: CreateHousePayload): Promise<House> {
@@ -297,7 +309,7 @@ export async function logoutUser(): Promise<void> {
 }
 
 export function listCoOwners(houseId?: string): Promise<CoOwner[]> {
-  return apiRequest<CoOwner[]>(
+  return listRequest<CoOwner>(
     `/co-owners/${queryString({ house_id: houseId })}`,
   );
 }
@@ -306,7 +318,7 @@ export function listCoOwnerInvitations(filters?: {
   houseId?: string;
   status?: string;
 }): Promise<CoOwnerInvitation[]> {
-  return apiRequest<CoOwnerInvitation[]>(
+  return listRequest<CoOwnerInvitation>(
     `/co-owner-invitations/${queryString({
       house_id: filters?.houseId,
       status: filters?.status,
@@ -347,7 +359,7 @@ export function revokeCoOwnerInvitation(
 }
 
 export function listTenants(houseId?: string): Promise<Tenant[]> {
-  return apiRequest<Tenant[]>(`/tenants/${queryString({ house_id: houseId })}`);
+  return listRequest<Tenant>(`/tenants/${queryString({ house_id: houseId })}`);
 }
 
 export function createTenant(payload: CreateTenantPayload): Promise<Tenant> {
@@ -362,7 +374,7 @@ export function listTenantInvitations(filters?: {
   houseId?: string;
   status?: string;
 }): Promise<TenantInvitation[]> {
-  return apiRequest<TenantInvitation[]>(
+  return listRequest<TenantInvitation>(
     `/tenant-invitations/${queryString({
       tenant_id: filters?.tenantId,
       house_id: filters?.houseId,
@@ -426,7 +438,7 @@ export async function claimTenantInvitation(
 }
 
 export function listLeases(houseId?: string): Promise<Lease[]> {
-  return apiRequest<Lease[]>(`/leases/${queryString({ house_id: houseId })}`);
+  return listRequest<Lease>(`/leases/${queryString({ house_id: houseId })}`);
 }
 
 export function createLease(payload: CreateLeasePayload): Promise<Lease> {
@@ -449,7 +461,7 @@ export function listRentCharges(filters?: {
   leaseId?: string;
   period?: string;
 }): Promise<RentCharge[]> {
-  return apiRequest<RentCharge[]>(
+  return listRequest<RentCharge>(
     `/rent-charges/${queryString({
       house_id: filters?.houseId,
       lease_id: filters?.leaseId,
@@ -484,7 +496,7 @@ export function generateRentCharges(period: string): Promise<GenerateChargesResu
 }
 
 export function listLeaseObligations(leaseId?: string): Promise<RentCharge[]> {
-  return apiRequest<RentCharge[]>(
+  return listRequest<RentCharge>(
     `/lease-obligations/${queryString({
       lease_id: leaseId,
       unpaid_only: "true",
@@ -505,7 +517,7 @@ export function preparePaymentObligations(
 }
 
 export function listPayments(rentChargeId?: string): Promise<Payment[]> {
-  return apiRequest<Payment[]>(
+  return listRequest<Payment>(
     `/payments/${queryString({ rent_charge_id: rentChargeId })}`,
   );
 }
@@ -527,7 +539,7 @@ export function listPaymentsPage(filters?: {
 }
 
 export function listSecurityDeposits(): Promise<SecurityDeposit[]> {
-  return apiRequest<SecurityDeposit[]>("/security-deposits/");
+  return listRequest<SecurityDeposit>("/security-deposits/");
 }
 
 export function settleSecurityDeposit(
@@ -545,7 +557,7 @@ export function listMaintenanceIncidents(filters?: {
   status?: MaintenanceStatus;
   priority?: string;
 }): Promise<MaintenanceIncident[]> {
-  return apiRequest<MaintenanceIncident[]>(
+  return listRequest<MaintenanceIncident>(
     `/incidents/${queryString({
       house_id: filters?.houseId,
       status: filters?.status,
@@ -599,7 +611,7 @@ export function cancelPayment(id: string, reason: string): Promise<Payment> {
 }
 
 export function listPaymentMethods(): Promise<PaymentMethodAccount[]> {
-  return apiRequest<PaymentMethodAccount[]>("/payment-methods/");
+  return listRequest<PaymentMethodAccount>("/payment-methods/");
 }
 
 export function createPaymentMethod(
@@ -627,7 +639,7 @@ export function setDefaultPaymentMethod(id: string): Promise<PaymentMethodAccoun
 export function listLandlordPaymentRequests(
   status?: PaymentRequestStatus,
 ): Promise<PaymentRequest[]> {
-  return apiRequest<PaymentRequest[]>(
+  return listRequest<PaymentRequest>(
     `/payment-requests/${queryString({ status })}`,
   );
 }
@@ -635,7 +647,7 @@ export function listLandlordPaymentRequests(
 export function listMyPaymentRequests(
   status?: PaymentRequestStatus,
 ): Promise<PaymentRequest[]> {
-  return apiRequest<PaymentRequest[]>(
+  return listRequest<PaymentRequest>(
     `/payment-requests/my/${queryString({ status })}`,
   );
 }
@@ -684,15 +696,15 @@ export function getTenantPortalOverview(): Promise<TenantPortalOverview> {
 }
 
 export function listTenantPortalLeases(): Promise<TenantPortalLease[]> {
-  return apiRequest<TenantPortalLease[]>("/tenant-portal/leases/");
+  return listRequest<TenantPortalLease>("/tenant-portal/leases/");
 }
 
 export function listTenantPortalCharges(): Promise<RentCharge[]> {
-  return apiRequest<RentCharge[]>("/tenant-portal/charges/");
+  return listRequest<RentCharge>("/tenant-portal/charges/");
 }
 
 export function listTenantPortalPayments(): Promise<Payment[]> {
-  return apiRequest<Payment[]>("/tenant-portal/payments/");
+  return listRequest<Payment>("/tenant-portal/payments/");
 }
 
 export function confirmTenantPortalPayment(id: string): Promise<Payment> {
@@ -713,11 +725,11 @@ export function disputeTenantPortalPayment(
 }
 
 export function listTenantPortalDocuments(): Promise<RentalDocument[]> {
-  return apiRequest<RentalDocument[]>("/tenant-portal/documents/");
+  return listRequest<RentalDocument>("/tenant-portal/documents/");
 }
 
 export function listTenantPortalIncidents(): Promise<MaintenanceIncident[]> {
-  return apiRequest<MaintenanceIncident[]>("/tenant-portal/incidents/");
+  return listRequest<MaintenanceIncident>("/tenant-portal/incidents/");
 }
 
 export function createTenantPortalIncident(
@@ -761,7 +773,7 @@ export function downloadTenantPortalDocumentPdf(id: string): Promise<Blob> {
 }
 
 export function listDocuments(): Promise<RentalDocument[]> {
-  return apiRequest<RentalDocument[]>("/documents/");
+  return listRequest<RentalDocument>("/documents/");
 }
 
 export function listDocumentsPage(filters?: {
@@ -796,7 +808,7 @@ export function listNotificationDeliveries(filters?: {
   status?: NotificationDeliveryStatus;
   kind?: NotificationDeliveryKind;
 }): Promise<NotificationDelivery[]> {
-  return apiRequest<NotificationDelivery[]>(
+  return listRequest<NotificationDelivery>(
     `/notification-deliveries/${queryString({
       document_id: filters?.documentId,
       rent_charge_id: filters?.rentChargeId,
@@ -840,7 +852,7 @@ export function updateNotificationPreference(
 }
 
 export function listPushSubscriptions(): Promise<PushSubscription[]> {
-  return apiRequest<PushSubscription[]>("/push-subscriptions/");
+  return listRequest<PushSubscription>("/push-subscriptions/");
 }
 
 export function registerPushSubscription(
@@ -915,7 +927,7 @@ export function getSubscription(): Promise<SubscriptionDetail> {
 }
 
 export function listSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-  return apiRequest<SubscriptionPlan[]>("/subscription/plans/");
+  return listRequest<SubscriptionPlan>("/subscription/plans/");
 }
 
 export function upgradeSubscription(

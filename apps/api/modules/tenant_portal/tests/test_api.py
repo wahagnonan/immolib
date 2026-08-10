@@ -174,9 +174,9 @@ class TenantPortalApiTests(APITestCase):
         overview = self.client.get("/api/v1/tenant-portal/overview/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertNotEqual(response.data[0]["id"], str(draft.id))
-        self.assertEqual(response.data[0]["status"], Lease.Status.ACTIVE)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertNotEqual(response.data["results"][0]["id"], str(draft.id))
+        self.assertEqual(response.data["results"][0]["status"], Lease.Status.ACTIVE)
         self.assertEqual(len(overview.data["profiles"]), 1)
         self.assertEqual(
             overview.data["profiles"][0]["house"]["name"],
@@ -201,13 +201,13 @@ class TenantPortalApiTests(APITestCase):
         payments = self.client.get("/api/v1/tenant-portal/payments/")
         documents = self.client.get("/api/v1/tenant-portal/documents/")
 
-        self.assertEqual(len(charges.data), 1)
-        self.assertEqual(charges.data[0]["balance_due"], "65000.00")
-        self.assertEqual(len(payments.data), 1)
-        self.assertEqual(payments.data[0]["id"], str(self.payment.id))
-        self.assertEqual(len(documents.data), 1)
+        self.assertEqual(len(charges.data["results"]), 1)
+        self.assertEqual(charges.data["results"][0]["balance_due"], "65000.00")
+        self.assertEqual(len(payments.data["results"]), 1)
+        self.assertEqual(payments.data["results"][0]["id"], str(self.payment.id))
+        self.assertEqual(len(documents.data["results"]), 1)
         self.assertEqual(
-            documents.data[0]["document_type"],
+            documents.data["results"][0]["document_type"],
             RentalDocument.Type.PAYMENT_RECEIPT,
         )
 
@@ -263,7 +263,7 @@ class TenantPortalApiTests(APITestCase):
         )
 
         self.assertFalse(overview.data["has_profile"])
-        self.assertEqual(payments.data, [])
+        self.assertEqual(payments.data["results"], [])
         self.assertEqual(confirm.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_tenant_downloads_own_pdf_but_outsider_cannot(self):
@@ -291,4 +291,4 @@ class TenantPortalApiTests(APITestCase):
         payments = self.client.get("/api/v1/tenant-portal/payments/")
 
         self.assertFalse(overview.data["has_profile"])
-        self.assertEqual(payments.data, [])
+        self.assertEqual(payments.data["results"], [])
