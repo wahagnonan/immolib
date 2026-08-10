@@ -74,7 +74,7 @@ test.describe("Parcours complet : gestion locative", () => {
     await page.getByRole("button", { name: "Initier un paiement" }).click();
     await page
       .getByLabel("Échéance *")
-      .selectOption({ label: new RegExp(houseName) });
+      .selectOption({ label: houseName });
     await page
       .getByRole("button", { name: "Initier" })
       .click();

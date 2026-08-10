@@ -104,15 +104,19 @@ export function RentCollectionChart({
                 fontSize: 12,
               }}
               cursor={{ fill: "#f9f6f5" }}
-              formatter={(value, name) => [
+              formatter={(value: unknown, name: unknown) => [
                 formatMoney(Number(value ?? 0)),
                 name === "expected" ? "Attendu" : "Encaissé",
               ]}
-              labelFormatter={(_, payload) =>
-                payload[0]?.payload?.period
-                  ? monthLabel(payload[0].payload.period)
-                  : ""
-              }
+              labelFormatter={(
+                _: unknown,
+                payload: ReadonlyArray<{ payload?: unknown }>,
+              ) => {
+                const point = payload[0]?.payload as
+                  | { period?: string }
+                  | undefined;
+                return point?.period ? monthLabel(point.period) : "";
+              }}
             />
             <Bar
               dataKey="expected"
