@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "modules.payments",
     "modules.subscriptions",
     "modules.admin_panel",
+    "modules.whatsapp",
 ]
 
 MIDDLEWARE = [
@@ -162,6 +163,18 @@ NOTIFICATION_ADAPTERS = {
         SIMULATED_ADAPTER if DEBUG else "",
     ),
 }
+# WhatsApp Business Cloud API. WHATSAPP_WEBHOOK_VERIFY_TOKEN est le secret
+# saisi dans le dashboard Meta (champ "Vérifier le token") ; le handshake GET
+# ne réussit que s'il correspond. L'adaptateur d'envoi n'est actif que lorsque
+# WHATSAPP_ACCESS_TOKEN et WHATSAPP_PHONE_NUMBER_ID sont renseignés.
+WHATSAPP_WEBHOOK_VERIFY_TOKEN = os.getenv("WHATSAPP_WEBHOOK_VERIFY_TOKEN", "")
+WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
+WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
+WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION", "v24.0")
+WHATSAPP_GRAPH_BASE_URL = os.getenv(
+    "WHATSAPP_GRAPH_BASE_URL", "https://graph.facebook.com"
+)
+
 NOTIFICATION_MAX_ATTEMPTS = int(os.getenv("IMMOLIB_NOTIFICATION_MAX_ATTEMPTS", "3"))
 NOTIFICATION_RETRY_SECONDS = int(os.getenv("IMMOLIB_NOTIFICATION_RETRY_SECONDS", "60"))
 NOTIFICATION_PROCESSING_TIMEOUT_SECONDS = int(

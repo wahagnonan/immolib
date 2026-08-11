@@ -1,10 +1,15 @@
 from html import escape
+import json
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
 
-from modules.documents.notifications import DeliveryReceipt, NotificationMessage
+from modules.documents.notifications import (
+    DeliveryReceipt,
+    NotificationMessage,
+    PermanentNotificationError,
+)
 
 
 class AmazonSesEmailAdapter:
@@ -97,3 +102,31 @@ class FirebasePushAdapter:
 
     def send(self, message: NotificationMessage) -> DeliveryReceipt:
         return DeliveryReceipt(provider_reference=self.sender(message))
+
+
+class WhatsAppCloudApiAdapter:
+    """Envoie les messages ImmoLib (quittances, rappels, invitations) via
+    l'API WhatsApp Cloud. La destination est le numéro E.164 du locataire.
+    """
+
+    def __init__(self, *, client=None):
+        from modules.whatsapp.provider import (
+            WhatsAppCloudApiClient,
+            WhatsAppProviderPermanentError,
+        )
+
+        self._permanent_error = WhatsAppProviderPermanentError
+        self.client = client or WhatsAppCloudApiClient()
+
+    def send(self, message: NotificationMessage) -> DeliveryReceipt:
+        try:
+            response = self.client.send_text_message(
+                to=message.destination, body=message.body
+            )
+        except self._permanent_error as exc:
+            raise PermanentNotificationError(str(exc)) from exc
+        message_id = ""
+        messages = response.get("messages")
+        if messages:
+            message_id = messages[0].get("id", "")
+        return DeliveryReceipt(provider_reference=message_id)

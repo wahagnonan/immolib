@@ -29,6 +29,7 @@ from modules.properties.api.views import (
     CoOwnerViewSet,
     HouseViewSet,
 )
+from modules.whatsapp.api.views import WhatsAppWebhookView
 
 
 def health_check(request):
@@ -97,6 +98,11 @@ urlpatterns = [
         "api/v1/webhooks/mobile-money/",
         MobileMoneyWebhookView.as_view(),
         name="mobile-money-webhook",
+    ),
+    path(
+        "api/v1/webhooks/whatsapp/",
+        WhatsAppWebhookView.as_view(),
+        name="whatsapp-webhook",
     ),
     path(
         "api/v1/dashboard/overview/",
