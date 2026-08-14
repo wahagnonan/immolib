@@ -15,6 +15,7 @@ export default function robots(): MetadataRoute.Robots {
         "/documents/",
         "/echeances",
         "/espace-locataire",
+        "/exports",
         "/incidents",
         "/invitation-locataire/",
         "/locataires",

@@ -69,7 +69,18 @@ class ManualShareResult:
 
 
 def _document_reference(prefix: str, document_id) -> str:
-    return f"IMM-{prefix}-{timezone.localdate():%Y}-{document_id.hex[:12].upper()}"
+    """Génère une référence au format IMM-YYMMDDXXXX.
+    
+    IMM = ImmoLib
+    YY = année (2 derniers chiffres)
+    MM = mois
+    JJ = jour
+    XXXX = 4 chiffres aléatoires
+    """
+    import random
+    today = timezone.localdate()
+    random_part = f"{random.randint(0, 9999):04d}"
+    return f"IMM-{today:%y%m%d}{random_part}"
 
 
 def _primary_owner(charge: RentCharge) -> User:

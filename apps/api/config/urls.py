@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 
 from modules.billing.api.views import LeaseObligationViewSet, RentChargeViewSet
 from modules.billing.api.dashboard_views import DashboardOverviewView
+from modules.documents.api.export_views import ExportView
 from modules.documents.api.views import (
     NotificationDeliveryViewSet,
     PublicDocumentAccessViewSet,
@@ -87,6 +88,11 @@ urlpatterns = [
         "api/v1/dashboard/overview/",
         DashboardOverviewView.as_view(),
         name="dashboard-overview",
+    ),
+    path(
+        "api/v1/exports/",
+        ExportView.as_view(),
+        name="exports",
     ),
     path("api/v1/auth/", include("modules.accounts.api.urls")),
     path("api/v1/", include("modules.notifications.api.urls")),

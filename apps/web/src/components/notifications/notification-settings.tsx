@@ -23,8 +23,8 @@ import {
 import {
   disableBrowserPush,
   enableBrowserPush,
-  FIREBASE_PUSH_CONFIGURED,
-} from "@/lib/firebase-push";
+  isPushSupported,
+} from "@/lib/web-push";
 import type {
   DeliveryChannel,
   NotificationPreference,
@@ -249,15 +249,15 @@ export function NotificationSettings() {
             {preference.active_push_devices > 1 ? "s" : ""} actif
             {preference.active_push_devices > 1 ? "s" : ""}
           </p>
-          {!FIREBASE_PUSH_CONFIGURED ? (
+          {!isPushSupported() ? (
             <p className="mt-4 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
               <TriangleAlert aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
-              Ajoutez la configuration publique Firebase pour activer ce bouton.
+              Ce navigateur ne prend pas en charge les notifications push.
             </p>
           ) : null}
           <button
             className={pushActive ? "secondary-button mt-5" : "primary-button mt-5"}
-            disabled={saving || !FIREBASE_PUSH_CONFIGURED}
+            disabled={saving || !isPushSupported()}
             onClick={pushActive ? deactivatePush : activatePush}
             type="button"
           >

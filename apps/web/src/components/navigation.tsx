@@ -3,6 +3,7 @@
 import {
   Building2,
   FileCheck2,
+  FileSpreadsheet,
   Gauge,
   HandCoins,
   House,
@@ -28,6 +29,7 @@ const navigation = [
   { href: "/documents", label: "Documents", icon: Building2 },
   { href: "/incidents", label: "Incidents", icon: Wrench },
   { href: "/coproprietaires", label: "Copropriétaires", icon: UsersRound },
+  { href: "/exports", label: "Exporter", icon: FileSpreadsheet },
   { href: "/parametres/notifications", label: "Notifications", icon: Settings2 },
 ];
 

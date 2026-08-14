@@ -3,7 +3,9 @@ from pathlib import Path
 from decimal import Decimal
 from xml.sax.saxutils import escape
 
+import qrcode
 import reportlab
+from django.conf import settings
 from django.utils import timezone
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
@@ -13,6 +15,7 @@ from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
+    Image,
     KeepTogether,
     Paragraph,
     SimpleDocTemplate,
@@ -111,7 +114,7 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
         bottomMargin=20 * mm,
         title=f"{title} - {document.reference}",
         author="ImmoLib",
-        subject="Justificatif de gestion locative",
+        subject="Document de gestion locative ImmoLib",
     )
 
     styles = getSampleStyleSheet()
@@ -295,7 +298,7 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
 
     amount_table = Table(
         [[
-            Paragraph("MONTANT DOCUMENTÉ", ParagraphStyle("AmountLabel", parent=label, textColor=BRAND_DARK)),
+            Paragraph("MONTANT", ParagraphStyle("AmountLabel", parent=label, textColor=BRAND_DARK)),
             Paragraph(
                 _safe(_money_label(document.amount, document.currency)),
                 ParagraphStyle("Amount", parent=right, fontName=BOLD_FONT, fontSize=17, leading=21, textColor=INK),
@@ -321,7 +324,7 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
     if document.document_type == RentalDocument.Type.PAYMENT_RECEIPT and document.breakdown:
         breakdown_rows = [
             [
-                Paragraph("AFFECTATION", label),
+                Paragraph("DÉTAIL", label),
                 Paragraph("MONTANT", ParagraphStyle("BreakdownAmountLabel", parent=label, alignment=TA_RIGHT)),
             ]
         ]
@@ -360,23 +363,21 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
 
     if document.document_type == RentalDocument.Type.RENT_RECEIPT:
         statement = (
-            "Cette quittance atteste que l'échéance de loyer indiquée ci-dessus "
-            "a été entièrement soldée. Elle est distincte de chaque reçu émis "
-            "pour un versement partiel."
+            "Cette quittance confirme que le loyer de la période indiquée "
+            "a été entièrement réglé. Elle fait foi du solde complet "
+            "de l'échéance concernée."
         )
     elif document.document_type == RentalDocument.Type.DEPOSIT_RECEIPT:
         statement = (
-            "Ce reçu atteste du versement de la caution prévue au bail. Cette "
-            "somme reste distincte des loyers et son remboursement ou sa retenue "
-            "devra faire l'objet d'une opération traçable."
-        )
-    elif document.document_type == RentalDocument.Type.DEPOSIT_SETTLEMENT:
+            "Ce reçu confirme le versement de la caution prévue au bail. "
+            "Le sort de cette somme (remboursement, retenue ou affectation) "
+            "sera tracé dans un document séparé."
+        )    elif document.document_type == RentalDocument.Type.DEPOSIT_SETTLEMENT:
         detail = document.breakdown[0] if document.breakdown else {}
         statement = (
-            f"Ce relevé trace une opération de caution : "
+            f"Ce relevé enregistre une opération sur la caution : "
             f"{detail.get('label', 'libération de caution')}. "
-            "ImmoLib ne détient pas les fonds et enregistre la décision déclarée "
-            "par les parties."
+            "Les fonds restent entre les mains des parties."
         )
         if detail.get("reason"):
             statement += f" Motif : {detail['reason']}."
@@ -386,21 +387,33 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
             )
     else:
         statement = (
-            "Ce reçu atteste de l'enregistrement du versement indiqué ci-dessus. "
-            "Il ne constitue une quittance de loyer que si l'échéance concernée "
-            "est entièrement soldée."
+            "Ce reçu confirme l'enregistrement du versement indiqué. "
+            "Il atteste du paiement mais ne vaut quittance de loyer "
+            "que si l'échéance est entièrement soldée."
         )
 
+    # Générer le QR code vers la page de vérification publique
+    public_url = f"{getattr(settings, 'PUBLIC_APP_URL', 'https://immolib.com')}/verifier-quittance?reference={document.reference}"
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=4, border=1)
+    qr.add_data(public_url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    qr_buffer = BytesIO()
+    qr_img.save(qr_buffer, format="PNG")
+    qr_buffer.seek(0)
+    qr_image = Image(qr_buffer, width=22 * mm, height=22 * mm)
+
     verification_data = [
-        [Paragraph("VÉRIFICATION", label), Paragraph("", small)],
-        [Paragraph("Référence", small), Paragraph(_safe(document.reference), value)],
-        [Paragraph("Statut à l'émission du PDF", small), Paragraph(status_label, ParagraphStyle("VerificationStatus", parent=value, textColor=status_color))],
+        [Paragraph("VÉRIFICATION PUBLIQUE", label), Paragraph("", small), qr_image],
+        [Paragraph("Référence", small), Paragraph(_safe(document.reference), value), Paragraph("", small)],
+        [Paragraph("Statut", small), Paragraph(status_label, ParagraphStyle("VerificationStatus", parent=value, textColor=status_color)), Paragraph("", small)],
+        [Paragraph("Scanner pour vérifier", small), Paragraph("", small), Paragraph("", small)],
     ]
     if not active and document.void_reason:
         verification_data.append(
-            [Paragraph("Motif", small), Paragraph(_safe(document.void_reason), body)]
+            [Paragraph("Motif", small), Paragraph(_safe(document.void_reason), body), Paragraph("", small)]
         )
-    verification = Table(verification_data, colWidths=[56 * mm, 104 * mm])
+    verification = Table(verification_data, colWidths=[50 * mm, 50 * mm, 28 * mm])
     verification.setStyle(
         TableStyle(
             [
@@ -446,7 +459,7 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
         canvas.line(22 * mm, 14 * mm, A4[0] - 22 * mm, 14 * mm)
         canvas.setFont(REGULAR_FONT, 7)
         canvas.setFillColor(MUTED)
-        canvas.drawString(22 * mm, 9.5 * mm, "Document généré par ImmoLib")
+        canvas.drawString(22 * mm, 9.5 * mm, "ImmoLib — Gestion locative")
         canvas.drawRightString(
             A4[0] - 22 * mm,
             9.5 * mm,
