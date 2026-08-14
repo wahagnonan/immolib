@@ -11,6 +11,7 @@ from modules.documents.api.views import (
     PublicDocumentAccessViewSet,
     RentalDocumentViewSet,
 )
+from modules.subscriptions.api.views import PayDunyaWebhookView
 from modules.leases.api.views import (
     LeaseViewSet,
     PublicTenantInvitationViewSet,
@@ -94,6 +95,12 @@ urlpatterns = [
         ExportView.as_view(),
         name="exports",
     ),
+    path(
+        "api/v1/webhooks/paydunya/",
+        PayDunyaWebhookView.as_view(),
+        name="paydunya-webhook",
+    ),
+    path("api/v1/subscriptions/", include("modules.subscriptions.api.urls")),
     path("api/v1/auth/", include("modules.accounts.api.urls")),
     path("api/v1/", include("modules.notifications.api.urls")),
     path("api/v1/tenant-portal/", include("modules.tenant_portal.api.urls")),

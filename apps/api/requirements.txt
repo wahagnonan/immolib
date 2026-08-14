@@ -6,3 +6,4 @@ boto3>=1.35,<2
 firebase-admin>=6.6,<8
 gunicorn>=23,<24
 qrcode[pil]>=7.4,<8
+paydunya>=1.0,<2

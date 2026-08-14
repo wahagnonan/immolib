@@ -2,6 +2,7 @@
 
 import {
   Building2,
+  CreditCard,
   FileCheck2,
   FileSpreadsheet,
   Gauge,
@@ -30,6 +31,7 @@ const navigation = [
   { href: "/incidents", label: "Incidents", icon: Wrench },
   { href: "/coproprietaires", label: "Copropriétaires", icon: UsersRound },
   { href: "/exports", label: "Exporter", icon: FileSpreadsheet },
+  { href: "/abonnement", label: "Abonnement", icon: CreditCard },
   { href: "/parametres/notifications", label: "Notifications", icon: Settings2 },
 ];
 
