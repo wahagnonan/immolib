@@ -40,7 +40,7 @@ class MaintenanceIncident(models.Model):
         Property,
         on_delete=models.PROTECT,
         related_name="maintenance_incidents",
-        verbose_name="maison",
+        verbose_name="bien",
     )
     lease = models.ForeignKey(
         Lease,
@@ -104,7 +104,7 @@ class MaintenanceIncident(models.Model):
         if self.lease_id and self.property_id:
             if self.lease.property_id != self.property_id:
                 raise ValidationError(
-                    {"property": "La maison doit correspondre au bail."}
+                    {"property": "Le bien doit correspondre au bail."}
                 )
         if self.lease_id and self.tenant_id:
             if self.lease.tenant_id != self.tenant_id:

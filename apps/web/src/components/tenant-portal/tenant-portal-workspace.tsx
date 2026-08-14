@@ -387,7 +387,7 @@ export function TenantPortalWorkspace() {
 
       <section className="scroll-mt-28" id="location">
         <div className="mb-4">
-          <p className="section-kicker">Contrat et maison</p>
+          <p className="section-kicker">Contrat et bien</p>
           <h2 className="section-title">Ma location</h2>
         </div>
         <div className="grid gap-4 xl:grid-cols-2">
@@ -454,7 +454,7 @@ export function TenantPortalWorkspace() {
               <thead>
                 <tr>
                   <th>Période</th>
-                  <th>Maison</th>
+                  <th>Bien</th>
                   <th>Échéance</th>
                   <th>Statut</th>
                   <th className="text-right">Payé</th>
@@ -511,7 +511,7 @@ export function TenantPortalWorkspace() {
                       <span className={`status-pill ${paymentStatusStyle[payment.status]}`}>{payment.status_label}</span>
                     </div>
                     <p className="mt-2 text-sm text-muted">
-                      {payment.method_label} · {charge?.house_name ?? "Maison"} · {payment.allocations[0] ? monthLabel(payment.allocations[0].period) : "Période non précisée"}
+                      {payment.method_label} · {charge?.house_name ?? "Bien"} · {payment.allocations[0] ? monthLabel(payment.allocations[0].period) : "Période non précisée"}
                     </p>
                     <p className="mt-1 text-xs text-muted">
                       Déclaré le {formatDateTime(payment.received_at)}

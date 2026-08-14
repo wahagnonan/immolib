@@ -31,7 +31,7 @@ UPGRADE_PLANS = {
 
 
 class HouseLimitReached(Exception):
-    """Limite de maisons du plan atteinte."""
+    """Limite de biens du plan atteinte."""
 
     def __init__(
         self,
@@ -47,11 +47,11 @@ class HouseLimitReached(Exception):
         self.next_plan_slug = next_plan_slug
         self.next_plan_name = next_plan_name
         self.next_plan_limit = next_plan_limit
-        house_word = "maison" if limit == 1 else "maisons"
+        house_word = "bien" if limit == 1 else "biens"
         message = f"Vous avez atteint la limite de {limit} {house_word} de votre forfait {plan_name}."
         if next_plan_name and next_plan_limit:
             message += (
-                f" Passez à {next_plan_name} pour gérer jusqu'à {next_plan_limit} maisons."
+                f" Passez à {next_plan_name} pour gérer jusqu'à {next_plan_limit} biens."
             )
         super().__init__(message)
 

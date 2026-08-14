@@ -545,7 +545,7 @@ export function PaymentWorkspace({
           <table className="data-table min-w-[1020px]">
             <thead>
               <tr>
-                <th>Maison et locataire</th>
+                <th>Bien et locataire</th>
                 <th>Affectations</th>
                 <th>Moyen</th>
                 <th>Reçu le</th>
@@ -573,7 +573,7 @@ export function PaymentWorkspace({
                   <tr key={payment.id}>
                     <td>
                       <p className="font-bold text-ink">
-                        {obligation?.house_name ?? "Maison"}
+                        {obligation?.house_name ?? "Bien"}
                       </p>
                       <p className="mt-1 text-xs">
                         {obligation?.tenant_name ?? "Locataire"}
@@ -785,10 +785,10 @@ export function PaymentWorkspace({
                 required
                 value={form.lease_id}
               >
-                <option value="">Sélectionner une maison et un locataire</option>
+                <option value="">Sélectionner un bien et un locataire</option>
                 {leases.map((lease) => (
                   <option key={lease.id} value={lease.id}>
-                    {housesById.get(lease.house_id)?.name ?? "Maison"} —{" "}
+                    {housesById.get(lease.house_id)?.name ?? "Bien"} —{" "}
                     {lease.tenant.full_name}
                   </option>
                 ))}

@@ -144,7 +144,7 @@ export function ChargeWorkspace() {
             <table className="data-table min-w-[880px]">
               <thead>
                 <tr>
-                  <th>Maison et locataire</th>
+                  <th>Bien et locataire</th>
                   <th>Échéance</th>
                   <th>Progression</th>
                   <th>Statut</th>

@@ -21,7 +21,7 @@ import { useState } from "react";
 
 const navigation = [
   { href: "/tableau-de-bord", label: "Tableau de bord", icon: Gauge },
-  { href: "/maisons", label: "Maisons", icon: House },
+  { href: "/maisons", label: "Biens", icon: House },
   { href: "/locataires", label: "Locataires", icon: Users },
   { href: "/baux", label: "Baux", icon: FileCheck2 },
   { href: "/echeances", label: "Échéances", icon: ReceiptText },

@@ -163,8 +163,8 @@ export function AdminDashboardWorkspace() {
           Immobilier
         </h2>
         <div className="mt-3 grid grid-cols-2 gap-4 lg:grid-cols-3">
-          <MetricCard icon={<House aria-hidden="true" size={19} />} label="Maisons enregistrées" value={metrics.houses.total} />
-          <MetricCard icon={<House aria-hidden="true" size={19} />} label="Maisons occupées" value={metrics.houses.occupied} />
+          <MetricCard icon={<House aria-hidden="true" size={19} />} label="Biens enregistrés" value={metrics.houses.total} />
+          <MetricCard icon={<House aria-hidden="true" size={19} />} label="Biens occupés" value={metrics.houses.occupied} />
           <MetricCard icon={<House aria-hidden="true" size={19} />} label="Ajoutées (7 j)" value={metrics.houses.recent_7d} />
         </div>
       </section>
@@ -276,7 +276,7 @@ export function AdminDashboardWorkspace() {
           <div className="panel">
             <div className="panel-heading">
               <div>
-                <h3 className="section-title">Maisons ajoutées</h3>
+                <h3 className="section-title">Biens ajoutés</h3>
                 <p className="mt-1 text-xs text-muted">Sur les 30 derniers jours</p>
               </div>
             </div>
@@ -285,7 +285,7 @@ export function AdminDashboardWorkspace() {
                 data={housesSeries}
                 dataKey="count"
                 color="#4f5049"
-                label="Maisons ajoutées"
+                label="Biens ajoutés"
               />
             </div>
           </div>

@@ -60,7 +60,7 @@ TENANT_INVITATION_SALT = "immolib.tenant-invitation.v1"
 
 def _assert_can_manage(*, actor: User, property: Property) -> None:
     if not manageable_properties_for(actor).filter(id=property.id).exists():
-        raise PermissionDenied(_("Tu ne peux pas modifier cette maison."))
+        raise PermissionDenied(_("Tu ne peux pas modifier ce bien."))
 
 
 def _emails_match(first: str, second: str) -> bool:
@@ -164,8 +164,8 @@ def _invitation_message(
     )
     subject = _("Invitation à rejoindre ImmoLib")
     message = _(
-        "Bonjour {tenant}, {owner} vous invite à rejoindre ImmoLib pour la "
-        "maison {house}. Créez ou rattachez votre compte ici : {url} "
+        "Bonjour {tenant}, {owner} vous invite à rejoindre ImmoLib pour le "
+        "bien {house}. Créez ou rattachez votre compte ici : {url} "
         "(invitation valable jusqu'au {expires_at})."
     ).format(
         tenant=invitation.tenant.full_name,
@@ -477,11 +477,11 @@ def activate_lease(*, actor: User, lease: Lease) -> Lease:
     if lease.status != Lease.Status.DRAFT:
         raise ValidationError(_("Seul un bail brouillon peut etre active."))
     if lease.property.status == Property.Status.UNAVAILABLE:
-        raise ValidationError(_("Une maison indisponible ne peut pas etre louee."))
+        raise ValidationError(_("Un bien indisponible ne peut pas etre loue."))
     if Lease.objects.filter(
         property=lease.property, status=Lease.Status.ACTIVE
     ).exists():
-        raise ValidationError(_("Cette maison possede deja un bail actif."))
+        raise ValidationError(_("Ce bien possede deja un bail actif."))
 
     lease.status = Lease.Status.ACTIVE
     lease.activated_at = timezone.now()
@@ -494,7 +494,7 @@ def activate_lease(*, actor: User, lease: Lease) -> Lease:
 
 @transaction.atomic
 def close_lease(*, actor: User, lease: Lease) -> Lease:
-    """Termine immediatement un bail actif et libere la maison."""
+    """Termine immediatement un bail actif et libere le bien."""
 
     lease = Lease.objects.select_for_update().select_related("property").get(id=lease.id)
     _assert_can_manage(actor=actor, property=lease.property)

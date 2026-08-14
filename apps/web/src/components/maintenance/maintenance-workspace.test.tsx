@@ -62,7 +62,8 @@ const mockLeases: Lease[] = [
 const mockHouses: House[] = [
   {
     id: "h1", name: "Villa Lauriers", address: "Rue 12", commune: "Cocody",
-    city: "Abidjan", landmark: "", status: "OCCUPIED", status_label: "Occupée",
+    city: "Abidjan", landmark: "", property_type: "HOUSE", property_type_label: "Maison",
+    status: "OCCUPIED", status_label: "Occupée",
     ownerships: [], created_at: "2025-01-01T00:00:00Z", updated_at: "2025-01-01T00:00:00Z",
   },
 ];

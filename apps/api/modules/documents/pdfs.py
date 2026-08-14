@@ -265,7 +265,7 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
                 field("Locataire", document.tenant_name),
             ],
             [
-                field("Maison", document.house_name, document.house_address),
+                field("Bien", document.house_name, document.house_address),
                 field(
                     "Période",
                     f"Du {_date_label(document.period_start)}",

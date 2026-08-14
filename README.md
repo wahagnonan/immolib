@@ -149,7 +149,7 @@ POST /api/v1/documents/{id}/manual-share/ Partage depuis l'appareil du bailleur
 GET  /api/v1/documents/{id}/pdf/     PDF pour un bailleur autorise
 GET  /api/v1/notification-deliveries/  Suivi des messages autorises
 GET/PATCH /api/v1/notification-preferences/ Preferences du compte
-GET/POST/DELETE /api/v1/push-subscriptions/ Appareils Firebase autorises
+GET/POST/DELETE /api/v1/push-subscriptions/ Abonnements Web Push autorises
 POST /api/v1/public-access/request-otp/       Demande d'OTP
 POST /api/v1/public-access/verify-otp/        Verification d'OTP
 POST /api/v1/public-access/view-document/     Consultation sans compte
@@ -224,8 +224,14 @@ python manage.py process_notifications --simulate --limit 50
 
 Le mode simulation ne contacte personne. Sans `--simulate`, aucun message ne
 quitte la file tant qu'un adaptateur reel n'est pas configure pour son canal.
-L'email reel utilise `AmazonSesEmailAdapter`; le push utilise
-`FirebasePushAdapter`. Les identifiants AWS et Firebase restent hors du depot.
+L'email reel utilise `AmazonSesEmailAdapter`; le push utilise par defaut
+`WebPushVapidAdapter` (protocole Web Push standard avec cles VAPID, sans compte
+externe), avec `FirebasePushAdapter` comme alternative. Le SMS reel utilise
+`OrangeSmsAdapter` (API Orange SMS Cote d'Ivoire, OAuth 2.0) : les accuses de
+reception sont recus sur `/api/v1/webhooks/sms/orange/delivery-receipts/` et
+portent les messages vers `DELIVERED`/`FAILED`, avec le cout estime par
+segment trace (`SmsSendRecord`). Les identifiants AWS, les cles VAPID et les
+credentials Orange restent hors du depot.
 L'ecran Documents affiche les etats en attente, en cours, envoye ou en echec,
 ainsi que les tentatives et les destinations masquees.
 

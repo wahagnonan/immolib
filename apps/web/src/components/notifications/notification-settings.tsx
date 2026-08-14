@@ -23,8 +23,8 @@ import {
 import {
   disableBrowserPush,
   enableBrowserPush,
-  FIREBASE_PUSH_CONFIGURED,
-} from "@/lib/firebase-push";
+  WEB_PUSH_CONFIGURED,
+} from "@/lib/web-push";
 import type {
   DeliveryChannel,
   NotificationPreference,
@@ -234,9 +234,10 @@ export function NotificationSettings() {
                 <BellRing aria-hidden="true" size={21} />
               </span>
               <div>
-                <h2 className="font-bold text-ink">Push Firebase</h2>
+                <h2 className="font-bold text-ink">Push navigateur (Web Push)</h2>
                 <p className="mt-1 text-sm leading-6 text-muted">
-                  Gratuit et immédiat après autorisation du navigateur.
+                  Gratuit et immédiat après autorisation du navigateur, sans
+                  compte externe.
                 </p>
               </div>
             </div>
@@ -249,15 +250,15 @@ export function NotificationSettings() {
             {preference.active_push_devices > 1 ? "s" : ""} actif
             {preference.active_push_devices > 1 ? "s" : ""}
           </p>
-          {!FIREBASE_PUSH_CONFIGURED ? (
+          {!WEB_PUSH_CONFIGURED ? (
             <p className="mt-4 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
               <TriangleAlert aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
-              Ajoutez la configuration publique Firebase pour activer ce bouton.
+              Ajoutez la clé publique VAPID pour activer ce bouton.
             </p>
           ) : null}
           <button
             className={pushActive ? "secondary-button mt-5" : "primary-button mt-5"}
-            disabled={saving || !FIREBASE_PUSH_CONFIGURED}
+            disabled={saving || !WEB_PUSH_CONFIGURED}
             onClick={pushActive ? deactivatePush : activatePush}
             type="button"
           >

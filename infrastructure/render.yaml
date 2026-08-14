@@ -1,0 +1,93 @@
+# Blueprint Render pour le test ImmoLib (branche prod-01)
+#
+# Depuis le tableau de bord Render : "New" > "Blueprint" > choisir le repo
+# github.com/wahagnonan/immolib > branche prod-01. Render lit ce fichier.
+#
+# Apres le premier deploiement :
+# 1. Renseigner DJANGO_SECRET_KEY (valeur de infrastructure/production.env).
+# 2. Lancer un "Manual Deploy" de immolib-api pour appliquer le secret.
+# 3. Le fichier /admin/ demande un compte : shell du service api
+#    (ou commande create_admin) puis se connecter au back-office.
+
+databases:
+  - name: immolib-db
+    databaseName: immolib
+    user: immolib
+    plan: free
+    ipAllowList: []
+
+services:
+  - type: web
+    name: immolib-api
+    runtime: docker
+    repo: https://github.com/wahagnonan/immolib
+    branch: prod-01
+    rootDir: apps/api
+    plan: free
+    healthCheckPath: /health/
+    dockerCommand: >-
+      sh -c "python manage.py migrate &&
+      gunicorn config.wsgi:application --bind 0.0.0.0:8000
+      --workers 1 --timeout 120"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings_production
+      - key: DJANGO_ALLOWED_HOSTS
+        value: immolib-api.onrender.com,immolib-web.onrender.com
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        value: https://immolib-web.onrender.com
+      - key: PUBLIC_APP_URL
+        value: https://immolib-web.onrender.com
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        value: BKhYp_Vv8CnS2dHESDNC0NgMGYqk9dCzgcjWevHq1SXPP-BtA9QZ8tGleWeEQh_ugNYjtQbELapddA807oWHmH8
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: IMMOLIB_PUSH_NOTIFICATION_ADAPTER
+        value: modules.notifications.adapters.WebPushVapidAdapter
+      - key: EXPOSE_TEST_OTP
+        value: "false"
+      - key: IMMOLIB_SUBSCRIPTIONS_PILOT_MODE
+        value: "false"
+      - key: WHATSAPP_WEBHOOK_VERIFY_TOKEN
+        sync: false
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: IMMOLIB_SMS_NOTIFICATION_ADAPTER
+        value: modules.sms.adapters.OrangeSmsAdapter
+      - key: ORANGE_SMS_CLIENT_ID
+        sync: false
+      - key: ORANGE_SMS_CLIENT_SECRET
+        sync: false
+      - key: ORANGE_SMS_SENDER_ADDRESS
+        value: tel:+2250000
+      - key: ORANGE_SMS_SENDER_NAME
+        value: IMMOLIB
+      - key: ORANGE_SMS_DR_ALLOWED_IPS
+        sync: false
+      - key: IMMOLIB_SMS_RATE_PER_SECOND
+        value: "5"
+      - key: ORANGE_SMS_COST_PER_SEGMENT_XOF
+        value: "10"
+      - fromDatabase:
+          name: immolib-db
+          property: connectionString
+        key: DATABASE_URL
+
+  - type: web
+    name: immolib-web
+    runtime: docker
+    repo: https://github.com/wahagnonan/immolib
+    branch: prod-01
+    rootDir: apps/web
+    plan: free
+    healthCheckPath: /
+    dockerfileBuildArgs:
+      NEXT_PUBLIC_API_URL: /backend
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: BKhYp_Vv8CnS2dHESDNC0NgMGYqk9dCzgcjWevHq1SXPP-BtA9QZ8tGleWeEQh_ugNYjtQbELapddA807oWHmH8
+    envVars:
+      - key: API_INTERNAL_URL
+        value: https://immolib-api.onrender.com

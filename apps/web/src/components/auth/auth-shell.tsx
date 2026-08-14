@@ -6,8 +6,8 @@ import { Brand } from "@/components/brand";
 const assurances = [
   {
     icon: House,
-    title: "Pensé pour les maisons",
-    text: "ImmoLib reste volontairement concentré sur la gestion de maisons.",
+    title: "Pensé pour les biens",
+    text: "ImmoLib reste volontairement concentré sur la gestion de biens immobiliers.",
   },
   {
     icon: ShieldCheck,
@@ -52,11 +52,11 @@ export function AuthShell({
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] text-ink xl:text-5xl xl:leading-[1.05]">
             {isTenant
               ? "Vos quittances et paiements, au même endroit."
-              : "Vos maisons, vos loyers, une vue claire."}
+              : "Vos biens, vos loyers, une vue claire."}
           </h2>
           <p className="mt-5 max-w-lg text-base leading-7 text-muted">
             {isTenant
-              ? "Rejoignez la maison enregistrée par votre bailleur avec un compte sécurisé."
+              ? "Rejoignez le bien enregistré par votre bailleur avec un compte sécurisé."
               : "ImmoLib rassemble les baux, échéances, paiements et quittances sans rendre la gestion compliquée."}
           </p>
           <div className="mt-10 divide-y divide-line border-y border-line">

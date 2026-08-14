@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 
 from .settings import *  # noqa: F403
 
@@ -10,12 +11,21 @@ def required(name: str) -> str:
     return value
 
 
-DEBUG = False
-IS_PRODUCTION = True
-SECRET_KEY = required("DJANGO_SECRET_KEY")
-ALLOWED_HOSTS = [value.strip() for value in required("DJANGO_ALLOWED_HOSTS").split(",")]
-DATABASES["default"].update(  # noqa: F405
-    {
+def database_config() -> dict:
+    database_url = os.getenv("DATABASE_URL", "").strip()
+    if database_url:
+        parsed = urlparse(database_url)
+        return {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": parsed.path.lstrip("/"),
+            "USER": parsed.username,
+            "PASSWORD": parsed.password,
+            "HOST": parsed.hostname,
+            "PORT": parsed.port or "5432",
+            "CONN_MAX_AGE": 60,
+            "CONN_HEALTH_CHECKS": True,
+        }
+    return {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": required("POSTGRES_DB"),
         "USER": required("POSTGRES_USER"),
@@ -25,7 +35,13 @@ DATABASES["default"].update(  # noqa: F405
         "CONN_MAX_AGE": 60,
         "CONN_HEALTH_CHECKS": True,
     }
-)
+
+
+DEBUG = False
+IS_PRODUCTION = True
+SECRET_KEY = required("DJANGO_SECRET_KEY")
+ALLOWED_HOSTS = [value.strip() for value in required("DJANGO_ALLOWED_HOSTS").split(",")]
+DATABASES["default"].update(database_config())  # noqa: F405
 
 SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "true").lower() == "true"
 SECURE_HSTS_SECONDS = int(os.getenv("DJANGO_SECURE_HSTS_SECONDS", "31536000"))
@@ -37,3 +53,12 @@ CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 STATIC_ROOT = BASE_DIR / "staticfiles"  # noqa: F405
+
+# WhiteNoise sert les fichiers statiques collectes (admin, PWA) sans serveur externe.
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
+STORAGES = {  # noqa: F405
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    },
+}

@@ -120,9 +120,9 @@ describe("SubscriptionWorkspace", () => {
     expect(screen.getAllByText("Gratuit").length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText("Essentiel")).toBeInTheDocument();
     expect(screen.getByText("Pro")).toBeInTheDocument();
-    expect(screen.getByText("1 maison incluse")).toBeInTheDocument();
+    expect(screen.getByText("1 bien inclus")).toBeInTheDocument();
     expect(
-      screen.getByText("Quota atteint : passez au plan supérieur pour ajouter des maisons."),
+      screen.getByText("Quota atteint : passez au plan supérieur pour ajouter des biens."),
     ).toBeInTheDocument();
     expect(screen.getByText("Passer à Essentiel")).toBeInTheDocument();
   });
@@ -157,7 +157,7 @@ describe("SubscriptionWorkspace", () => {
     expect(
       await screen.findByText(/Bienvenue sur le plan Essentiel/),
     ).toBeInTheDocument();
-    expect(await screen.findByText("5 maisons incluses")).toBeInTheDocument();
+    expect(await screen.findByText("5 biens inclus")).toBeInTheDocument();
   });
 
   it("redirige vers PayDunya quand un redirect_url est renvoyé", async () => {

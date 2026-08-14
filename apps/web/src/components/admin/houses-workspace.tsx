@@ -59,9 +59,9 @@ export function AdminHousesWorkspace() {
     <div className="space-y-5">
       <div>
         <p className="eyebrow">Administration</p>
-        <h1 className="page-title">Maisons</h1>
+        <h1 className="page-title">Biens</h1>
         <p className="mt-1 text-sm text-muted">
-          Toutes les maisons enregistrées sur ImmoLib, tous propriétaires confondus.
+          Tous les biens enregistrés sur ImmoLib, tous propriétaires confondus.
         </p>
       </div>
 
@@ -116,14 +116,14 @@ export function AdminHousesWorkspace() {
         </div>
 
         {loading ? (
-          <AdminLoading label="Chargement des maisons…" />
+          <AdminLoading label="Chargement des biens…" />
         ) : error ? (
           <div className="p-5">
             <AdminError message={error} onRetry={load} />
           </div>
         ) : !data || data.results.length === 0 ? (
           <div className="p-5">
-            <AdminEmpty label="Aucune maison ne correspond à ces filtres." />
+            <AdminEmpty label="Aucun bien ne correspond à ces filtres." />
           </div>
         ) : (
           <>
@@ -131,7 +131,7 @@ export function AdminHousesWorkspace() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th scope="col">Maison</th>
+                    <th scope="col">Bien</th>
                     <th scope="col">Propriétaire</th>
                     <th scope="col">Type</th>
                     <th scope="col">Locataire actif</th>

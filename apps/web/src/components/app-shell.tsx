@@ -100,7 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="hidden lg:block">
               <p className="text-sm font-semibold text-ink">Gestion locative</p>
-              <p className="text-xs text-muted">Maisons et locations</p>
+              <p className="text-xs text-muted">Biens et locations</p>
             </div>
             <div className="flex items-center gap-2">
               <Link

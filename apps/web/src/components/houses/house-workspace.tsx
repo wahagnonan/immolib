@@ -14,7 +14,12 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { ApiError, createHouse, listHouses } from "@/lib/api-client";
-import type { CreateHousePayload, House, HouseStatus } from "@/types/domain";
+import type {
+  CreateHousePayload,
+  House,
+  HouseStatus,
+  PropertyType,
+} from "@/types/domain";
 
 const STATUS_STYLE: Record<HouseStatus, string> = {
   OCCUPIED: "status-paid",
@@ -22,12 +27,20 @@ const STATUS_STYLE: Record<HouseStatus, string> = {
   UNAVAILABLE: "bg-zinc-100 text-zinc-700",
 };
 
+const PROPERTY_TYPE_OPTIONS: { value: PropertyType; label: string }[] = [
+  { value: "HOUSE", label: "Maison" },
+  { value: "APARTMENT", label: "Appartement" },
+  { value: "LAND", label: "Terrain" },
+  { value: "COMMERCIAL", label: "Local commercial" },
+];
+
 const EMPTY_FORM: CreateHousePayload = {
   name: "",
   address: "",
   city: "Abidjan",
   commune: "",
   landmark: "",
+  property_type: "HOUSE",
 };
 
 export function HouseWorkspace() {
@@ -49,7 +62,7 @@ export function HouseWorkspace() {
         setError(
           caughtError instanceof Error
             ? caughtError.message
-            : "Impossible de charger les maisons.",
+            : "Impossible de charger les biens.",
         ),
       )
       .finally(() => setLoading(false));
@@ -91,7 +104,7 @@ export function HouseWorkspace() {
       setHouses((current) => [house, ...current]);
       setForm(EMPTY_FORM);
       setFormOpen(false);
-      setFeedback("Maison ajoutée avec succès.");
+        setFeedback("Bien ajouté avec succès.");
     } catch (caughtError) {
       setLimitReached(
         caughtError instanceof ApiError &&
@@ -100,7 +113,7 @@ export function HouseWorkspace() {
       setError(
         caughtError instanceof Error
           ? caughtError.message
-          : "Impossible d’ajouter cette maison pour le moment.",
+          : "Impossible d’ajouter ce bien pour le moment.",
       );
     } finally {
       setSaving(false);
@@ -112,9 +125,9 @@ export function HouseWorkspace() {
       <section className="flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
         <div>
           <p className="eyebrow">Patrimoine</p>
-          <h1 className="page-title">Mes maisons</h1>
+          <h1 className="page-title">Mes biens</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted sm:text-base">
-            Une maison devient le point de départ de tout le reste : copropriétaires,
+            Un bien devient le point de départ de tout le reste : copropriétaires,
             locataire, bail, échéances et quittances.
           </p>
         </div>
@@ -128,7 +141,7 @@ export function HouseWorkspace() {
           type="button"
         >
           <HousePlus aria-hidden="true" size={18} />
-          Nouvelle maison
+          Nouveau bien
         </button>
       </section>
 
@@ -139,7 +152,7 @@ export function HouseWorkspace() {
         </div>
       ) : null}
 
-      <section aria-label="Résumé des maisons" className="grid gap-3 sm:grid-cols-3">
+      <section aria-label="Résumé des biens" className="grid gap-3 sm:grid-cols-3">
         <div className="panel p-4">
           <p className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Total</p>
           <p className="mt-1 text-2xl font-bold tracking-[-0.04em] text-ink">{houses.length}</p>
@@ -159,7 +172,7 @@ export function HouseWorkspace() {
       <section className="panel overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-line p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <label className="relative block w-full sm:max-w-sm">
-            <span className="sr-only">Rechercher une maison</span>
+            <span className="sr-only">Rechercher un bien</span>
             <Search
               aria-hidden="true"
               className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
@@ -190,7 +203,7 @@ export function HouseWorkspace() {
 
         {loading ? (
           <div className="px-5 py-16 text-center">
-            <p className="font-bold text-ink">Chargement des maisons…</p>
+            <p className="font-bold text-ink">Chargement des biens…</p>
           </div>
         ) : filteredHouses.length ? (
           <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-2 2xl:grid-cols-3">
@@ -210,6 +223,9 @@ export function HouseWorkspace() {
                 <h2 className="mt-5 text-lg font-bold tracking-[-0.02em] text-ink">
                   {house.name}
                 </h2>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.1em] text-muted">
+                  {house.property_type_label}
+                </p>
                 <p className="mt-2 flex items-start gap-2 text-sm leading-5 text-muted">
                   <MapPin aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
                   <span>
@@ -241,12 +257,12 @@ export function HouseWorkspace() {
         ) : (
           <div className="px-5 py-16 text-center">
             <p className="font-bold text-ink">
-              {houses.length ? "Aucune maison trouvée" : "Aucune maison enregistrée"}
+              {houses.length ? "Aucun bien trouvé" : "Aucun bien enregistré"}
             </p>
             <p className="mt-1 text-sm text-muted">
               {houses.length
                 ? "Modifiez votre recherche ou le filtre."
-                : "Ajoutez votre première maison pour commencer la gestion locative."}
+                : "Ajoutez votre premier bien pour commencer la gestion locative."}
             </p>
           </div>
         )}
@@ -264,7 +280,7 @@ export function HouseWorkspace() {
               <div>
                 <p className="section-kicker">Étape 1</p>
                 <h2 className="section-title" id="new-house-title">
-                  Créer une maison
+                  Créer un bien
                 </h2>
               </div>
               <button
@@ -280,12 +296,28 @@ export function HouseWorkspace() {
 
             <form className="p-5 sm:p-6" onSubmit={handleSubmit}>
               <p className="mb-6 text-sm leading-6 text-muted">
-                Seules les maisons sont disponibles pour le moment. Le créateur devient
-                automatiquement propriétaire principal avec un accès actif.
+                Le créateur devient automatiquement propriétaire principal avec un
+                accès actif.
               </p>
               <div className="grid gap-5 sm:grid-cols-2">
                 <label className="sm:col-span-2">
-                  <span className="form-label">Nom de la maison *</span>
+                  <span className="form-label">Type de bien *</span>
+                  <select
+                    className="form-input"
+                    onChange={(event) =>
+                      updateField("property_type", event.target.value as PropertyType)
+                    }
+                    value={form.property_type}
+                  >
+                    {PROPERTY_TYPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="sm:col-span-2">
+                  <span className="form-label">Nom du bien *</span>
                   <input
                     autoFocus
                     className="form-input"
@@ -361,7 +393,7 @@ export function HouseWorkspace() {
                 </button>
                 <button className="primary-button" disabled={saving} type="submit">
                   <HousePlus aria-hidden="true" size={18} />
-                  {saving ? "Enregistrement…" : "Créer la maison"}
+                  {saving ? "Enregistrement…" : "Créer le bien"}
                 </button>
               </div>
             </form>

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
 import { siteDescription, siteUrl } from "@/lib/site";
 
 import "./globals.css";
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
     "quittance de loyer",
     "bailleur",
     "locataire",
-    "maison",
+    "bien immobilier",
     "loyer",
     "Côte d’Ivoire",
   ],
@@ -76,6 +77,7 @@ export default function RootLayout({
           Aller au contenu principal
         </a>
         <AuthProvider>{children}</AuthProvider>
+        <RegisterServiceWorker />
       </body>
     </html>
   );

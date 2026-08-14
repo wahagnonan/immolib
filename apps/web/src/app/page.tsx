@@ -35,7 +35,7 @@ const capabilities = [
     number: "01",
     title: "Vous savez exactement qui doit quoi",
     description:
-      "Les échéances mensuelles sont reliées au bail, au locataire et à la maison. Le solde restant est visible sans refaire les calculs.",
+      "Les échéances mensuelles sont reliées au bail, au locataire et au bien. Le solde restant est visible sans refaire les calculs.",
     items: ["Échéances mensuelles", "Retards identifiables", "Historique conservé"],
   },
   {
@@ -58,14 +58,14 @@ const plans = [
   {
     name: "Gratuit",
     price: "0 FCFA",
-    limit: "1 maison",
+    limit: "1 bien",
     description: "Pour tester ImmoLib sur une première location.",
     features: ["Loyers, cautions et avances", "Documents vérifiables", "Partage manuel"],
   },
   {
     name: "Essentiel",
     price: "2 000 FCFA",
-    limit: "Jusqu'à 5 maisons",
+    limit: "Jusqu'à 5 biens",
     description: "Pour automatiser le suivi courant d'un petit patrimoine.",
     features: ["Rappels de paiement mensuels", "Copropriétaires", "Email et notifications push", "Historique complet"],
     highlighted: true,
@@ -73,7 +73,7 @@ const plans = [
   {
     name: "Pro",
     price: "4 000 FCFA",
-    limit: "Jusqu'à 15 maisons",
+    limit: "Jusqu'à 15 biens",
     description: "Pour un bailleur qui pilote plusieurs locations.",
     features: ["Rappels automatisés", "Exports et rapports", "Statistiques avancées", "Assistance prioritaire"],
   },
@@ -150,7 +150,7 @@ export default function LandingPage() {
             <div>
               <div className="mb-7 flex w-fit items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink">
                 <span className="size-2 rounded-full bg-brand" />
-                Gestion locative pensée pour les maisons
+                Gestion locative pensée pour les biens
               </div>
               <h1 className="max-w-3xl text-[2.75rem] font-semibold leading-[1.02] tracking-[-0.06em] text-ink sm:text-6xl lg:text-[4.35rem]">
                 Gérez vos locations avec des faits, pas des souvenirs.
@@ -162,7 +162,7 @@ export default function LandingPage() {
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link className="primary-button px-5" href="/inscription">
-                  Ajouter ma première maison
+                  Ajouter mon premier bien
                   <ArrowRight aria-hidden="true" size={17} />
                 </Link>
                 <a className="secondary-button px-5" href="#services">
@@ -213,7 +213,7 @@ export default function LandingPage() {
                     <p className="mt-2 text-[10px] text-muted">Historique vérifiable</p>
                   </div>
                   <div className="rounded-[11px] border border-line p-4">
-                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted">Maisons</p>
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted">Biens</p>
                     <p className="mt-2 text-lg font-semibold text-ink">Organisées</p>
                     <p className="mt-2 text-[10px] text-muted">Un dossier par bien</p>
                   </div>
@@ -349,7 +349,7 @@ export default function LandingPage() {
               <div>
                 <p className="eyebrow">Un démarrage guidé</p>
                 <h2 className="text-3xl font-semibold tracking-[-0.045em] text-ink sm:text-4xl">
-                  De la maison à la première quittance.
+                  Du bien à la première quittance.
                 </h2>
                 <p className="mt-4 max-w-lg text-sm leading-7 text-muted">
                   Vous construisez le dossier dans l’ordre naturel de la
@@ -362,7 +362,7 @@ export default function LandingPage() {
               </div>
               <ol className="divide-y divide-line border-y border-line">
                 {[
-                  ["1", "Ajoutez la maison", "Adresse, repère et éventuels copropriétaires."],
+                  ["1", "Ajoutez le bien", "Adresse, repère et éventuels copropriétaires."],
                   ["2", "Créez le bail", "Locataire, montant, date et moyens de paiement."],
                   ["3", "Suivez chaque mois", "Échéance, paiement, reçu et quittance restent liés."],
                 ].map(([number, title, description]) => (
@@ -390,7 +390,7 @@ export default function LandingPage() {
               Pour le bailleur
             </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-ink">
-              Une vision nette de chaque maison.
+              Une vision nette de chaque bien.
             </h2>
             <p className="mt-4 text-sm leading-7 text-muted">
               Voyez ce qui est attendu, reçu, contesté ou en retard. Partagez
@@ -430,7 +430,7 @@ export default function LandingPage() {
                 </h2>
               </div>
               <p className="max-w-2xl text-sm leading-7 text-muted lg:pt-7">
-                L’abonnement dépend du nombre de maisons actives, jamais du
+                L’abonnement dépend du nombre de biens actifs, jamais du
                 montant du loyer. Les SMS et les messages WhatsApp automatisés
                 resteront des options à la consommation afin d’éviter de
                 gonfler le prix de base.
@@ -537,14 +537,14 @@ export default function LandingPage() {
         <section className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-7 sm:py-28">
           <FileCheck2 className="mx-auto text-brand" size={28} />
           <h2 className="mt-6 text-4xl font-semibold tracking-[-0.05em] text-ink sm:text-5xl">
-            Commencez par une maison. Gardez une gestion claire en grandissant.
+            Commencez par un bien. Gardez une gestion claire en grandissant.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-muted">
             Créez votre espace et posez une base propre pour les prochains
             loyers, documents et échanges avec le locataire.
           </p>
           <Link className="primary-button mt-8 px-6" href="/inscription">
-            Ajouter ma première maison
+            Ajouter mon premier bien
             <ArrowRight size={17} />
           </Link>
         </section>
@@ -555,7 +555,7 @@ export default function LandingPage() {
           <div>
             <Brand />
             <p className="mt-4 max-w-sm text-sm leading-6 text-muted">
-              Gestion locative claire pour les maisons, leurs bailleurs et leurs
+              Gestion locative claire pour les biens, leurs bailleurs et leurs
               locataires.
             </p>
           </div>

@@ -117,7 +117,7 @@ export function DashboardWorkspace() {
             locations.
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted sm:text-base">
-            Suivez les loyers, les échéances et les documents de vos maisons en un
+            Suivez les loyers, les échéances et les documents de vos biens en un
             seul endroit.
           </p>
         </div>
@@ -128,7 +128,7 @@ export function DashboardWorkspace() {
           </button>
           <Link className="primary-button w-fit" href="/maisons">
             <House aria-hidden="true" size={18} />
-            Ajouter une maison
+            Ajouter un bien
           </Link>
         </div>
       </section>
@@ -165,9 +165,9 @@ export function DashboardWorkspace() {
 
             <article className="metric-card">
               <div className="metric-icon"><House aria-hidden="true" size={19} /></div>
-              <p className="metric-label">Maisons occupées</p>
+              <p className="metric-label">Biens occupés</p>
               <p className="metric-value">{overview.houses.occupied} / {overview.houses.total}</p>
-              <p className="metric-detail text-muted">{overview.houses.vacant ? `${overview.houses.vacant} maison(s) disponible(s)` : overview.houses.total ? "Toutes les maisons sont occupées" : "Ajoutez votre première maison"}</p>
+              <p className="metric-detail text-muted">{overview.houses.vacant ? `${overview.houses.vacant} bien(s) disponible(s)` : overview.houses.total ? "Tous les biens sont occupés" : "Ajoutez votre premier bien"}</p>
             </article>
           </section>
 
@@ -182,7 +182,7 @@ export function DashboardWorkspace() {
                 </p>
                 <p className="mt-1 text-sm leading-5 text-muted">
                   {user?.subscription
-                    ? `${user.subscription.house_count} maison${user.subscription.house_count > 1 ? "s" : ""} sur ${user.subscription.max_houses ?? "—"} incluse${(user.subscription.max_houses ?? 1) > 1 ? "s" : ""}`
+                    ? `${user.subscription.house_count} bien${user.subscription.house_count > 1 ? "s" : ""} sur ${user.subscription.max_houses ?? "—"} inclus${(user.subscription.max_houses ?? 1) > 1 ? "s" : ""}`
                     : "Abonnement non disponible"}
                 </p>
               </div>
@@ -206,7 +206,7 @@ export function DashboardWorkspace() {
               <h2 className="section-title">Actions rapides</h2>
               <div className="mt-5 space-y-2">
                 <Link className="action-row" href="/paiements"><span className="action-icon"><WalletCards aria-hidden="true" size={18} /></span><span className="min-w-0 flex-1"><span className="block font-semibold text-ink">Enregistrer un paiement</span><span className="mt-0.5 block text-sm text-muted">Espèces ou virement</span></span><ArrowRight aria-hidden="true" className="text-muted" size={17} /></Link>
-                <Link className="action-row" href="/baux"><span className="action-icon"><ReceiptText aria-hidden="true" size={18} /></span><span className="min-w-0 flex-1"><span className="block font-semibold text-ink">Créer un bail</span><span className="mt-0.5 block text-sm text-muted">Associer maison et locataire</span></span><ArrowRight aria-hidden="true" className="text-muted" size={17} /></Link>
+                <Link className="action-row" href="/baux"><span className="action-icon"><ReceiptText aria-hidden="true" size={18} /></span><span className="min-w-0 flex-1"><span className="block font-semibold text-ink">Créer un bail</span><span className="mt-0.5 block text-sm text-muted">Associer bien et locataire</span></span><ArrowRight aria-hidden="true" className="text-muted" size={17} /></Link>
                 <Link className="action-row" href="/documents"><span className="action-icon"><BadgeCheck aria-hidden="true" size={18} /></span><span className="min-w-0 flex-1"><span className="block font-semibold text-ink">Voir les quittances</span><span className="mt-0.5 block text-sm text-muted">Documents prêts à envoyer</span></span><ArrowRight aria-hidden="true" className="text-muted" size={17} /></Link>
               </div>
             </aside>
@@ -240,14 +240,14 @@ export function DashboardWorkspace() {
             {recentPayments.length ? (
               <div className="overflow-x-auto">
                 <table className="data-table min-w-[820px]">
-                  <thead><tr><th>Locataire</th><th>Maison</th><th>Moyen</th><th>Statut</th><th>Date</th><th className="text-right">Montant</th></tr></thead>
+                  <thead><tr><th>Locataire</th><th>Bien</th><th>Moyen</th><th>Statut</th><th>Date</th><th className="text-right">Montant</th></tr></thead>
                   <tbody>
                     {recentPayments.map((payment) => {
                       const allocation = payment.allocations[0];
                       return (
                         <tr key={payment.id}>
                           <td className="font-semibold text-ink">{allocation?.tenant_name ?? "Locataire non retrouvé"}</td>
-                          <td>{allocation?.house_name ?? "Maison non retrouvée"}</td>
+                          <td>{allocation?.house_name ?? "Bien non retrouvé"}</td>
                           <td>{payment.method_label}</td>
                           <td><span className={`status-pill ${paymentStatusStyle[payment.status]}`}>{payment.status_label}</span></td>
                           <td>{formatDate(payment.received_at)}</td>

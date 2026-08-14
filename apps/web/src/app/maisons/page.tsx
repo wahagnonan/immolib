@@ -4,7 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { HouseWorkspace } from "@/components/houses/house-workspace";
 
 export const metadata: Metadata = {
-  title: "Maisons",
+  title: "Biens",
 };
 
 export default function HousesPage() {

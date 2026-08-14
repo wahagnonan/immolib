@@ -242,7 +242,7 @@ class HouseLimitApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data["code"], "HOUSE_LIMIT_REACHED")
         self.assertEqual(response.data["required_plan"], "essential")
-        self.assertIn("limite de 1 maison", response.data["detail"])
+        self.assertIn("limite de 1 bien", response.data["detail"])
 
     def test_essential_allows_up_to_five_houses(self):
         self.client.post(

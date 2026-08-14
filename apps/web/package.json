@@ -24,7 +24,6 @@
     "security:audit": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
-    "firebase": "^12.16.0",
     "i18n-iso-countries": "^7.14.0",
     "libphonenumber-js": "^1.13.10",
     "lucide-react": "^1.25.0",

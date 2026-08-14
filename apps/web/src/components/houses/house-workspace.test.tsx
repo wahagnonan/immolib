@@ -17,7 +17,8 @@ import type { House } from "@/types/domain";
 const mockHouses: House[] = [
   {
     id: "1", name: "Villa des Lauriers", address: "Rue 12", commune: "Cocody",
-    city: "Abidjan", landmark: "Près du marché", status: "OCCUPIED", status_label: "Occupée",
+    city: "Abidjan", landmark: "Près du marché", property_type: "HOUSE", property_type_label: "Maison",
+    status: "OCCUPIED", status_label: "Occupée",
     ownerships: [{ id: "o1", user: { id: "u1", phone: "+22507000000", full_name: "Jean" },
       role: "PRIMARY", role_label: "Principal", access_level: "ACTIVE", access_level_label: "Actif",
       ownership_percentage: null }],
@@ -25,12 +26,14 @@ const mockHouses: House[] = [
   },
   {
     id: "2", name: "Résidence les Fleurs", address: "Avenue 5", commune: "Plateau",
-    city: "Abidjan", landmark: "", status: "VACANT", status_label: "Vacante",
+    city: "Abidjan", landmark: "", property_type: "APARTMENT", property_type_label: "Appartement",
+    status: "VACANT", status_label: "Vacante",
     ownerships: [], created_at: "2025-01-02T00:00:00Z", updated_at: "2025-01-02T00:00:00Z",
   },
   {
     id: "3", name: "Studio Indisponible", address: "Rue 8", commune: "Marcory",
-    city: "Abidjan", landmark: "", status: "UNAVAILABLE", status_label: "Indisponible",
+    city: "Abidjan", landmark: "", property_type: "HOUSE", property_type_label: "Maison",
+    status: "UNAVAILABLE", status_label: "Indisponible",
     ownerships: [], created_at: "2025-01-03T00:00:00Z", updated_at: "2025-01-03T00:00:00Z",
   },
 ];
@@ -44,7 +47,7 @@ describe("HouseWorkspace", () => {
   it("renders loading state initially", () => {
     vi.mocked(listHouses).mockImplementation(() => new Promise(() => {}));
     render(<HouseWorkspace />);
-    expect(screen.getByText("Chargement des maisons…")).toBeInTheDocument();
+    expect(screen.getByText("Chargement des biens…")).toBeInTheDocument();
   });
 
   it("renders houses after loading", async () => {
@@ -85,7 +88,7 @@ describe("HouseWorkspace", () => {
     await screen.findByText("Villa des Lauriers");
 
     await user.type(screen.getByPlaceholderText("Nom, commune, ville…"), "Inexistant");
-    expect(screen.getByText("Aucune maison trouvée")).toBeInTheDocument();
+    expect(screen.getByText("Aucun bien trouvé")).toBeInTheDocument();
   });
 
   it("opens creation form on button click", async () => {
@@ -93,8 +96,8 @@ describe("HouseWorkspace", () => {
     render(<HouseWorkspace />);
     await screen.findByText("Villa des Lauriers");
 
-    await user.click(screen.getByText("Nouvelle maison"));
-    expect(screen.getByText("Créer une maison")).toBeInTheDocument();
+    await user.click(screen.getByText("Nouveau bien"));
+    expect(screen.getByText("Créer un bien")).toBeInTheDocument();
   });
 
   it("closes creation form on cancel", async () => {
@@ -102,16 +105,17 @@ describe("HouseWorkspace", () => {
     render(<HouseWorkspace />);
     await screen.findByText("Villa des Lauriers");
 
-    await user.click(screen.getByText("Nouvelle maison"));
+    await user.click(screen.getByText("Nouveau bien"));
     await user.click(screen.getByText("Annuler"));
-    expect(screen.queryByText("Créer une maison")).not.toBeInTheDocument();
+    expect(screen.queryByText("Créer un bien")).not.toBeInTheDocument();
   });
 
   it("creates a new house via form", async () => {
     const user = userEvent.setup();
     const newHouse: House = {
       id: "4", name: "Nouvelle Villa", address: "Rue 99", commune: "Yopougon",
-      city: "Abidjan", landmark: "", status: "VACANT", status_label: "Vacante",
+      city: "Abidjan", landmark: "", property_type: "HOUSE", property_type_label: "Maison",
+      status: "VACANT", status_label: "Vacante",
       ownerships: [], created_at: "2025-01-04T00:00:00Z", updated_at: "2025-01-04T00:00:00Z",
     };
     vi.mocked(createHouse).mockResolvedValue(newHouse);
@@ -119,13 +123,39 @@ describe("HouseWorkspace", () => {
     render(<HouseWorkspace />);
     await screen.findByText("Villa des Lauriers");
 
-    await user.click(screen.getByText("Nouvelle maison"));
-    await user.type(screen.getByLabelText("Nom de la maison *"), "Nouvelle Villa");
+    await user.click(screen.getByText("Nouveau bien"));
+    await user.type(screen.getByLabelText("Nom du bien *"), "Nouvelle Villa");
     await user.type(screen.getByLabelText("Ville *"), "Abidjan");
     await user.type(screen.getByLabelText("Adresse *"), "Rue 99");
-    await user.click(screen.getByText("Créer la maison"));
+    await user.click(screen.getByText("Créer le bien"));
 
     expect(await screen.findByText("Nouvelle Villa")).toBeInTheDocument();
+  });
+
+  it("sends the selected property type when creating a bien", async () => {
+    const user = userEvent.setup();
+    const newHouse: House = {
+      id: "6", name: "Boutique Riviera", address: "Rue 3", commune: "Riviera",
+      city: "Abidjan", landmark: "", property_type: "COMMERCIAL", property_type_label: "Local commercial",
+      status: "VACANT", status_label: "Vacante",
+      ownerships: [], created_at: "2025-01-06T00:00:00Z", updated_at: "2025-01-06T00:00:00Z",
+    };
+    vi.mocked(createHouse).mockResolvedValue(newHouse);
+
+    render(<HouseWorkspace />);
+    await screen.findByText("Villa des Lauriers");
+
+    await user.click(screen.getByText("Nouveau bien"));
+    await user.selectOptions(screen.getByLabelText("Type de bien *"), "COMMERCIAL");
+    await user.type(screen.getByLabelText("Nom du bien *"), "Boutique Riviera");
+    await user.type(screen.getByLabelText("Ville *"), "Abidjan");
+    await user.type(screen.getByLabelText("Adresse *"), "Rue 3");
+    await user.click(screen.getByText("Créer le bien"));
+
+    expect(await screen.findByText("Boutique Riviera")).toBeInTheDocument();
+    expect(vi.mocked(createHouse)).toHaveBeenCalledWith(
+      expect.objectContaining({ property_type: "COMMERCIAL" }),
+    );
   });
 
   it("shows error when creation fails", async () => {
@@ -135,11 +165,11 @@ describe("HouseWorkspace", () => {
     render(<HouseWorkspace />);
     await screen.findByText("Villa des Lauriers");
 
-    await user.click(screen.getByText("Nouvelle maison"));
-    await user.type(screen.getByLabelText("Nom de la maison *"), "Erreur");
+    await user.click(screen.getByText("Nouveau bien"));
+    await user.type(screen.getByLabelText("Nom du bien *"), "Erreur");
     await user.type(screen.getByLabelText("Ville *"), "Abidjan");
     await user.type(screen.getByLabelText("Adresse *"), "Rue 1");
-    await user.click(screen.getByText("Créer la maison"));
+    await user.click(screen.getByText("Créer le bien"));
 
     expect(await screen.findByText("Erreur lors de la création.")).toBeInTheDocument();
   });
@@ -148,7 +178,8 @@ describe("HouseWorkspace", () => {
     const user = userEvent.setup();
     const newHouse: House = {
       id: "5", name: "Succès Villa", address: "Rue 10", commune: "Cocody",
-      city: "Abidjan", landmark: "", status: "VACANT", status_label: "Vacante",
+      city: "Abidjan", landmark: "", property_type: "HOUSE", property_type_label: "Maison",
+      status: "VACANT", status_label: "Vacante",
       ownerships: [], created_at: "2025-01-05T00:00:00Z", updated_at: "2025-01-05T00:00:00Z",
     };
     vi.mocked(createHouse).mockResolvedValue(newHouse);
@@ -156,12 +187,12 @@ describe("HouseWorkspace", () => {
     render(<HouseWorkspace />);
     await screen.findByText("Villa des Lauriers");
 
-    await user.click(screen.getByText("Nouvelle maison"));
-    await user.type(screen.getByLabelText("Nom de la maison *"), "Succès Villa");
+    await user.click(screen.getByText("Nouveau bien"));
+    await user.type(screen.getByLabelText("Nom du bien *"), "Succès Villa");
     await user.type(screen.getByLabelText("Ville *"), "Abidjan");
     await user.type(screen.getByLabelText("Adresse *"), "Rue 10");
-    await user.click(screen.getByText("Créer la maison"));
+    await user.click(screen.getByText("Créer le bien"));
 
-    expect(await screen.findByText("Maison ajoutée avec succès.")).toBeInTheDocument();
+    expect(await screen.findByText("Bien ajouté avec succès.")).toBeInTheDocument();
   });
 });

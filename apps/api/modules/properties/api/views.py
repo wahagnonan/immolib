@@ -46,7 +46,7 @@ class HouseViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    """Cree et consulte uniquement les maisons appartenant a l'utilisateur."""
+    """Cree et consulte uniquement les biens appartenant a l'utilisateur."""
 
     permission_classes = (IsAuthenticated,)
 
@@ -76,6 +76,7 @@ class HouseViewSet(
                     city=values["city"],
                     commune=values.get("commune", ""),
                     landmark=values.get("landmark", ""),
+                    property_type=values.get("property_type", Property.Type.HOUSE),
                 ),
             )
         except HouseLimitReached as exc:

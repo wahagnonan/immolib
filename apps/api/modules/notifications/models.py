@@ -42,7 +42,11 @@ class NotificationPreference(models.Model):
 
 
 class PushSubscription(models.Model):
-    """Jeton FCM d'un navigateur autorisé par son utilisateur."""
+    """Abonnement Web Push d'un navigateur autorisé par son utilisateur.
+
+    Le jeton stocke l'abonnement JSON complet (endpoint et clés de chiffrement)
+    renvoyé par l'API Web Push du navigateur.
+    """
 
     class Platform(models.TextChoices):
         WEB = "WEB", _("Navigateur web")

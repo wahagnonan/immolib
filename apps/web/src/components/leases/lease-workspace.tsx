@@ -102,7 +102,7 @@ export function LeaseWorkspace() {
       return;
     }
     if (!tenants.some((item) => item.id === form.tenant_id)) {
-      setError("Sélectionnez un locataire rattaché à cette maison.");
+      setError("Sélectionnez un locataire rattaché à ce bien.");
       return;
     }
     setSaving(true);
@@ -123,7 +123,7 @@ export function LeaseWorkspace() {
   async function changeStatus(lease: Lease, action: "activate" | "close") {
     if (
       action === "close" &&
-      !window.confirm("Clôturer ce bail et rendre la maison vacante ?")
+      !window.confirm("Clôturer ce bail et rendre le bien vacant ?")
     ) {
       return;
     }
@@ -135,7 +135,7 @@ export function LeaseWorkspace() {
           ? await activateLease(lease.id)
           : await closeLease(lease.id);
       setLeases((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-      setFeedback(action === "activate" ? "Bail activé et maison occupée." : "Bail clôturé et maison libérée.");
+      setFeedback(action === "activate" ? "Bail activé et bien occupé." : "Bail clôturé et bien libéré.");
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Action impossible.");
     } finally {
@@ -152,7 +152,7 @@ export function LeaseWorkspace() {
             Nouveau bail
           </button>
         }
-        description="Le bail relie une maison, un locataire et les conditions financières. Il commence en brouillon, puis son activation occupe la maison."
+        description="Le bail relie un bien, un locataire et les conditions financières. Il commence en brouillon, puis son activation occupe le bien."
         eyebrow="Contrats"
         title="Baux"
       />
@@ -191,7 +191,7 @@ export function LeaseWorkspace() {
                     {lease.status_label}
                   </span>
                   <h2 className="mt-3 text-lg font-bold text-ink">
-                    {house?.name ?? "Maison"}
+                    {house?.name ?? "Bien"}
                   </h2>
                   <p className="mt-1 flex items-center gap-2 text-sm text-muted">
                     <UserRound aria-hidden="true" size={16} />
@@ -256,7 +256,7 @@ export function LeaseWorkspace() {
             <p className="mt-1 text-sm text-muted">
               {leases.length
                 ? "Choisissez un autre filtre."
-                : "Créez un bail après avoir ajouté une maison et son locataire."}
+                : "Créez un bail après avoir ajouté un bien et son locataire."}
             </p>
           </div>
         ) : null}
@@ -273,7 +273,7 @@ export function LeaseWorkspace() {
         <form className="p-5 sm:p-6" onSubmit={handleSubmit}>
           <div className="grid gap-5 sm:grid-cols-2">
             <label>
-              <span className="form-label">Maison *</span>
+              <span className="form-label">Bien *</span>
               <select
                 className="form-input"
                 onChange={(event) => updateForm("house_id", event.target.value)}

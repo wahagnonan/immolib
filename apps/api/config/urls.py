@@ -99,6 +99,7 @@ urlpatterns = [
         MobileMoneyWebhookView.as_view(),
         name="mobile-money-webhook",
     ),
+    path("api/v1/", include("modules.sms.api.urls")),
     path(
         "api/v1/webhooks/whatsapp/",
         WhatsAppWebhookView.as_view(),

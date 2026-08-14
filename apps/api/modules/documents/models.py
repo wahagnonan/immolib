@@ -245,6 +245,12 @@ class NotificationDelivery(models.Model):
         max_length=12, choices=Status.choices, default=Status.QUEUED
     )
     sent_at = models.DateTimeField(null=True, blank=True)
+    # Etat de livraison fournisseur, distinct de la file. SENT signifie que le
+    # fournisseur a accepte la demande ; DELIVERED est confirme par un Delivery
+    # Receipt (ex. Orange DeliveredToTerminal). FAILED : echec de remise.
+    delivery_status = models.CharField(max_length=16, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    segments_count = models.PositiveSmallIntegerField(null=True, blank=True)
     attempt_count = models.PositiveSmallIntegerField(default=0)
     last_attempt_at = models.DateTimeField(null=True, blank=True)
     next_attempt_at = models.DateTimeField(null=True, blank=True)
@@ -258,7 +264,11 @@ class NotificationDelivery(models.Model):
             models.Index(
                 fields=["status", "next_attempt_at", "created_at"],
                 name="notification_queue_idx",
-            )
+            ),
+            models.Index(
+                fields=["channel", "delivery_status"],
+                name="ntf_delivery_status_idx",
+            ),
         ]
         constraints = [
             models.UniqueConstraint(

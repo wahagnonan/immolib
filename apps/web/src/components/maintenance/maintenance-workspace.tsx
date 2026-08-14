@@ -272,8 +272,8 @@ export function MaintenanceWorkspace() {
             Signaler un incident
           </button>
         }
-        description="Suivez les problèmes de la maison depuis leur signalement jusqu’à la confirmation du locataire."
-        eyebrow="Entretien des maisons"
+        description="Suivez les problèmes du bien depuis leur signalement jusqu’à la confirmation du locataire."
+        eyebrow="Entretien des biens"
         title="Incidents et maintenance"
       />
 
@@ -503,10 +503,10 @@ export function MaintenanceWorkspace() {
               required
               value={form.lease_id}
             >
-              <option value="">Sélectionner une maison et un locataire</option>
+              <option value="">Sélectionner un bien et un locataire</option>
               {activeLeases.map((lease) => (
                 <option key={lease.id} value={lease.id}>
-                  {housesById.get(lease.house_id)?.name ?? "Maison"} —{" "}
+                  {housesById.get(lease.house_id)?.name ?? "Bien"} —{" "}
                   {lease.tenant.full_name}
                 </option>
               ))}

@@ -26,6 +26,7 @@ class CreateHouseData:
     city: str
     commune: str = ""
     landmark: str = ""
+    property_type: str = Property.Type.HOUSE
 
 
 @dataclass(frozen=True)
@@ -102,7 +103,7 @@ def _recalculate_primary_share(*, property: Property) -> None:
 
 @transaction.atomic
 def create_house(*, owner: User, data: CreateHouseData) -> Property:
-    """Crée toujours la maison et son propriétaire principal ensemble."""
+    """Crée toujours le bien et son propriétaire principal ensemble."""
 
     assert_can_create_house(owner)
     ensure_subscription(owner)
@@ -113,6 +114,7 @@ def create_house(*, owner: User, data: CreateHouseData) -> Property:
         city=data.city,
         commune=data.commune,
         landmark=data.landmark,
+        property_type=data.property_type,
     )
     Ownership.objects.create(
         property=house,
@@ -140,7 +142,7 @@ def accept_coowner_invitation(
     if invitation.phone != user.phone:
         raise PermissionDenied(_("Cette invitation ne correspond pas à ce compte."))
     if invitation.property.ownerships.filter(user=user).exists():
-        raise ValidationError(_("Ce compte possède déjà un rôle pour cette maison."))
+        raise ValidationError(_("Ce compte possède déjà un rôle pour ce bien."))
 
     _assert_coowner_share_available(
         property=invitation.property,
@@ -182,7 +184,7 @@ def invite_coowner(
     ).update(status=CoOwnerInvitation.Status.EXPIRED)
     if property.ownerships.filter(user__phone=phone).exists():
         raise ValidationError(
-            {"phone": "Ce compte possède déjà un rôle pour cette maison."}
+            {"phone": "Ce compte possède déjà un rôle pour ce bien."}
         )
     if property.co_owner_invitations.filter(
         phone=phone, status=CoOwnerInvitation.Status.PENDING

@@ -77,7 +77,7 @@ export function AdminLandlordsWorkspace() {
         <p className="eyebrow">Administration</p>
         <h1 className="page-title">Bailleurs</h1>
         <p className="mt-1 text-sm text-muted">
-          Comptes détenant au moins une maison, avec leur utilisation.
+          Comptes détenant au moins un bien, avec leur utilisation.
         </p>
       </div>
 
@@ -149,7 +149,7 @@ export function AdminLandlordsWorkspace() {
                   <tr>
                     <th scope="col">Bailleur</th>
                     <th scope="col">Inscription</th>
-                    <th scope="col">Maisons</th>
+                    <th scope="col">Biens</th>
                     <th scope="col">Locataires</th>
                     <th scope="col">Plan</th>
                     <th scope="col">Statut</th>

@@ -26,20 +26,20 @@ import type {
 
 const FEATURE_LABELS: Record<string, string[]> = {
   free: [
-    "1 maison",
+    "1 bien",
     "Loyers, cautions et avances",
     "Documents vérifiables",
     "Partage manuel",
   ],
   essential: [
-    "Jusqu'à 5 maisons",
+    "Jusqu'à 5 biens",
     "Rappels de paiement mensuels",
     "Copropriétaires",
     "Email et notifications push",
     "Historique complet",
   ],
   pro: [
-    "Jusqu'à 15 maisons",
+    "Jusqu'à 15 biens",
     "Rappels automatisés",
     "Exports et rapports",
     "Statistiques avancées",
@@ -202,7 +202,7 @@ export function SubscriptionWorkspace() {
           <p className="eyebrow">Compte</p>
           <h1 className="page-title">Abonnement</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted sm:text-base">
-            Votre formule dépend du nombre de maisons actives, jamais du montant
+            Votre formule dépend du nombre de biens actifs, jamais du montant
             des loyers. Changez de plan à tout moment.
           </p>
         </div>
@@ -234,7 +234,7 @@ export function SubscriptionWorkspace() {
         <div className="flex items-start gap-3 rounded-[10px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" role="alert">
           <span>
             Votre abonnement est arrivé à expiration. Vos données sont conservées :
-            renouvelez pour continuer à ajouter des maisons.
+            renouvelez pour continuer à ajouter des biens.
           </span>
         </div>
       ) : null}
@@ -305,12 +305,12 @@ export function SubscriptionWorkspace() {
         <div>
           <div className="flex items-end justify-between gap-3">
             <p className="text-sm font-bold text-ink">
-              {detail?.house_count ?? 0} maison{detail && detail.house_count > 1 ? "s" : ""}
+              {detail?.house_count ?? 0} bien{detail && detail.house_count > 1 ? "s" : ""}
             </p>
             <p className="text-sm text-muted">
               {maxHouses === null
                 ? "Sans limite"
-                : `${maxHouses} maison${maxHouses > 1 ? "s" : ""} incluse${maxHouses > 1 ? "s" : ""}`}
+                : `${maxHouses} bien${maxHouses > 1 ? "s" : ""} inclus`}
             </p>
           </div>
           <div
@@ -332,10 +332,10 @@ export function SubscriptionWorkspace() {
           </div>
           <p className="mt-2 text-xs leading-5 text-muted">
             {remaining !== null && remaining > 0
-              ? `${remaining} emplacement${remaining > 1 ? "s" : ""} restant${remaining > 1 ? "s" : ""} pour ajouter une maison.`
+              ? `${remaining} emplacement${remaining > 1 ? "s" : ""} restant${remaining > 1 ? "s" : ""} pour ajouter un bien.`
               : remaining !== null && remaining <= 0
-                ? "Quota atteint : passez au plan supérieur pour ajouter des maisons."
-                : "Maisons actives dans le calcul du quota."}
+                ? "Quota atteint : passez au plan supérieur pour ajouter des biens."
+                : "Biens actifs dans le calcul du quota."}
           </p>
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {detail?.features.map((feature) => (

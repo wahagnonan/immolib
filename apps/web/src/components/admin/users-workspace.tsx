@@ -215,7 +215,7 @@ export function AdminUsersWorkspace() {
                     <th scope="col">Inscription</th>
                     <th scope="col">Rôle</th>
                     <th scope="col">Plan</th>
-                    <th scope="col">Maisons</th>
+                    <th scope="col">Biens</th>
                     <th scope="col">Statut</th>
                     <th scope="col">
                       <span className="sr-only">Actions</span>
@@ -374,7 +374,7 @@ export function AdminUsersWorkspace() {
               </dd>
             </div>
             <div>
-              <dt className="text-xs font-semibold text-muted">Nombre de maisons</dt>
+              <dt className="text-xs font-semibold text-muted">Nombre de biens</dt>
               <dd className="mt-0.5 text-ink">{detail.houses_count}</dd>
             </div>
             <div>

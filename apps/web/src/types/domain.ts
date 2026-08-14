@@ -183,6 +183,8 @@ export type UpdateCoOwnerPayload = {
 
 export type HouseStatus = "VACANT" | "OCCUPIED" | "UNAVAILABLE";
 
+export type PropertyType = "HOUSE" | "APARTMENT" | "LAND" | "COMMERCIAL";
+
 export type House = {
   id: string;
   name: string;
@@ -190,6 +192,8 @@ export type House = {
   commune: string;
   city: string;
   landmark: string;
+  property_type: PropertyType;
+  property_type_label: string;
   status: HouseStatus;
   status_label: string;
   ownerships: Ownership[];
@@ -203,6 +207,7 @@ export type CreateHousePayload = {
   commune?: string;
   city: string;
   landmark?: string;
+  property_type?: PropertyType;
 };
 
 export type TenantStatus = "UNREGISTERED" | "INVITED" | "ACTIVE" | "BLOCKED";

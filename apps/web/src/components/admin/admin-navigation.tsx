@@ -22,7 +22,7 @@ export const adminNavigation = [
   { href: "/admin/users", label: "Utilisateurs", icon: Users },
   { href: "/admin/landlords", label: "Bailleurs", icon: Landmark },
   { href: "/admin/tenants", label: "Locataires", icon: UsersRound },
-  { href: "/admin/houses", label: "Maisons", icon: House },
+  { href: "/admin/houses", label: "Biens", icon: House },
   { href: "/admin/subscriptions", label: "Abonnements", icon: Receipt },
   { href: "/admin/payments", label: "Paiements", icon: WalletCards },
   { href: "/admin/notifications", label: "Notifications", icon: MessageSquareText },

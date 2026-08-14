@@ -77,7 +77,7 @@ export function AdminTenantsWorkspace() {
         <p className="eyebrow">Administration</p>
         <h1 className="page-title">Locataires</h1>
         <p className="mt-1 text-sm text-muted">
-          Fiches locataires enregistrées, une fiche par maison, tous bailleurs
+          Fiches locataires enregistrées, une fiche par bien, tous bailleurs
           confondus.
         </p>
       </div>
@@ -96,7 +96,7 @@ export function AdminTenantsWorkspace() {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder="Nom, téléphone, maison…"
+              placeholder="Nom, téléphone, bien…"
               type="search"
               value={search}
             />
@@ -135,7 +135,7 @@ export function AdminTenantsWorkspace() {
                 <thead>
                   <tr>
                     <th scope="col">Locataire</th>
-                    <th scope="col">Maison</th>
+                    <th scope="col">Bien</th>
                     <th scope="col">Compte lié</th>
                     <th scope="col">Statut</th>
                     <th scope="col">Créée le</th>

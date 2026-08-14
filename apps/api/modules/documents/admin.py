@@ -43,11 +43,13 @@ class NotificationDeliveryAdmin(admin.ModelAdmin):
         "tenant_invitation",
         "scheduled_for",
         "status",
+        "delivery_status",
+        "delivered_at",
         "attempt_count",
         "next_attempt_at",
         "sent_at",
     )
-    list_filter = ("kind", "channel", "status")
+    list_filter = ("kind", "channel", "status", "delivery_status")
     search_fields = (
         "destination",
         "provider_reference",

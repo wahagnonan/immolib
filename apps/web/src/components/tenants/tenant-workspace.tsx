@@ -261,13 +261,13 @@ export function TenantWorkspace() {
             />
           </label>
           <label>
-            <span className="sr-only">Filtrer par maison</span>
+            <span className="sr-only">Filtrer par bien</span>
             <select
               className="form-input min-w-48"
               onChange={(event) => setHouseFilter(event.target.value)}
               value={houseFilter}
             >
-              <option value="ALL">Toutes les maisons</option>
+              <option value="ALL">Tous les biens</option>
               {houses.map((house) => (
                 <option key={house.id} value={house.id}>
                   {house.name}
@@ -296,7 +296,7 @@ export function TenantWorkspace() {
                   <div className="mt-3 space-y-2 text-sm text-muted">
                     <p className="flex items-center gap-2">
                       <House aria-hidden="true" size={16} />
-                      {house?.name ?? "Maison inconnue"}
+                      {house?.name ?? "Bien inconnu"}
                     </p>
                     <p className="flex items-center gap-2">
                       <Phone aria-hidden="true" size={16} />
@@ -337,14 +337,14 @@ export function TenantWorkspace() {
             <p className="mt-1 text-sm text-muted">
               {tenants.length
                 ? "Modifiez la recherche ou le filtre."
-                : "Ajoutez un locataire à l’une de vos maisons pour commencer."}
+                : "Ajoutez un locataire à l’un de vos biens pour commencer."}
             </p>
           </div>
         )}
       </section>
 
       <Modal
-        description="Le locataire est rattaché à une seule maison. Aucun compte ImmoLib n’est nécessaire."
+        description="Le locataire est rattaché à un seul bien. Aucun compte ImmoLib n’est nécessaire."
         kicker="Nouvelle fiche"
         onClose={() => setOpen(false)}
         open={open}
@@ -353,14 +353,14 @@ export function TenantWorkspace() {
         <form className="p-5 sm:p-6" onSubmit={handleSubmit}>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="sm:col-span-2">
-              <span className="form-label">Maison *</span>
+              <span className="form-label">Bien *</span>
               <select
                 className="form-input"
                 onChange={(event) => updateField("house_id", event.target.value)}
                 required
                 value={form.house_id}
               >
-                <option value="">Sélectionner une maison</option>
+                <option value="">Sélectionner un bien</option>
                 {houses.map((house) => (
                   <option key={house.id} value={house.id}>
                     {house.name} — {house.commune || house.city}

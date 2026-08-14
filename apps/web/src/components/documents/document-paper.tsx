@@ -35,7 +35,7 @@ export function DocumentPaper({ document }: { document: RentalDocument }) {
       <dl className="grid gap-x-8 gap-y-5 border-y border-line py-6 sm:grid-cols-2">
         <div><dt className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Bailleur</dt><dd className="mt-1 font-semibold text-ink">{document.owner_name}</dd></div>
         <div><dt className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Locataire</dt><dd className="mt-1 font-semibold text-ink">{document.tenant_name}</dd></div>
-        <div><dt className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Maison</dt><dd className="mt-1 font-semibold text-ink">{document.house_name}</dd><dd className="mt-0.5 text-sm text-muted">{document.house_address}</dd></div>
+        <div><dt className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Bien</dt><dd className="mt-1 font-semibold text-ink">{document.house_name}</dd><dd className="mt-0.5 text-sm text-muted">{document.house_address}</dd></div>
         <div><dt className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Période</dt><dd className="mt-1 font-semibold text-ink">Du {formatDate(document.period_start)} au {formatDate(document.period_end)}</dd></div>
         <div><dt className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Moyen de paiement</dt><dd className="mt-1 font-semibold text-ink">{document.payment_method || "—"}</dd></div>
         <div><dt className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Émis le</dt><dd className="mt-1 font-semibold text-ink">{formatDate(document.issued_at)}</dd></div>

@@ -44,6 +44,9 @@ class OwnershipSerializer(serializers.ModelSerializer):
 class HouseSerializer(serializers.ModelSerializer):
     ownerships = OwnershipSerializer(many=True, read_only=True)
     status_label = serializers.CharField(source="get_status_display", read_only=True)
+    property_type_label = serializers.CharField(
+        source="get_property_type_display", read_only=True
+    )
 
     class Meta:
         model = Property
@@ -54,6 +57,8 @@ class HouseSerializer(serializers.ModelSerializer):
             "commune",
             "city",
             "landmark",
+            "property_type",
+            "property_type_label",
             "status",
             "status_label",
             "ownerships",
@@ -68,6 +73,11 @@ class CreateHouseSerializer(serializers.Serializer):
     commune = serializers.CharField(max_length=120, allow_blank=True, required=False)
     city = serializers.CharField(max_length=120)
     landmark = serializers.CharField(max_length=255, allow_blank=True, required=False)
+    property_type = serializers.ChoiceField(
+        choices=Property.Type.choices,
+        default=Property.Type.HOUSE,
+        required=False,
+    )
 
 
 class CoOwnerSerializer(serializers.ModelSerializer):

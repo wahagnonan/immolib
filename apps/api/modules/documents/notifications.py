@@ -164,7 +164,7 @@ def _build_notification_message(
             subject=_("Invitation à rejoindre ImmoLib"),
             body=_(
                 "Bonjour {tenant}, {owner} vous invite à rejoindre ImmoLib pour "
-                "la maison {house}. Créez ou rattachez votre compte ici : "
+                "le bien {house}. Créez ou rattachez votre compte ici : "
                 "{url} (invitation valable jusqu'au {expires_at})."
             ).format(
                 tenant=invitation.tenant.full_name,

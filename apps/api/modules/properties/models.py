@@ -18,10 +18,13 @@ def default_invitation_expiry():
 
 
 class Property(models.Model):
-    """Bien locatif. Seul le type HOUSE est disponible pour le moment."""
+    """Bien locatif : maison, appartement, terrain ou local commercial."""
 
     class Type(models.TextChoices):
         HOUSE = "HOUSE", _("Maison")
+        APARTMENT = "APARTMENT", _("Appartement")
+        LAND = "LAND", _("Terrain")
+        COMMERCIAL = "COMMERCIAL", _("Local commercial")
 
     class Status(models.TextChoices):
         VACANT = "VACANT", _("Vacante")
@@ -34,7 +37,6 @@ class Property(models.Model):
         max_length=20,
         choices=Type.choices,
         default=Type.HOUSE,
-        editable=False,
     )
     name = models.CharField("nom", max_length=120)
     address = models.CharField("adresse", max_length=255)
@@ -55,8 +57,8 @@ class Property(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = _("maison")
-        verbose_name_plural = _("maisons")
+        verbose_name = _("bien")
+        verbose_name_plural = _("biens")
 
     def __str__(self) -> str:
         return self.name
@@ -78,7 +80,7 @@ class Ownership(models.Model):
         Property,
         on_delete=models.CASCADE,
         related_name="ownerships",
-        verbose_name="maison",
+        verbose_name="bien",
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -137,7 +139,7 @@ class CoOwnerInvitation(models.Model):
         Property,
         on_delete=models.CASCADE,
         related_name="co_owner_invitations",
-        verbose_name="maison",
+        verbose_name="bien",
     )
     phone = models.CharField(
         "téléphone",

@@ -130,3 +130,74 @@ class WhatsAppCloudApiAdapter:
         if messages:
             message_id = messages[0].get("id", "")
         return DeliveryReceipt(provider_reference=message_id)
+
+
+# Le payload chiffre d'une notification web ne doit pas depasser 4096 octets.
+_WEB_PUSH_PAYLOAD_LIMIT = 3800
+# La notification reste en file 7 jours chez le fournisseur si l'appareil est
+# hors ligne (ttl=0 ferait tomber le message immediatement).
+_WEB_PUSH_TTL_SECONDS = 604800
+
+
+class WebPushVapidAdapter:
+    """Envoie des notifications via le protocole Web Push standard (clés VAPID).
+
+    Aucun fournisseur externe : le navigateur s'abonne au service de push de son
+    fabricant (FCM, Mozilla Autopush, WNS) et ImmoLib signe ses requêtes avec sa
+    paire de clés VAPID. La destination est l'abonnement JSON complet du navigateur.
+    """
+
+    def __init__(self, *, private_key=None, claims=None):
+        try:
+            from pywebpush import WebPushException, webpush
+        except ImportError as exc:
+            raise ImproperlyConfigured(
+                "Installez pywebpush pour utiliser les notifications push."
+            ) from exc
+        self._webpush = webpush
+        self._WebPushException = WebPushException
+        self._private_key = private_key or settings.VAPID_PRIVATE_KEY
+        if not self._private_key:
+            raise ImproperlyConfigured(
+                "VAPID_PRIVATE_KEY doit être configuré pour le Web Push."
+            )
+        self._claims = claims or {"sub": settings.VAPID_SUBJECT or settings.PUBLIC_APP_URL}
+
+    def send(self, message: NotificationMessage) -> DeliveryReceipt:
+        try:
+            subscription_info = json.loads(message.destination)
+        except (TypeError, ValueError) as exc:
+            raise PermanentNotificationError(
+                "L'abonnement push est illisible."
+            ) from exc
+
+        url = message.metadata.get("url", "/")
+        payload = json.dumps(
+            {"title": message.subject, "body": message.body, "url": url},
+            ensure_ascii=False,
+        ).encode("utf-8")
+        if len(payload) > _WEB_PUSH_PAYLOAD_LIMIT:
+            body = message.body[: _WEB_PUSH_PAYLOAD_LIMIT - 128] + "…"
+            payload = json.dumps(
+                {"title": message.subject, "body": body, "url": url},
+                ensure_ascii=False,
+            ).encode("utf-8")
+
+        try:
+            response = self._webpush(
+                subscription_info=subscription_info,
+                data=payload,
+                vapid_private_key=self._private_key,
+                vapid_claims=self._claims,
+                ttl=_WEB_PUSH_TTL_SECONDS,
+            )
+        except self._WebPushException as exc:
+            if exc.response is not None and exc.response.status_code in (404, 410):
+                raise PermanentNotificationError(
+                    "L'abonnement push a expiré."
+                ) from exc
+            raise
+        reference = ""
+        if response is not None and hasattr(response, "headers"):
+            reference = response.headers.get("Location", "")
+        return DeliveryReceipt(provider_reference=reference)

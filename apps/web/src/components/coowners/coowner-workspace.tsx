@@ -210,7 +210,7 @@ export function CoOwnerWorkspace() {
     try {
       await removeCoOwner(coOwner.id);
       await refreshOwnershipData();
-      setFeedback("Le copropriétaire a été retiré de la maison.");
+      setFeedback("Le copropriétaire a été retiré du bien.");
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Retrait impossible.");
     }
@@ -260,7 +260,7 @@ export function CoOwnerWorkspace() {
 
       <section className="grid gap-3 sm:grid-cols-3">
         <div className="panel p-4">
-          <p className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Maisons gérées</p>
+          <p className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Biens gérés</p>
           <p className="mt-1 text-2xl font-bold text-ink">{managedHouses.length}</p>
         </div>
         <div className="panel p-4">
@@ -275,13 +275,13 @@ export function CoOwnerWorkspace() {
 
       <section className="panel p-4 sm:p-5">
         <label className="block sm:max-w-sm">
-          <span className="form-label">Afficher une maison</span>
+          <span className="form-label">Afficher un bien</span>
           <select
             className="form-input"
             onChange={(event) => setHouseFilter(event.target.value)}
             value={houseFilter}
           >
-            <option value="ALL">Toutes les maisons</option>
+            <option value="ALL">Tous les biens</option>
             {managedHouses.map((house) => (
               <option key={house.id} value={house.id}>{house.name}</option>
             ))}
@@ -338,20 +338,20 @@ export function CoOwnerWorkspace() {
           })}
         </section>
       ) : (
-        <section className="panel px-5 py-16 text-center text-sm text-muted">Aucune maison dont vous êtes le propriétaire principal.</section>
+        <section className="panel px-5 py-16 text-center text-sm text-muted">Aucun bien dont vous êtes le propriétaire principal.</section>
       )}
 
       <section className="panel overflow-hidden">
         <div className="panel-heading"><div><p className="section-kicker">Traçabilité</p><h2 className="section-title">Historique des invitations</h2></div></div>
         {invitations.length ? (
-          <div className="overflow-x-auto"><table className="data-table"><thead><tr><th>Destinataire</th><th>Maison</th><th>Quote-part</th><th>Statut</th><th>Créée le</th></tr></thead><tbody>{invitations.map((invitation) => <tr key={invitation.id}><td><p className="font-bold text-ink">{invitation.phone}</p><p className="text-xs">{invitation.email || "Sans email"}</p></td><td className="font-semibold text-ink">{invitation.house_name}</td><td>{displayPercentage(invitation.ownership_percentage)}</td><td><span className={`status-pill ${invitationStatusStyle[invitation.status]}`}>{invitation.status_label}</span></td><td>{formatDate(invitation.created_at)}</td></tr>)}</tbody></table></div>
+          <div className="overflow-x-auto"><table className="data-table"><thead><tr><th>Destinataire</th><th>Bien</th><th>Quote-part</th><th>Statut</th><th>Créée le</th></tr></thead><tbody>{invitations.map((invitation) => <tr key={invitation.id}><td><p className="font-bold text-ink">{invitation.phone}</p><p className="text-xs">{invitation.email || "Sans email"}</p></td><td className="font-semibold text-ink">{invitation.house_name}</td><td>{displayPercentage(invitation.ownership_percentage)}</td><td><span className={`status-pill ${invitationStatusStyle[invitation.status]}`}>{invitation.status_label}</span></td><td>{formatDate(invitation.created_at)}</td></tr>)}</tbody></table></div>
         ) : <p className="px-5 py-12 text-center text-sm text-muted">Aucune invitation envoyée.</p>}
       </section>
 
       <Modal description="Si le numéro possède déjà un compte ImmoLib, l’ajout est immédiat. Sinon l’invitation reste en attente pendant 30 jours." kicker="Nouvelle invitation" onClose={() => setInviteOpen(false)} open={inviteOpen} title="Inviter un copropriétaire">
         <form className="p-5 sm:p-6" onSubmit={handleInvite}>
           <div className="grid gap-5 sm:grid-cols-2">
-            <label className="sm:col-span-2"><span className="form-label">Maison *</span><select className="form-input" onChange={(event) => setInvitationForm((current) => ({ ...current, house_id: event.target.value }))} required value={invitationForm.house_id}><option value="">Sélectionner une maison</option>{managedHouses.map((house) => <option key={house.id} value={house.id}>{house.name} — {house.commune || house.city}</option>)}</select></label>
+            <label className="sm:col-span-2"><span className="form-label">Bien *</span><select className="form-input" onChange={(event) => setInvitationForm((current) => ({ ...current, house_id: event.target.value }))} required value={invitationForm.house_id}><option value="">Sélectionner un bien</option>{managedHouses.map((house) => <option key={house.id} value={house.id}>{house.name} — {house.commune || house.city}</option>)}</select></label>
             <label><span className="form-label">Téléphone *</span><PhoneField onChange={(value) => setInvitationForm((current) => ({ ...current, phone: value }))} required value={invitationForm.phone} /></label>
             <label><span className="form-label">Email (facultatif)</span><input className="form-input" onChange={(event) => setInvitationForm((current) => ({ ...current, email: event.target.value }))} placeholder="nom@exemple.com" type="email" value={invitationForm.email ?? ""} /></label>
             <label><span className="form-label">Quote-part en %</span><input className="form-input" max="99.99" min="0.01" onChange={(event) => setInvitationForm((current) => ({ ...current, ownership_percentage: event.target.value || null }))} placeholder="Ex. 40" step="0.01" type="number" value={invitationForm.ownership_percentage ?? ""} /><span className="mt-1.5 block text-xs text-muted">Laissez vide si elle n’est pas encore connue.</span></label>

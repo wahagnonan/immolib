@@ -193,7 +193,7 @@ export function TenantIncidentPanel({
     <section className="scroll-mt-28" id="incidents">
       <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
         <div>
-          <p className="section-kicker">Maison et entretien</p>
+          <p className="section-kicker">Bien et entretien</p>
           <h2 className="section-title">Mes incidents</h2>
           <p className="mt-1 text-sm text-muted">
             Signalez un problème et suivez la réponse du bailleur.
@@ -262,7 +262,7 @@ export function TenantIncidentPanel({
       >
         <form className="space-y-4 p-5 sm:p-6" onSubmit={handleCreate}>
           <label>
-            <span className="form-label">Maison concernée *</span>
+            <span className="form-label">Bien concerné *</span>
             <select
               className="form-input"
               onChange={(event) =>

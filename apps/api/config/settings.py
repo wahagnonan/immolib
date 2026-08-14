@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "modules.subscriptions",
     "modules.admin_panel",
     "modules.whatsapp",
+    "modules.sms",
 ]
 
 MIDDLEWARE = [
@@ -175,6 +176,41 @@ WHATSAPP_GRAPH_BASE_URL = os.getenv(
     "WHATSAPP_GRAPH_BASE_URL", "https://graph.facebook.com"
 )
 
+# Orange SMS (Côte d'Ivoire). Les credentials proviennent de la section
+# "MyApps" du portail Orange Developer. L'adaptateur d'envoi n'est actif que
+# lorsque IMMOLIB_SMS_NOTIFICATION_ADAPTER pointe vers lui ET que
+# ORANGE_SMS_CLIENT_ID et ORANGE_SMS_CLIENT_SECRET sont renseignés.
+ORANGE_SMS_CLIENT_ID = os.getenv("ORANGE_SMS_CLIENT_ID", "")
+ORANGE_SMS_CLIENT_SECRET = os.getenv("ORANGE_SMS_CLIENT_SECRET", "")
+ORANGE_SMS_BASE_URL = os.getenv("ORANGE_SMS_BASE_URL", "https://api.orange.com")
+# Sender address officielle pour la Côte d'Ivoire (voir la table
+# country_sender_number de la documentation Orange).
+ORANGE_SMS_SENDER_ADDRESS = os.getenv("ORANGE_SMS_SENDER_ADDRESS", "tel:+2250000")
+# Sender name optionnel, limite a 11 caracteres alphanumeriques et whiteliste
+# par Orange. Vide = sender name par defaut de la plateforme ("SMS 123456").
+ORANGE_SMS_SENDER_NAME = os.getenv("ORANGE_SMS_SENDER_NAME", "")
+ORANGE_SMS_TIMEOUT_SECONDS = int(os.getenv("ORANGE_SMS_TIMEOUT_SECONDS", "10"))
+# Delivery Receipt : Orange ne signe pas ses webhooks. La protection repose sur
+# le HTTPS et la liste blanche des IP publiques transmises par Orange apres
+# declaration de l'URL de rappel. Tant qu'elle est vide, le webhook repond
+# 503 (non configure) : aucun accuse n'est accepte.
+ORANGE_SMS_DR_ALLOWED_IPS = tuple(
+    ip.strip()
+    for ip in os.getenv("ORANGE_SMS_DR_ALLOWED_IPS", "").split(",")
+    if ip.strip()
+)
+# Cout estime d'un segment, en FCFA (tarif officiel Orange des bundles).
+ORANGE_SMS_COST_PER_SEGMENT_XOF = int(
+    os.getenv("ORANGE_SMS_COST_PER_SEGMENT_XOF", "10")
+)
+# Limite officielle Orange : 5 SMS par seconde. Le worker ne reclame pas plus
+# de SMS par seconde que cette valeur.
+IMMOLIB_SMS_RATE_PER_SECOND = int(os.getenv("IMMOLIB_SMS_RATE_PER_SECOND", "5"))
+# Longueur maximale d'un SMS (1 segment GSM-7). Au-dela, l'adaptateur tronque
+# le message en conservant un eventuel lien de document (le cout est trace via
+# le comptage de segments, segments.py).
+IMMOLIB_SMS_MAX_CHARS = int(os.getenv("IMMOLIB_SMS_MAX_CHARS", "160"))
+
 NOTIFICATION_MAX_ATTEMPTS = int(os.getenv("IMMOLIB_NOTIFICATION_MAX_ATTEMPTS", "3"))
 NOTIFICATION_RETRY_SECONDS = int(os.getenv("IMMOLIB_NOTIFICATION_RETRY_SECONDS", "60"))
 NOTIFICATION_PROCESSING_TIMEOUT_SECONDS = int(
@@ -200,6 +236,12 @@ AWS_SES_FROM_EMAIL = os.getenv("AWS_SES_FROM_EMAIL", "")
 # de compte de service monté en dehors du dépôt.
 FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "")
 FIREBASE_CREDENTIALS_FILE = os.getenv("FIREBASE_CREDENTIALS_FILE", "")
+
+# Web Push standard (VAPID) : aucune dépendance à un fournisseur externe. La
+# paire de clés est générée hors dépôt ; seule la clé publique va au navigateur.
+VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "")
+VAPID_SUBJECT = os.getenv("VAPID_SUBJECT", "")
 
 # Passerelle de référence pour les webhooks Mobile Money. Le secret doit être
 # fourni hors du dépôt et remplacé par l'adaptateur du PSP choisi.

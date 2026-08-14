@@ -233,7 +233,7 @@ export function AdminSubscriptionsWorkspace() {
                     <th scope="col">Utilisateur</th>
                     <th scope="col">Plan</th>
                     <th scope="col">Prix / mois</th>
-                    <th scope="col">Maisons</th>
+                    <th scope="col">Biens</th>
                     <th scope="col">Statut</th>
                     <th scope="col">Début</th>
                     <th scope="col">Expiration</th>

@@ -1,0 +1,7 @@
+# Cron de production ImmoLib — a installer sur l'hote avec :
+#   sudo cp infrastructure/crontab-prod /etc/cron.d/immolib
+# Le cycle de facturation est prevu pour tourner au moins une fois par jour
+# avant le 25 ; les rappels et relances sont places dans la file quotidiennement.
+
+# m h dom mon dow user  command
+  30 8  * * *   root  /opt/immolib/infrastructure/run-scheduled.sh

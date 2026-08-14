@@ -91,7 +91,7 @@ class SecurityDepositSettlementResult:
 def _assert_can_manage_charge(*, actor: User, charge: RentCharge) -> None:
     property_id = charge.lease.property_id
     if not manageable_properties_for(actor).filter(id=property_id).exists():
-        raise PermissionDenied("Tu ne peux pas enregistrer un paiement pour cette maison.")
+        raise PermissionDenied("Tu ne peux pas enregistrer un paiement pour ce bien.")
 
 
 def _existing_payment_matches(
@@ -742,7 +742,7 @@ def _primary_payee(*, charge: RentCharge) -> User:
             role=Ownership.Role.PRIMARY
         )
     except Ownership.DoesNotExist as exc:
-        raise ValidationError("La maison n'a pas de bailleur principal.") from exc
+        raise ValidationError("Le bien n'a pas de bailleur principal.") from exc
     return ownership.user
 
 
@@ -837,7 +837,7 @@ def initiate_payment_request(
         )
         if method_account is None:
             raise ValidationError(
-                "Ce compte de réception n'appartient pas au bailleur de la maison."
+                "Ce compte de réception n'appartient pas au bailleur du bien."
             )
         if method_account.operator != data.operator:
             raise ValidationError(
