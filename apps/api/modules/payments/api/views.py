@@ -1,12 +1,12 @@
 from datetime import date
 
-from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.exceptions import PermissionDenied, ValidationError as DjangoValidationError
 from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -386,6 +386,10 @@ class PaymentRequestViewSet(
                     note=values.get("note", ""),
                 ),
             )
+        except PermissionDenied as exc:
+            # Ne pas distinguer une echeance etrangere d'une echeance
+            # inexistante : eviter l'oracle d'existence cross-tenant.
+            raise NotFound("Cette échéance est introuvable.") from exc
         except DjangoValidationError as exc:
             _raise_api_validation_error(exc)
         payment_request = self.get_queryset().get(id=payment_request.id)
