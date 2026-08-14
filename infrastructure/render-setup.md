@@ -19,19 +19,33 @@ git push -u origin prod-01
 2. Cliquer **« New » → « Blueprint »**.
 3. Connecter le dépôt `wahagnonan/immolib`, choisir la branche **`prod-01`**.
 4. Render lit `infrastructure/render.yaml` et propose : base de données
-   gratuite + 2 services (`immolib-api`, `immolib-web`).
+   gratuite, Redis Key Value gratuit, 2 services (`immolib-api`,
+   `immolib-web`) et 2 jobs cron (`immolib-scheduler`, `immolib-backup`).
 5. Cliquer **« Apply »**. Le premier déploiement construit les images
    (compter 5–15 min).
 
 ## 3. Renseigner les secrets
 
 Les variables marquées « sync: false » doivent être saisies une fois dans le
-tableau de bord (Service `immolib-api` → **Environment**) :
+tableau de bord lors de la création du blueprint (invite), ou ensuite
+(Service → **Environment**) :
 
 | Variable | Valeur |
 |---|---|
 | `DJANGO_SECRET_KEY` | celle de `infrastructure/production.env` (hors Git) |
 | `VAPID_PRIVATE_KEY` | celle de `infrastructure/production.env` (hors Git) |
+| `VAPID_SUBJECT` | `mailto:contact@immolib.ci` |
+| `ORANGE_SMS_CLIENT_ID` / `CLIENT_SECRET` / `DR_ALLOWED_IPS` | portail Orange (docs/sms/orange.md) |
+| `WHATSAPP_WEBHOOK_VERIFY_TOKEN` / `ACCESS_TOKEN` / `PHONE_NUMBER_ID` | dashboard Meta |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_SES_REGION` / `AWS_SES_FROM_EMAIL` | console AWS (SES) |
+| `SENTRY_DSN` | projet Sentry (optionnel en test) |
+| `BACKUP_S3_BUCKET` / `BACKUP_PASSPHRASE` | bucket S3 + passphrase (optionnel en test) |
+
+Les deux jobs cron sont en plan `starter` (payants, ~7 USD/mois chacun) :
+`immolib-scheduler` (toutes les 15 min : facturation, file de notifications,
+abonnements) et `immolib-backup` (quotidien : sauvegarde S3). Sans eux,
+aucun rappel ni aucune notification ne partirait. Les services web, la base
+et le Redis restent gratuits.
 
 Puis **« Manual Deploy » → « Clear build cache & deploy »** sur `immolib-api`
 pour appliquer le secret, et à nouveau sur `immolib-web`.
@@ -83,7 +97,7 @@ tester vite, crée les comptes toi-même :
   partagées) ne part. Le push navigateur fonctionne, lui, sans rien.
 - **PayDunya** : sans clés, les plans payants sont refusés ; le plan Gratuit
   suffit pour les amis.
-- **Pas d'ordonnanceur** : les rappels automatiques de loyer ne tourneront
-  pas pendant le test.
+- **Crons payants** : les deux jobs cron sont en `starter` ; les supprimer
+  pendant le test n'est pas recommande (les rappels et la file s'arrêtent).
 - Pour économiser les heures, Render arrête automatiquement les services
   gratuits ; rien à faire de ton côté.
