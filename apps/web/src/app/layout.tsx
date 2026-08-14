@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { PwaInstallBanner } from "@/components/pwa-install-banner";
 import { siteDescription, siteUrl } from "@/lib/site";
 
 import "./globals.css";
@@ -76,6 +77,7 @@ export default function RootLayout({
           Aller au contenu principal
         </a>
         <AuthProvider>{children}</AuthProvider>
+        <PwaInstallBanner />
       </body>
     </html>
   );
