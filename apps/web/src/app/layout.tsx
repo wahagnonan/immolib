@@ -54,8 +54,8 @@ export const metadata: Metadata = {
     description: siteDescription,
   },
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
   },
 };
 

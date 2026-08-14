@@ -197,7 +197,7 @@ export function MaintenanceWorkspace() {
       setSelectedId(created.id);
       setForm(emptyForm);
       setCreateOpen(false);
-      setFeedback("Incident enregistré et ajouté au suivi.");
+      setFeedback("Incident enregistré.");
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -272,7 +272,7 @@ export function MaintenanceWorkspace() {
             Signaler un incident
           </button>
         }
-        description="Suivez les problèmes de la maison depuis leur signalement jusqu’à la confirmation du locataire."
+        description="Problèmes signalés par les locataires, leur suivi et résolution."
         eyebrow="Entretien des maisons"
         title="Incidents et maintenance"
       />
@@ -283,17 +283,17 @@ export function MaintenanceWorkspace() {
       <section className="grid gap-4 sm:grid-cols-3">
         <article className="metric-card">
           <Wrench className="mb-5 text-ink" size={22} />
-          <p className="metric-label">Incidents ouverts</p>
+          <p className="metric-label">En cours</p>
           <p className="metric-value">{openCount}</p>
         </article>
         <article className="metric-card">
           <ShieldAlert className="mb-5 text-red-700" size={23} />
-          <p className="metric-label">Urgences à traiter</p>
+          <p className="metric-label">Urgences</p>
           <p className="metric-value">{urgentCount}</p>
         </article>
         <article className="metric-card">
           <CheckCircle2 className="mb-5 text-ink" size={22} />
-          <p className="metric-label">Clôturés par le locataire</p>
+          <p className="metric-label">Clôturés</p>
           <p className="metric-value">
             {incidents.filter((incident) => incident.status === "CLOSED").length}
           </p>
@@ -304,8 +304,8 @@ export function MaintenanceWorkspace() {
         <div className="panel overflow-hidden">
           <div className="panel-heading">
             <div>
-              <p className="section-kicker">File de suivi</p>
-              <h2 className="section-title">{incidents.length} incident(s)</h2>
+              <p className="section-kicker">Liste</p>
+              <h2 className="section-title">{incidents.length} incident{incidents.length > 1 ? "s" : ""}</h2>
             </div>
             <button
               aria-label="Actualiser"

@@ -107,8 +107,8 @@ export function HouseWorkspace() {
           <p className="eyebrow">Patrimoine</p>
           <h1 className="page-title">Mes maisons</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted sm:text-base">
-            Une maison devient le point de départ de tout le reste : copropriétaires,
-            locataire, bail, échéances et quittances.
+            Gérez vos biens immobiliers. Chaque maison est le point de départ
+            pour locataires, baux et suivi des loyers.
           </p>
         </div>
         <button

@@ -19,14 +19,14 @@ import { Brand } from "@/components/brand";
 import { siteDescription } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Gérez vos locations avec moins de stress",
-  description: siteDescription,
+  title: "ImmoLib — Gestion locative pour maisons en Côte d'Ivoire",
+  description: "Application de gestion locative pour maisons. Suivez baux, loyers, paiements, quittances et incidents. Espace bailleur et locataire. Abidjan, Côte d'Ivoire.",
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
   openGraph: {
     url: "/",
-    title: "Gérez vos locations avec moins de stress",
-    description: siteDescription,
+    title: "ImmoLib — Gestion locative pour maisons",
+    description: "Suivez baux, loyers, paiements et quittances dans un espace clair. Bailleur et locataire. Côte d'Ivoire.",
   },
 };
 
@@ -160,16 +160,16 @@ export default function LandingPage() {
                 Gestion locative pensée pour les maisons
               </div>
               <h1 className="max-w-3xl text-[2.75rem] font-semibold leading-[1.02] tracking-[-0.06em] text-ink sm:text-6xl lg:text-[4.35rem]">
-                Gérez vos locations avec des faits, pas des souvenirs.
+                Gestion locative claire pour maisons en Côte d'Ivoire
               </h1>
               <p className="mt-6 max-w-xl text-base leading-7 text-muted sm:text-lg">
-                ImmoLib transforme chaque bail, loyer, paiement et incident en
-                une information claire que le bailleur et le locataire peuvent
-                retrouver au bon moment.
+                ImmoLib est une application qui centralise baux, loyers,
+                paiements, quittances et incidents. Bailleur et locataire accèdent
+                à leurs données dans un espace sécurisé.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link className="primary-button px-5" href="/inscription">
-                  Ajouter ma première maison
+                  Créer mon espace
                   <ArrowRight aria-hidden="true" size={17} />
                 </Link>
                 <a className="secondary-button px-5" href="#services">
@@ -179,15 +179,15 @@ export default function LandingPage() {
               <ul className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-muted">
                 <li className="flex items-center gap-2">
                   <Check className="text-brand" size={16} />
-                  Pas de portefeuille interne
+                  Démarrage en quelques minutes
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="text-brand" size={16} />
-                  Données séparées par rôle
+                  Espace bailleur et locataire
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="text-brand" size={16} />
-                  Documents vérifiables
+                  Documents vérifiables par lien
                 </li>
               </ul>
             </div>
@@ -356,11 +356,11 @@ export default function LandingPage() {
               <div>
                 <p className="eyebrow">Un démarrage guidé</p>
                 <h2 className="text-3xl font-semibold tracking-[-0.045em] text-ink sm:text-4xl">
-                  De la maison à la première quittance.
+                  De la maison à la quittance en 3 étapes
                 </h2>
                 <p className="mt-4 max-w-lg text-sm leading-7 text-muted">
-                  Vous construisez le dossier dans l’ordre naturel de la
-                  location. ImmoLib relie ensuite les opérations entre elles.
+                  Créez votre maison, ajoutez le bail et le locataire, puis
+                  suivez chaque mois. ImmoLib génère automatiquement les échéances, reçus et quittances.
                 </p>
                 <Link className="primary-button mt-7" href="/inscription">
                   Commencer maintenant
@@ -544,14 +544,14 @@ export default function LandingPage() {
         <section className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-7 sm:py-28">
           <FileCheck2 className="mx-auto text-brand" size={28} />
           <h2 className="mt-6 text-4xl font-semibold tracking-[-0.05em] text-ink sm:text-5xl">
-            Commencez par une maison. Gardez une gestion claire en grandissant.
+            Commencez à gérer vos locations
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-muted">
-            Créez votre espace et posez une base propre pour les prochains
-            loyers, documents et échanges avec le locataire.
+            Créez votre espace en quelques minutes. Ajoutez une maison, un bail
+            et commencez à suivre loyers et paiements dès aujourd'hui.
           </p>
           <Link className="primary-button mt-8 px-6" href="/inscription">
-            Ajouter ma première maison
+            Créer mon espace
             <ArrowRight size={17} />
           </Link>
         </section>

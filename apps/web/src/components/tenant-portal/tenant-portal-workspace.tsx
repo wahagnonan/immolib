@@ -307,10 +307,9 @@ export function TenantPortalWorkspace() {
       >
         <div>
           <p className="eyebrow">Mon dossier locatif</p>
-          <h1 className="page-title">Bonjour {firstName},</h1>
+          <h1 className="page-title">Bonjour {firstName}</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted sm:text-base">
-            Retrouvez ce que vous devez payer, ce qui a été déclaré et toutes vos
-            preuves sans demander un renvoi au bailleur.
+            Vos échéances, paiements et documents de location en un seul endroit.
           </p>
         </div>
         <button
@@ -334,10 +333,9 @@ export function TenantPortalWorkspace() {
           </div>
           <p className="metric-label">Solde restant</p>
           <p className="metric-value">{balanceSummary}</p>
-          <p className="metric-detail text-muted">
-            {overview.overdue_charge_count
-              ? `${overview.overdue_charge_count} échéance(s) en retard`
-              : "Aucun retard déclaré"}
+          <p className="metric-detail text-muted">              {overview.overdue_charge_count
+              ? `${overview.overdue_charge_count} en retard`
+              : "Toutes à jour"}
           </p>
         </article>
 
@@ -369,7 +367,7 @@ export function TenantPortalWorkspace() {
           <p className="metric-value">{overview.payment_to_review_count}</p>
           <p className="metric-detail text-muted">
             <BadgeCheck aria-hidden="true" size={15} />
-            Confirmez ou contestez
+            Confirmez ou contestez le montant
           </p>
         </article>
 
@@ -486,7 +484,7 @@ export function TenantPortalWorkspace() {
             <p className="section-kicker">Traçabilité</p>
             <h2 className="section-title">Mes paiements</h2>
             <p className="mt-1 text-sm text-muted">
-              Une confirmation atteste que vous reconnaissez la déclaration du bailleur.
+              Confirmez que le montant correspond à ce que vous avez payé, ou contestez-le.
             </p>
           </div>
         </div>
@@ -561,7 +559,7 @@ export function TenantPortalWorkspace() {
 
       <section className="scroll-mt-28" id="documents">
         <div className="mb-4">
-          <p className="section-kicker">Preuves</p>
+          <p className="section-kicker">Documents</p>
           <h2 className="section-title">Mes reçus et quittances</h2>
         </div>
         {documents.length ? (
@@ -601,7 +599,7 @@ export function TenantPortalWorkspace() {
           </div>
         ) : (
           <div className="panel p-8 text-center text-sm text-muted">
-            Les reçus apparaîtront après un paiement et la quittance après le règlement complet de l’échéance.
+            Vos reçus et quittances seront générés automatiquement après chaque paiement de l’échéance.
           </div>
         )}
       </section>
@@ -612,12 +610,10 @@ export function TenantPortalWorkspace() {
         <p className="flex items-center gap-2 font-bold">
           <AlertTriangle aria-hidden="true" size={18} />
           À propos des paiements
-        </p>
-        <p className="mt-2">
-          ImmoLib ne conserve pas votre loyer dans un portefeuille. Les
-          paiements Mobile Money reçus par webhook signé sont confirmés
-          automatiquement ; les paiements déclarés hors fournisseur restent
-          soumis à votre confirmation.
+        </p>        <p className="mt-2">
+          ImmoLib ne détient pas vos fonds. Les paiements Mobile Money via
+          fournisseur sont confirmés automatiquement. Les paiements en espèces
+          ou virement nécessitent votre confirmation.
         </p>
       </section>
 

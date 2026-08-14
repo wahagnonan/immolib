@@ -253,7 +253,7 @@ export function DocumentWorkspace() {
   return (
     <div className="space-y-6">
       <ModuleHeader
-        description="Chaque paiement produit un reçu. Une caution soldée produit son reçu et chaque mois entièrement payé produit sa quittance."
+        description="Reçus de paiement, quittances de loyer et reçus de caution sont générés automatiquement."
         eyebrow="Justificatifs"
         title="Documents"
       />

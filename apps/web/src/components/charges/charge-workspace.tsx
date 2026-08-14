@@ -81,7 +81,7 @@ export function ChargeWorkspace() {
             {generating ? "Génération…" : "Générer ce mois"}
           </button>
         }
-        description="Une échéance est le montant attendu pour un bail et un mois précis. La génération est idempotente : la relancer ne crée pas de doublon."
+        description="Chaque échéance correspond au loyer d'un mois pour un bail donné. La génération est idempotente : relancez-la sans crainte de doublon."
         eyebrow="Facturation mensuelle"
         title="Échéances"
       />

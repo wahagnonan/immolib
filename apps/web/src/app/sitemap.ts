@@ -14,5 +14,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.7,
     },
+    {
+      url: new URL("/inscription", siteUrl).toString(),
+      changeFrequency: "yearly",
+      priority: 0.6,
+    },
+    {
+      url: new URL("/connexion", siteUrl).toString(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
   ];
 }

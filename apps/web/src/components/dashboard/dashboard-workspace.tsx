@@ -113,12 +113,10 @@ export function DashboardWorkspace() {
         <div>
           <p className="eyebrow">Vue d’ensemble</p>
           <h1 className="page-title">
-            {user?.first_name ? `Bonjour ${user.first_name},` : "Bonjour,"} voici vos
-            locations.
+            {user?.first_name ? `Bonjour ${user.first_name}` : "Bonjour"}, voici votre tableau de bord
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted sm:text-base">
-            Suivez les loyers, les échéances et les documents de vos maisons en un
-            seul endroit.
+            Vue d'ensemble de vos loyers, échéances et paiements pour toutes vos maisons.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -153,21 +151,21 @@ export function DashboardWorkspace() {
               <div className="metric-icon"><WalletCards aria-hidden="true" size={19} /></div>
               <p className="metric-label">Loyers encaissés</p>
               <p className="metric-value">{formatMoney(totals.collected)}</p>
-              <p className="metric-detail text-muted"><TrendingUp aria-hidden="true" size={15} />{totals.rate}% des {formatMoney(totals.expected)} attendus</p>
+              <p className="metric-detail text-muted"><TrendingUp aria-hidden="true" size={15} />{totals.rate}% du total attendu</p>
             </article>
 
             <article className="metric-card">
               <div className="metric-icon"><CalendarClock aria-hidden="true" size={19} /></div>
               <p className="metric-label">Reste à encaisser</p>
               <p className="metric-value">{formatMoney(totals.remaining)}</p>
-              <p className="metric-detail text-muted">{totals.attention_count ? `${totals.attention_count} échéance(s) demandent votre attention` : "Aucune échéance en difficulté"}</p>
+              <p className="metric-detail text-muted">{totals.attention_count ? `${totals.attention_count} échéance en attente` : "Toutes les échéances sont à jour"}</p>
             </article>
 
             <article className="metric-card">
               <div className="metric-icon"><House aria-hidden="true" size={19} /></div>
               <p className="metric-label">Maisons occupées</p>
               <p className="metric-value">{overview.houses.occupied} / {overview.houses.total}</p>
-              <p className="metric-detail text-muted">{overview.houses.vacant ? `${overview.houses.vacant} maison(s) disponible(s)` : overview.houses.total ? "Toutes les maisons sont occupées" : "Ajoutez votre première maison"}</p>
+              <p className="metric-detail text-muted">{overview.houses.vacant ? `${overview.houses.vacant} disponible${overview.houses.vacant > 1 ? "s" : ""}` : overview.houses.total ? "Toutes occupées" : "Ajoutez votre première maison"}</p>
             </article>
           </section>
 

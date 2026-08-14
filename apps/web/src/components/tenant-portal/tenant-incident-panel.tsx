@@ -176,7 +176,7 @@ export function TenantIncidentPanel({
       setFeedback(
         action === "CLOSE"
           ? "L’incident est clôturé."
-          : "Le bailleur a été informé que le problème persiste.",
+          : "Le bailleur a été notifié du problème persistant.",
       );
     } catch (caughtError) {
       setError(
@@ -194,9 +194,9 @@ export function TenantIncidentPanel({
       <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
         <div>
           <p className="section-kicker">Maison et entretien</p>
-          <h2 className="section-title">Mes incidents</h2>
+          <h2 className="section-title">Signalements</h2>
           <p className="mt-1 text-sm text-muted">
-            Signalez un problème et suivez la réponse du bailleur.
+            Problèmes signalés et suivi de leur résolution.
           </p>
         </div>
         <button
@@ -249,12 +249,12 @@ export function TenantIncidentPanel({
         </div>
       ) : (
         <div className="panel mt-4 p-8 text-center text-sm text-muted">
-          Aucun incident signalé pour votre location.
+          Aucun signalement pour le moment.
         </div>
       )}
 
       <Modal
-        description="Décrivez précisément le problème. Le signalement sera horodaté et visible par le bailleur."
+        description="Décrivez le problème. Le signalement sera horodaté et transmis au bailleur."
         kicker="Nouveau signalement"
         onClose={() => setCreateOpen(false)}
         open={createOpen}
@@ -274,7 +274,7 @@ export function TenantIncidentPanel({
               required
               value={form.lease_id}
             >
-              <option value="">Sélectionner la location</option>
+              <option value="">Choisir la maison</option>
               {leases.map((lease) => (
                 <option key={lease.id} value={lease.id}>
                   {lease.house.name}
@@ -345,8 +345,7 @@ export function TenantIncidentPanel({
                   ...current,
                   description: event.target.value,
                 }))
-              }
-              placeholder="Depuis quand, dans quelle pièce et avec quelles conséquences ?"
+              }              placeholder="Quand, où et quel impact ?"
               required
               value={form.description}
             />
@@ -370,7 +369,7 @@ export function TenantIncidentPanel({
               type="submit"
             >
               <Wrench aria-hidden="true" size={17} />
-              Transmettre
+              Envoyer au bailleur
             </button>
           </div>
         </form>
