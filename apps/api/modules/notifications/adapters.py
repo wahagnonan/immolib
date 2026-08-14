@@ -1,5 +1,6 @@
 from html import escape
 import json
+import logging
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -10,6 +11,9 @@ from modules.documents.notifications import (
     NotificationMessage,
     PermanentNotificationError,
 )
+from modules.notifications.api.ses_notifications import _config, mask_email
+
+logger = logging.getLogger(__name__)
 
 
 class AmazonSesEmailAdapter:
@@ -31,6 +35,10 @@ class AmazonSesEmailAdapter:
 
     def send(self, message: NotificationMessage) -> DeliveryReceipt:
         escaped_body = escape(message.body).replace("\n", "<br>")
+        kwargs = {}
+        configuration_set = _config("AWS_SES_CONFIGURATION_SET")
+        if configuration_set:
+            kwargs["ConfigurationSetName"] = configuration_set
         response = self.client.send_email(
             Source=self.source,
             Destination={"ToAddresses": [message.destination]},
@@ -48,8 +56,16 @@ class AmazonSesEmailAdapter:
                     },
                 },
             },
+            **kwargs,
         )
-        return DeliveryReceipt(provider_reference=response.get("MessageId", ""))
+        reference = response.get("MessageId", "")
+        logger.info(
+            "email.send.ok delivery_id=%s destination=%s reference=%s",
+            message.delivery_id,
+            mask_email(message.destination),
+            reference,
+        )
+        return DeliveryReceipt(provider_reference=reference)
 
 
 class FirebasePushAdapter:

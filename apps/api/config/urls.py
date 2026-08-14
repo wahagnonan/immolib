@@ -23,6 +23,7 @@ from modules.payments.api.views import (
     PaymentViewSet,
     SecurityDepositViewSet,
 )
+from modules.notifications.api.ses_webhook import SesBounceComplaintWebhookView
 from modules.payments.api.webhook_views import MobileMoneyWebhookView
 from modules.properties.api.views import (
     CoOwnerInvitationViewSet,
@@ -104,6 +105,11 @@ urlpatterns = [
         "api/v1/webhooks/whatsapp/",
         WhatsAppWebhookView.as_view(),
         name="whatsapp-webhook",
+    ),
+    path(
+        "api/v1/webhooks/email/ses/",
+        SesBounceComplaintWebhookView.as_view(),
+        name="ses-bounce-complaint-webhook",
     ),
     path(
         "api/v1/dashboard/overview/",

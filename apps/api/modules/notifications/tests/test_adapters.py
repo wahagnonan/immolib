@@ -49,6 +49,32 @@ class NotificationAdapterTests(SimpleTestCase):
             client.payload["Message"]["Body"]["Text"]["Data"],
         )
 
+    @override_settings(
+        AWS_SES_FROM_EMAIL="no-reply@example.com",
+        AWS_SES_CONFIGURATION_SET="immolib-prod",
+    )
+    def test_ses_adapter_includes_configuration_set(self):
+        client = FakeSesClient()
+        adapter = AmazonSesEmailAdapter(client=client)
+
+        adapter.send(message("EMAIL", "tenant@example.com"))
+
+        self.assertEqual(
+            client.payload["ConfigurationSetName"], "immolib-prod"
+        )
+
+    @override_settings(
+        AWS_SES_FROM_EMAIL="no-reply@example.com",
+        AWS_SES_CONFIGURATION_SET="",
+    )
+    def test_ses_adapter_omits_configuration_set_when_unset(self):
+        client = FakeSesClient()
+        adapter = AmazonSesEmailAdapter(client=client)
+
+        adapter.send(message("EMAIL", "tenant@example.com"))
+
+        self.assertNotIn("ConfigurationSetName", client.payload)
+
     def test_firebase_adapter_returns_provider_reference(self):
         sent = []
         adapter = FirebasePushAdapter(
