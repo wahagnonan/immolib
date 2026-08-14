@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from config.health import service_health
 from modules.billing.api.views import LeaseObligationViewSet, RentChargeViewSet
 from modules.billing.api.dashboard_views import DashboardOverviewView
 from modules.documents.api.views import (
@@ -94,6 +95,7 @@ router.register("public-access", PublicDocumentAccessViewSet, basename="public-a
 
 urlpatterns = [
     path("health/", health_check, name="health-check"),
+    path("api/v1/health/", service_health, name="service-health"),
     path(
         "api/v1/webhooks/mobile-money/",
         MobileMoneyWebhookView.as_view(),

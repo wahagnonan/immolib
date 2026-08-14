@@ -90,6 +90,35 @@ else:
         }
     }
 
+# Cache partage : le verrouillage de connexion (modules/accounts/services.py)
+# et les throttles doivent voir le meme etat sur tous les workers gunicorn.
+# Redis est utilise des que REDIS_URL est defini (production), avec un repli
+# locmem local sinon (developpement mono-processus). La logique metier des
+# throttles ne change pas : seul le backend change. IGNORE_EXCEPTIONS evite
+# qu'une panne Redis fasse echouer les requetes (le verrouillage redevient
+# alors best-effort, sans blocage applicatif).
+REDIS_URL = os.getenv("REDIS_URL", "")
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "TIMEOUT": 300,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,
+            },
+            "KEY_PREFIX": "immolib",
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "immolib-locmem",
+        }
+    }
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -358,3 +387,29 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ],
 }
+
+# --- Monitoring (Sentry) --------------------------------------------------
+# Active uniquement si SENTRY_DSN est renseigne (beta/production). Le paquet
+# sentry-sdk est une dependance du projet (requirements.txt) ; l'import reste
+# sous condition pour ne rien casser dans les environnements sans Sentry.
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=os.getenv(
+            "SENTRY_ENV", "production" if IS_PRODUCTION else "development"
+        ),
+        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
+        release=os.getenv("SENTRY_RELEASE", "").strip() or None,
+        send_default_pii=False,
+    )
+
+# Health check (config/health.py) : duree au-dela de laquelle une
+# NotificationDelivery QUEUED eligible sans adaptateur configure est
+# consideree comme bloquee (le worker ne pourra jamais la traiter).
+HEALTH_QUEUE_STALL_MINUTES = int(
+    os.getenv("IMMOLIB_HEALTH_QUEUE_STALL_MINUTES", "15")
+)
