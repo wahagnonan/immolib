@@ -1,13 +1,62 @@
-# Blueprint Render pour le test ImmoLib (branche prod-01)
+# Blueprint Render pour ImmoLib.
 #
-# Depuis le tableau de bord Render : "New" > "Blueprint" > choisir le repo
-# github.com/wahagnonan/immolib > branche prod-01. Render lit ce fichier.
+# STATUT AUDIT (jalon 15) — corrige le 2026-08-14 :
+# - Avant : "pas de worker planifie sur Render" : les rappels, la file de
+#   notifications et les abonnements ne tournaient jamais. Desormais deux
+#   jobs cron existent : `immolib-scheduler` (toutes les 15 min) et
+#   `immolib-backup` (quotidien 02:45 UTC).
+# - `render.yaml` reste sur la branche `prod-01` (test gratuit avec les
+#   amis, voir `render-setup.md`). AVANT LE LANCEMENT : basculer sur `main`
+#   (case 15 de la checklist d'audit) et renseigner les secrets `sync: false`.
+#
+# Deploiement : "New" > "Blueprint" > repo github.com/wahagnonan/immolib
+# > branche prod-01. Render lit ce fichier (schema : render.com/schema/render.yaml.json).
 #
 # Apres le premier deploiement :
-# 1. Renseigner DJANGO_SECRET_KEY (valeur de infrastructure/production.env).
-# 2. Lancer un "Manual Deploy" de immolib-api pour appliquer le secret.
-# 3. Le fichier /admin/ demande un compte : shell du service api
-#    (ou commande create_admin) puis se connecter au back-office.
+# 1. Renseigner les variables `sync: false` (invitees a la creation, voir
+#    render-setup.md et production.env.example pour les valeurs attendues).
+# 2. Lancer un "Manual Deploy" de immolib-api pour appliquer les secrets.
+# 3. Le /admin/ demande un compte : commande create_admin (render-setup.md).
+#
+# Budget : immolib-api / immolib-web / immolib-redis / immolib-db = plans
+# free ; les deux jobs cron sont en `starter` (seuls elements payants,
+# ~7 USD/mois chacun). Les cron ont une limite d'execution de 5 min sur ce
+# plan : la file est drainee par lots de 50, et backup_database est court.
+
+# Variables non secretes partagees par l'API et les jobs cron.
+envVarGroups:
+  - name: immolib-shared
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings_production
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: immolib-api.onrender.com,immolib-web.onrender.com
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        value: https://immolib-web.onrender.com
+      - key: PUBLIC_APP_URL
+        value: https://immolib-web.onrender.com
+      - key: EXPOSE_TEST_OTP
+        value: "false"
+      - key: IMMOLIB_PUSH_NOTIFICATION_ADAPTER
+        value: modules.notifications.adapters.WebPushVapidAdapter
+      - key: IMMOLIB_SMS_NOTIFICATION_ADAPTER
+        value: modules.sms.adapters.OrangeSmsAdapter
+      - key: IMMOLIB_SUBSCRIPTIONS_PILOT_MODE
+        value: "false"
+      - key: VAPID_PUBLIC_KEY
+        value: BKhYp_Vv8CnS2dHESDNC0NgMGYqk9dCzgcjWevHq1SXPP-BtA9QZ8tGleWeEQh_ugNYjtQbELapddA807oWHmH8
+      - key: ORANGE_SMS_SENDER_ADDRESS
+        value: tel:+2250000
+      - key: ORANGE_SMS_SENDER_NAME
+        value: IMMOLIB
+      - key: ORANGE_SMS_COST_PER_SEGMENT_XOF
+        value: "10"
+      - key: IMMOLIB_SMS_RATE_PER_SECOND
+        value: "5"
+      - key: WHATSAPP_API_VERSION
+        value: v24.0
 
 databases:
   - name: immolib-db
@@ -17,6 +66,7 @@ databases:
     ipAllowList: []
 
 services:
+  # --- API Django ----------------------------------------------------------
   - type: web
     name: immolib-api
     runtime: docker
@@ -30,53 +80,57 @@ services:
       gunicorn config.wsgi:application --bind 0.0.0.0:8000
       --workers 1 --timeout 120"
     envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: config.settings_production
-      - key: DJANGO_ALLOWED_HOSTS
-        value: immolib-api.onrender.com,immolib-web.onrender.com
-      - key: DJANGO_CSRF_TRUSTED_ORIGINS
-        value: https://immolib-web.onrender.com
-      - key: PUBLIC_APP_URL
-        value: https://immolib-web.onrender.com
+      - fromGroup: immolib-shared
       - key: DJANGO_SECRET_KEY
         sync: false
-      - key: VAPID_PUBLIC_KEY
-        value: BKhYp_Vv8CnS2dHESDNC0NgMGYqk9dCzgcjWevHq1SXPP-BtA9QZ8tGleWeEQh_ugNYjtQbELapddA807oWHmH8
       - key: VAPID_PRIVATE_KEY
         sync: false
-      - key: IMMOLIB_PUSH_NOTIFICATION_ADAPTER
-        value: modules.notifications.adapters.WebPushVapidAdapter
-      - key: EXPOSE_TEST_OTP
-        value: "false"
-      - key: IMMOLIB_SUBSCRIPTIONS_PILOT_MODE
-        value: "false"
+      - key: VAPID_SUBJECT
+        sync: false
       - key: WHATSAPP_WEBHOOK_VERIFY_TOKEN
         sync: false
       - key: WHATSAPP_ACCESS_TOKEN
         sync: false
       - key: WHATSAPP_PHONE_NUMBER_ID
         sync: false
-      - key: IMMOLIB_SMS_NOTIFICATION_ADAPTER
-        value: modules.sms.adapters.OrangeSmsAdapter
       - key: ORANGE_SMS_CLIENT_ID
         sync: false
       - key: ORANGE_SMS_CLIENT_SECRET
         sync: false
-      - key: ORANGE_SMS_SENDER_ADDRESS
-        value: tel:+2250000
-      - key: ORANGE_SMS_SENDER_NAME
-        value: IMMOLIB
+      # Liste d'IP des webhooks DR Orange : a demander a Orange (docs/sms/orange.md).
       - key: ORANGE_SMS_DR_ALLOWED_IPS
         sync: false
-      - key: IMMOLIB_SMS_RATE_PER_SECOND
-        value: "5"
-      - key: ORANGE_SMS_COST_PER_SEGMENT_XOF
-        value: "10"
-      - fromDatabase:
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_SES_REGION
+        sync: false
+      - key: AWS_SES_FROM_EMAIL
+        sync: false
+      - key: PAYDUNYA_MASTER_KEY
+        sync: false
+      - key: PAYDUNYA_PRIVATE_KEY
+        sync: false
+      - key: PAYDUNYA_PUBLIC_KEY
+        sync: false
+      - key: PAYDUNYA_TOKEN
+        sync: false
+      - key: MOBILE_MONEY_WEBHOOK_SECRET
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: immolib-redis
+          type: keyvalue
+          property: connectionString
+      - key: DATABASE_URL
+        fromDatabase:
           name: immolib-db
           property: connectionString
-        key: DATABASE_URL
 
+  # --- Frontend Next.js ----------------------------------------------------
   - type: web
     name: immolib-web
     runtime: docker
@@ -91,3 +145,103 @@ services:
     envVars:
       - key: API_INTERNAL_URL
         value: https://immolib-api.onrender.com
+
+  # --- Cache partage (verrouillage login, throttles, sessions de cache) ----
+  - type: keyvalue
+    name: immolib-redis
+    plan: free
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
+
+  # --- Worker planifie : file de notifications + abonnements + facturation --
+  # Idempotent : run_billing_cycle ne cree les echeances qu'une fois par
+  # periode et queue_rent_reminders n'ajoute pas de doublons. Le verrou
+  # n'existe pas cote Render : un chevauchement est inoffensif car le
+  # traitement de la file est atomique (claim par statut).
+  - type: cron
+    name: immolib-scheduler
+    runtime: docker
+    repo: https://github.com/wahagnonan/immolib
+    branch: prod-01
+    rootDir: apps/api
+    plan: starter
+    schedule: "*/15 * * * *"
+    dockerCommand: >-
+      sh -c "python manage.py run_billing_cycle &&
+      python manage.py process_notifications &&
+      python manage.py check_subscription_expirations"
+    envVars:
+      - fromGroup: immolib-shared
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+      - key: WHATSAPP_WEBHOOK_VERIFY_TOKEN
+        sync: false
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: ORANGE_SMS_CLIENT_ID
+        sync: false
+      - key: ORANGE_SMS_CLIENT_SECRET
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_SES_REGION
+        sync: false
+      - key: AWS_SES_FROM_EMAIL
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: immolib-redis
+          type: keyvalue
+          property: connectionString
+      - key: DATABASE_URL
+        fromDatabase:
+          name: immolib-db
+          property: connectionString
+
+  # --- Worker planifie : sauvegarde quotidienne chiffree vers S3 -----------
+  # Dossier S3 : s3://<BACKUP_S3_BUCKET>/backups/. Chiffrement cote serveur
+  # SSE-S3 + passphrase openssl si BACKUP_PASSPHRASE est renseignee.
+  - type: cron
+    name: immolib-backup
+    runtime: docker
+    repo: https://github.com/wahagnonan/immolib
+    branch: prod-01
+    rootDir: apps/api
+    plan: starter
+    schedule: "45 2 * * *"
+    dockerCommand: sh -c "python manage.py backup_database"
+    envVars:
+      - fromGroup: immolib-shared
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: BACKUP_S3_BUCKET
+        sync: false
+      - key: BACKUP_PASSPHRASE
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_SES_REGION
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: immolib-redis
+          type: keyvalue
+          property: connectionString
+      - key: DATABASE_URL
+        fromDatabase:
+          name: immolib-db
+          property: connectionString

@@ -1,7 +1,12 @@
 # Cron de production ImmoLib — a installer sur l'hote avec :
 #   sudo cp infrastructure/crontab-prod /etc/cron.d/immolib
+#   sudo cp infrastructure/run-scheduled.sh infrastructure/process-notifications.sh /opt/immolib/infrastructure/
 # Le cycle de facturation est prevu pour tourner au moins une fois par jour
 # avant le 25 ; les rappels et relances sont places dans la file quotidiennement.
+# La file de notifications est drainee toutes les heures (script dedie avec
+# verrou). La sauvegarde chiffree tourne chaque nuit a 02:45.
 
 # m h dom mon dow user  command
   30 8  * * *   root  /opt/immolib/infrastructure/run-scheduled.sh
+  0  *  * * *   root  /opt/immolib/infrastructure/process-notifications.sh
+  45 2  * * *   root  /opt/immolib/backup.sh
