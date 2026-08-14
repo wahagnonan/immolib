@@ -10,6 +10,7 @@ d'appel ni de média. La réception se fait par le webhook
 import logging
 
 import requests
+from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured

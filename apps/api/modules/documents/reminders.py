@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.db.models import F
+from django.utils.translation import gettext_lazy as _
 
 from modules.billing.models import RentCharge
 from modules.i18n.utils import resolve_language

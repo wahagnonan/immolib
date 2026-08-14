@@ -3,6 +3,7 @@ from datetime import date
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError

@@ -114,7 +114,7 @@ class PaymentRequestApiTests(APITestCase):
 
         response = self._initiate()
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(PaymentRequest.objects.count(), 0)
 
     def test_only_one_pending_request_per_charge(self):

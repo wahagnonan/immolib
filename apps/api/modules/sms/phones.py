@@ -12,6 +12,8 @@ que pour le destinataire d'un SMS.
 
 import re
 
+from django.utils.translation import gettext_lazy as _
+
 _SEPARATORS = re.compile(r"[\s().-]")
 
 
