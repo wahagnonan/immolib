@@ -11,6 +11,7 @@ import urllib.error
 import urllib.request
 
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 
 class PayDunyaError(Exception):
@@ -46,11 +47,16 @@ def _request(method: str, path: str, payload: dict | None = None) -> dict:
         with urllib.request.urlopen(request, timeout=30) as response:
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:500]
         raise PayDunyaError(
-            f"PayDunya a répondu HTTP {exc.code}: {exc.read().decode('utf-8', errors='replace')[:500]}"
+            _("PayDunya a répondu HTTP {code}: {detail}").format(
+                code=exc.code, detail=detail
+            )
         ) from exc
     except urllib.error.URLError as exc:
-        raise PayDunyaError(f"PayDunya injoignable : {exc.reason}") from exc
+        raise PayDunyaError(
+            _("PayDunya injoignable : {reason}").format(reason=exc.reason)
+        ) from exc
 
 
 def create_checkout_invoice(
@@ -89,12 +95,12 @@ def create_checkout_invoice(
     data = _request("POST", "/checkout-invoice/create", payload)
     if data.get("response_code") != "00":
         raise PayDunyaError(
-            data.get("response_text", "Échec de la création de la facture PayDunya.")
+            data.get("response_text", _("Échec de la création de la facture PayDunya."))
         )
     token = data.get("token", "")
     redirect_url = data.get("response_text", "")
     if not token or not redirect_url:
-        raise PayDunyaError("Réponse PayDunya incomplète (token ou URL manquant).")
+        raise PayDunyaError(_("Réponse PayDunya incomplète (token ou URL manquant)."))
     return token, redirect_url
 
 
@@ -106,7 +112,7 @@ def confirm_invoice(token: str) -> str:
     data = _request("GET", f"/checkout-invoice/confirm/{token}")
     if data.get("response_code") != "00":
         raise PayDunyaError(
-            data.get("response_text", "Échec de la confirmation PayDunya.")
+            data.get("response_text", _("Échec de la confirmation PayDunya."))
         )
     raw_status = str(data.get("status", "")).upper()
     if raw_status == "COMPLETED":

@@ -175,7 +175,7 @@ class WebPushVapidAdapter:
         self._private_key = private_key or settings.VAPID_PRIVATE_KEY
         if not self._private_key:
             raise ImproperlyConfigured(
-                "VAPID_PRIVATE_KEY doit être configuré pour le Web Push."
+                _("VAPID_PRIVATE_KEY doit être configuré pour le Web Push.")
             )
         self._claims = claims or {"sub": settings.VAPID_SUBJECT or settings.PUBLIC_APP_URL}
 
@@ -210,7 +210,7 @@ class WebPushVapidAdapter:
         except self._WebPushException as exc:
             if exc.response is not None and exc.response.status_code in (404, 410):
                 raise PermanentNotificationError(
-                    "L'abonnement push a expiré."
+                    _("L'abonnement push a expiré.")
                 ) from exc
             raise
         reference = ""

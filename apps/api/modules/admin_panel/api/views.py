@@ -2,6 +2,7 @@
 systeme ADMIN et la permission de ressource correspondante."""
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import gettext_lazy as _
 from rest_framework import generics, status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
@@ -61,7 +62,7 @@ class UsersEvolutionView(AdminAuthMixin, APIView):
     def get(self, request):
         period = _query_param(request, "period", "30d")
         if period not in ("7d", "30d", "3m", "12m"):
-            raise ValidationError({"period": "Periode invalide."})
+            raise ValidationError({"period": _("Periode invalide.")})
         return Response(services.users_evolution(period=period))
 
 
@@ -71,7 +72,7 @@ class RevenueSeriesView(AdminAuthMixin, APIView):
     def get(self, request):
         period = _query_param(request, "period", "monthly")
         if period not in ("weekly", "monthly", "yearly"):
-            raise ValidationError({"period": "Periode invalide."})
+            raise ValidationError({"period": _("Periode invalide.")})
         return Response(services.revenue_series(period=period))
 
 
@@ -81,7 +82,7 @@ class HousesEvolutionView(AdminAuthMixin, APIView):
     def get(self, request):
         period = _query_param(request, "period", "30d")
         if period not in ("7d", "30d", "3m", "12m"):
-            raise ValidationError({"period": "Periode invalide."})
+            raise ValidationError({"period": _("Periode invalide.")})
         return Response(services.houses_evolution(period=period))
 
 

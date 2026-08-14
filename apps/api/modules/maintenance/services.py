@@ -123,7 +123,9 @@ def change_incident_status_by_owner(
     allowed = OWNER_TRANSITIONS.get(incident.status, set())
     if target_status not in allowed:
         raise ValidationError(
-            f"Le passage de {incident.get_status_display()} vers ce statut est interdit."
+            _("Le passage de {status} vers ce statut est interdit.").format(
+                status=incident.get_status_display()
+            )
         )
     previous_status = incident.status
     now = timezone.now()
@@ -170,7 +172,7 @@ def respond_to_resolution_by_tenant(
     _assert_tenant_access(actor=actor, incident=incident)
     if incident.status != MaintenanceIncident.Status.RESOLVED:
         raise ValidationError(
-            "Le locataire peut répondre uniquement après une résolution."
+            _("Le locataire peut répondre uniquement après une résolution.")
         )
     if action not in ("CLOSE", "REOPEN"):
         raise ValidationError(_("Réponse locataire invalide."))

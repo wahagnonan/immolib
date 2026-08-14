@@ -326,7 +326,7 @@ class PublicDocumentAccessViewSet(viewsets.GenericViewSet):
             document = resolve_document_grant(serializer.validated_data["grant_token"])
             if document.document_type != RentalDocument.Type.PAYMENT_RECEIPT:
                 raise DjangoValidationError(
-                    "La reponse concerne uniquement un recu de paiement."
+                    _("La reponse concerne uniquement un recu de paiement.")
                 )
             tenant = tenant_for_document(document)
             if serializer.validated_data["action"] == "CONFIRM":

@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import gettext_lazy as _
 
 from ..services import MobileMoneyPaymentData, record_mobile_money_provider_event
 from ..webhooks import (
@@ -41,10 +42,10 @@ class MobileMoneyWebhookView(APIView):
                 signature=request.headers.get("X-ImmoLib-Signature", ""),
             )
         except InvalidWebhookSignature as exc:
-            raise PermissionDenied("Signature du webhook invalide.") from exc
+            raise PermissionDenied(_("Signature du webhook invalide.")) from exc
         except RuntimeError:
             return Response(
-                {"detail": "Le webhook Mobile Money n'est pas configuré."},
+                {"detail": _("Le webhook Mobile Money n'est pas configuré.")},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 

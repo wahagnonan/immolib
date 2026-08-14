@@ -189,7 +189,7 @@ class PaymentResponseSerializer(GrantSerializer):
     def validate(self, attrs):
         if attrs["action"] == "DISPUTE" and not attrs.get("reason", "").strip():
             raise serializers.ValidationError(
-                {"reason": "Le motif est obligatoire pour contester."}
+                {"reason": _("Le motif est obligatoire pour contester.")}
             )
         return attrs
 

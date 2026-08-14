@@ -111,7 +111,7 @@ def _generate_for_leases(*, leases, period_start: date, today: date) -> Generati
 
 def _assert_can_manage_lease(*, actor: User, lease: Lease) -> None:
     if not manageable_properties_for(actor).filter(id=lease.property_id).exists():
-        raise ValidationError("Tu ne peux pas préparer un paiement pour cette maison.")
+        raise ValidationError(_("Tu ne peux pas préparer un paiement pour cette maison."))
 
 
 def _security_deposit_defaults(*, lease: Lease, today: date) -> dict:
@@ -159,14 +159,14 @@ def prepare_payment_obligations(
 
     _assert_can_manage_lease(actor=actor, lease=lease)
     if lease.status != Lease.Status.ACTIVE:
-        raise ValidationError("Seul un bail actif peut recevoir un paiement.")
+        raise ValidationError(_("Seul un bail actif peut recevoir un paiement."))
     if (period_start is None) != (period_end is None):
-        raise ValidationError("Indique le premier et le dernier mois à payer.")
+        raise ValidationError(_("Indique le premier et le dernier mois à payer."))
     if period_start and period_end:
         if period_start.day != 1 or period_end.day != 1:
-            raise ValidationError("Les périodes doivent commencer le premier du mois.")
+            raise ValidationError(_("Les périodes doivent commencer le premier du mois."))
         if period_end < period_start:
-            raise ValidationError("Le dernier mois doit suivre le premier mois.")
+            raise ValidationError(_("Le dernier mois doit suivre le premier mois."))
 
         cursor = period_start
         month_count = 0
@@ -174,7 +174,7 @@ def prepare_payment_obligations(
             month_count += 1
             if month_count > 120:
                 raise ValidationError(
-                    "Un paiement peut couvrir au maximum 120 mois par opération."
+                    _("Un paiement peut couvrir au maximum 120 mois par opération.")
                 )
             cursor = next_month(cursor)
 
@@ -203,7 +203,7 @@ def prepare_payment_obligations(
             cursor = next_month(cursor)
 
     if not obligations:
-        raise ValidationError("Sélectionne une caution ou au moins un mois de loyer.")
+        raise ValidationError(_("Sélectionne une caution ou au moins un mois de loyer."))
 
     return PreparedObligations(
         created=created,

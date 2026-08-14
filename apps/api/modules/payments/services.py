@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from modules.accounts.models import User
 from modules.billing.models import RentCharge
@@ -91,7 +92,7 @@ class SecurityDepositSettlementResult:
 def _assert_can_manage_charge(*, actor: User, charge: RentCharge) -> None:
     property_id = charge.lease.property_id
     if not manageable_properties_for(actor).filter(id=property_id).exists():
-        raise PermissionDenied("Tu ne peux pas enregistrer un paiement pour ce bien.")
+        raise PermissionDenied(_("Tu ne peux pas enregistrer un paiement pour ce bien."))
 
 
 def _existing_payment_matches(
@@ -125,7 +126,7 @@ def _recalculate_charge(charge: RentCharge) -> RentCharge:
     charge = RentCharge.objects.select_for_update().get(id=charge.id)
     amount_paid = _active_allocated_total(charge)
     if amount_paid > charge.amount_due:
-        raise ValidationError("Les paiements depassent le montant de l'echeance.")
+        raise ValidationError(_("Les paiements depassent le montant de l'echeance."))
 
     charge.amount_paid = amount_paid
     if amount_paid == 0:
@@ -170,7 +171,7 @@ def record_allocated_offline_payment(
             payment=existing, allocations=allocations, data=data
         ):
             raise ValidationError(
-                "Cette cle d'idempotence a deja servi avec des donnees differentes."
+                _("Cette cle d'idempotence a deja servi avec des donnees differentes.")
             )
         if existing.status != Payment.Status.CANCELLED:
             from modules.documents.services import issue_documents_for_payment
@@ -179,9 +180,9 @@ def record_allocated_offline_payment(
         return RecordedPaymentResult(payment=existing, created=False)
 
     if not allocations:
-        raise ValidationError("Le paiement doit être affecté à au moins une obligation.")
+        raise ValidationError(_("Le paiement doit être affecté à au moins une obligation."))
     if len({item.charge.id for item in allocations}) != len(allocations):
-        raise ValidationError("Une obligation ne peut apparaître qu'une seule fois.")
+        raise ValidationError(_("Une obligation ne peut apparaître qu'une seule fois."))
 
     locked_charges = {
         charge.id: charge
@@ -191,7 +192,7 @@ def record_allocated_offline_payment(
         .order_by("id")
     }
     if len(locked_charges) != len(allocations):
-        raise ValidationError("Une obligation de paiement est introuvable.")
+        raise ValidationError(_("Une obligation de paiement est introuvable."))
     resolved_allocations = tuple(
         PaymentAllocationData(
             charge=locked_charges[item.charge.id],
@@ -202,11 +203,11 @@ def record_allocated_offline_payment(
     lease_ids = {item.charge.lease_id for item in resolved_allocations}
     if len(lease_ids) != 1:
         raise ValidationError(
-            "Un paiement ne peut pas être réparti entre plusieurs baux."
+            _("Un paiement ne peut pas être réparti entre plusieurs baux.")
         )
     currencies = {item.charge.currency for item in resolved_allocations}
     if len(currencies) != 1:
-        raise ValidationError("Toutes les obligations doivent utiliser la même devise.")
+        raise ValidationError(_("Toutes les obligations doivent utiliser la même devise."))
     for item in resolved_allocations:
         _assert_can_manage_charge(actor=actor, charge=item.charge)
 
@@ -216,31 +217,34 @@ def record_allocated_offline_payment(
         Payment.Method.EXTERNAL_MOBILE_MONEY,
         Payment.Method.OTHER,
     ):
-        raise ValidationError("Moyen de paiement hors ImmoLib invalide.")
+        raise ValidationError(_("Moyen de paiement hors ImmoLib invalide."))
     if data.amount <= 0:
-        raise ValidationError("Le montant doit etre strictement positif.")
+        raise ValidationError(_("Le montant doit etre strictement positif."))
     allocation_total = sum(
         (item.amount for item in resolved_allocations), start=Decimal("0")
     )
     if allocation_total != data.amount:
         raise ValidationError(
-            "Le montant du paiement doit être égal à la somme des affectations."
+            _("Le montant du paiement doit être égal à la somme des affectations.")
         )
     for item in resolved_allocations:
         if item.amount <= 0:
             raise ValidationError(
-                "Chaque montant affecté doit être strictement positif."
+                _("Chaque montant affecté doit être strictement positif.")
             )
         if item.charge.status == RentCharge.Status.CANCELLED:
             raise ValidationError(
-                "Une obligation annulée ne peut pas recevoir de paiement."
+                _("Une obligation annulée ne peut pas recevoir de paiement.")
             )
         outstanding = item.charge.amount_due - _active_allocated_total(item.charge)
         if item.amount > outstanding:
             raise ValidationError(
-                "Le montant affecte a "
-                f"{item.charge.obligation_label} depasse le solde restant de "
-                f"{outstanding} {item.charge.currency}."
+                _("Le montant affecte a {label} depasse le solde restant de "
+                  "{outstanding} {currency}.").format(
+                    label=item.charge.obligation_label,
+                    outstanding=outstanding,
+                    currency=item.charge.currency,
+                )
             )
 
     payment = Payment(
@@ -290,7 +294,7 @@ def record_allocated_offline_payment(
 def _assert_payment_belongs_to_tenant(*, payment: Payment, tenant: Tenant) -> None:
     belongs = payment.allocations.filter(rent_charge__lease__tenant=tenant).exists()
     if not belongs:
-        raise PermissionDenied("Ce paiement n'appartient pas a ce locataire.")
+        raise PermissionDenied(_("Ce paiement n'appartient pas a ce locataire."))
 
 
 @transaction.atomic
@@ -298,7 +302,7 @@ def confirm_payment_by_tenant(*, tenant: Tenant, payment: Payment) -> Payment:
     payment = Payment.objects.select_for_update().get(id=payment.id)
     _assert_payment_belongs_to_tenant(payment=payment, tenant=tenant)
     if payment.status == Payment.Status.CANCELLED:
-        raise ValidationError("Un paiement annule ne peut pas etre confirme.")
+        raise ValidationError(_("Un paiement annule ne peut pas etre confirme."))
     if payment.status == Payment.Status.CONFIRMED_BY_PROVIDER:
         return payment
     if payment.status == Payment.Status.CONFIRMED_BY_TENANT:
@@ -321,13 +325,13 @@ def dispute_payment_by_tenant(
     payment = Payment.objects.select_for_update().get(id=payment.id)
     _assert_payment_belongs_to_tenant(payment=payment, tenant=tenant)
     if payment.status == Payment.Status.CANCELLED:
-        raise ValidationError("Un paiement annule ne peut pas etre conteste.")
+        raise ValidationError(_("Un paiement annule ne peut pas etre conteste."))
     if payment.status == Payment.Status.CONFIRMED_BY_PROVIDER:
         raise ValidationError(
-            "Ce paiement a été confirmé par le prestataire Mobile Money."
+            _("Ce paiement a été confirmé par le prestataire Mobile Money.")
         )
     if not reason.strip():
-        raise ValidationError("Le motif de contestation est obligatoire.")
+        raise ValidationError(_("Le motif de contestation est obligatoire."))
     if payment.status == Payment.Status.DISPUTED_BY_TENANT:
         return payment
 
@@ -351,15 +355,15 @@ def cancel_payment(*, actor: User, payment: Payment, reason: str) -> Payment:
         return payment
     if not payment.is_cash_movement:
         raise ValidationError(
-            "Une affectation de caution ne s'annule pas comme un encaissement. "
-            "Consultez le journal de caution."
+            _("Une affectation de caution ne s'annule pas comme un encaissement. "
+            "Consultez le journal de caution.")
         )
     if payment.status == Payment.Status.CONFIRMED_BY_PROVIDER:
         raise ValidationError(
-            "Un paiement confirmé par le prestataire ne peut pas être annulé manuellement."
+            _("Un paiement confirmé par le prestataire ne peut pas être annulé manuellement.")
         )
     if not reason.strip():
-        raise ValidationError("Le motif d'annulation est obligatoire.")
+        raise ValidationError(_("Le motif d'annulation est obligatoire."))
 
     allocations = list(payment.allocations.all())
     for allocation in allocations:
@@ -372,8 +376,8 @@ def cancel_payment(*, actor: User, payment: Payment, reason: str) -> Payment:
             and charge.amount_paid - allocation.amount < charge.amount_released
         ):
             raise ValidationError(
-                "Ce versement de caution ne peut plus être annulé car une partie "
-                "de la caution a déjà été libérée."
+                _("Ce versement de caution ne peut plus être annulé car une partie "
+                "de la caution a déjà été libérée.")
             )
 
     payment.status = Payment.Status.CANCELLED
@@ -434,7 +438,7 @@ def settle_security_deposit(
             data=data,
         ):
             raise ValidationError(
-                "Cette clé d'idempotence a déjà servi avec des données différentes."
+                _("Cette clé d'idempotence a déjà servi avec des données différentes.")
             )
         from modules.documents.services import (
             issue_security_deposit_settlement_document,
@@ -464,7 +468,7 @@ def settle_security_deposit(
             data=data,
         ):
             raise ValidationError(
-                "Cette clé d'idempotence a déjà servi avec des données différentes."
+                _("Cette clé d'idempotence a déjà servi avec des données différentes.")
             )
         from modules.documents.services import (
             issue_security_deposit_settlement_document,
@@ -474,15 +478,17 @@ def settle_security_deposit(
         return SecurityDepositSettlementResult(movement=existing, created=False)
     _assert_can_manage_charge(actor=actor, charge=deposit)
     if deposit.charge_type != RentCharge.Type.SECURITY_DEPOSIT:
-        raise ValidationError("Cette obligation n'est pas une caution.")
+        raise ValidationError(_("Cette obligation n'est pas une caution."))
     if data.movement_type not in SecurityDepositMovement.Type.values:
-        raise ValidationError("Type de mouvement de caution invalide.")
+        raise ValidationError(_("Type de mouvement de caution invalide."))
     if data.amount <= 0:
-        raise ValidationError("Le montant doit être strictement positif.")
+        raise ValidationError(_("Le montant doit être strictement positif."))
     if data.amount > deposit.held_balance:
         raise ValidationError(
-            "Le montant dépasse la caution encore détenue de "
-            f"{deposit.held_balance} {deposit.currency}."
+            _("Le montant dépasse la caution encore détenue de "
+            "{held_balance} {currency}.").format(
+                held_balance=deposit.held_balance, currency=deposit.currency
+            )
         )
 
     reason = data.reason.strip()
@@ -490,14 +496,14 @@ def settle_security_deposit(
     target = None
     resulting_payment = None
     if data.movement_type == SecurityDepositMovement.Type.RETENTION and not reason:
-        raise ValidationError("Le motif de la retenue est obligatoire.")
+        raise ValidationError(_("Le motif de la retenue est obligatoire."))
     if data.movement_type == SecurityDepositMovement.Type.APPLY_TO_RENT:
         if not data.agreement_confirmed or not agreement_reference:
             raise ValidationError(
-                "L'accord du locataire et sa référence sont obligatoires."
+                _("L'accord du locataire et sa référence sont obligatoires.")
             )
         if data.target_rent_charge is None:
-            raise ValidationError("Sélectionnez le loyer à solder.")
+            raise ValidationError(_("Sélectionnez le loyer à solder."))
         target = (
             RentCharge.objects.select_for_update()
             .select_related("lease__property", "lease__tenant")
@@ -508,15 +514,15 @@ def settle_security_deposit(
             or target.lease_id != deposit.lease_id
         ):
             raise ValidationError(
-                "La caution peut seulement être affectée à un loyer du même bail."
+                _("La caution peut seulement être affectée à un loyer du même bail.")
             )
         if target.status == RentCharge.Status.CANCELLED:
-            raise ValidationError("Un loyer annulé ne peut pas recevoir la caution.")
+            raise ValidationError(_("Un loyer annulé ne peut pas recevoir la caution."))
         outstanding = target.amount_due - _active_allocated_total(target)
         if data.amount > outstanding:
             raise ValidationError(
-                f"Le montant dépasse le solde du loyer de {outstanding} "
-                f"{target.currency}."
+                _("Le montant dépasse le solde du loyer de {outstanding} "
+                "{currency}.").format(outstanding=outstanding, currency=target.currency)
             )
         payment_key = uuid5(
             NAMESPACE_URL,
@@ -529,7 +535,7 @@ def settle_security_deposit(
             status=Payment.Status.CONFIRMED_BY_TENANT,
             received_at=data.occurred_at,
             external_reference=agreement_reference,
-            note=reason or "Affectation de la caution au loyer",
+            note=reason or _("Affectation de la caution au loyer"),
             is_cash_movement=False,
             idempotency_key=payment_key,
             recorded_by=actor,
@@ -589,7 +595,7 @@ def record_mobile_money_provider_event(
     if existing:
         if existing.payload_digest != data.payload_digest:
             raise ValidationError(
-                "Cet identifiant d'événement a déjà été utilisé avec un autre contenu."
+                _("Cet identifiant d'événement a déjà été utilisé avec un autre contenu.")
             )
         return MobileMoneyPaymentResult(
             provider_event=existing,
@@ -627,18 +633,20 @@ def record_mobile_money_provider_event(
             )
             if charge.status == RentCharge.Status.CANCELLED:
                 raise ValidationError(
-                    "Une échéance annulée ne peut pas recevoir de paiement."
+_("Une échéance annulée ne peut pas recevoir de paiement.")
                 )
             if data.amount <= 0:
                 raise ValidationError(
-                    "Le montant Mobile Money doit être strictement positif."
+                    _("Le montant Mobile Money doit être strictement positif.")
                 )
             if data.currency.upper() != charge.currency:
-                raise ValidationError("La devise ne correspond pas à l'échéance.")
+                raise ValidationError(_("La devise ne correspond pas à l'échéance."))
             outstanding = charge.amount_due - _active_allocated_total(charge)
             if data.amount > outstanding:
                 raise ValidationError(
-                    f"Le montant dépasse le solde restant de {outstanding} {charge.currency}."
+                    _("Le montant dépasse le solde restant de {outstanding} {currency}.").format(
+                        outstanding=outstanding, currency=charge.currency
+                    )
                 )
             owner = charge.lease.property.ownerships.select_related("user").get(
                 role=Ownership.Role.PRIMARY
@@ -692,7 +700,7 @@ def record_mobile_money_provider_event(
             )
     except (RentCharge.DoesNotExist, ValidationError) as exc:
         message = (
-            "Échéance inconnue."
+            _("Échéance inconnue.")
             if isinstance(exc, RentCharge.DoesNotExist)
             else "; ".join(exc.messages)
         )
@@ -732,7 +740,7 @@ def _assert_tenant_of_charge(*, user: User, charge: RentCharge) -> Tenant:
         .first()
     )
     if tenant is None:
-        raise PermissionDenied("Cette échéance ne t'appartient pas.")
+        raise PermissionDenied(_("Cette échéance ne t'appartient pas."))
     return tenant
 
 
@@ -742,7 +750,7 @@ def _primary_payee(*, charge: RentCharge) -> User:
             role=Ownership.Role.PRIMARY
         )
     except Ownership.DoesNotExist as exc:
-        raise ValidationError("Le bien n'a pas de bailleur principal.") from exc
+        raise ValidationError(_("Le bien n'a pas de bailleur principal.")) from exc
     return ownership.user
 
 
@@ -784,7 +792,7 @@ def _next_payment_request_reference() -> str:
         candidate = f"PR-{uuid4().hex[:8].upper()}"
         if not PaymentRequest.objects.filter(reference=candidate).exists():
             return candidate
-    raise ValidationError("Impossible de générer une référence unique.")
+    raise ValidationError(_("Impossible de générer une référence unique."))
 
 
 @transaction.atomic
@@ -803,29 +811,31 @@ def initiate_payment_request(
         .first()
     )
     if charge is None:
-        raise ValidationError("Cette échéance est introuvable.")
+        raise ValidationError(_("Cette échéance est introuvable."))
     _assert_tenant_of_charge(user=tenant, charge=charge)
     if charge.status == RentCharge.Status.CANCELLED:
-        raise ValidationError("Une échéance annulée ne peut pas recevoir de demande.")
+        raise ValidationError(_("Une échéance annulée ne peut pas recevoir de demande."))
     if charge.charge_type == RentCharge.Type.SECURITY_DEPOSIT:
         raise ValidationError(
-            "La caution ne se règle pas par demande de paiement."
+            _("La caution ne se règle pas par demande de paiement.")
         )
     if data.amount <= 0:
-        raise ValidationError("Le montant doit être strictement positif.")
+        raise ValidationError(_("Le montant doit être strictement positif."))
     outstanding = _outstanding_balance(charge)
     if data.amount > outstanding:
         raise ValidationError(
-            f"Le montant dépasse le solde restant de {outstanding} {charge.currency}."
+            _("Le montant dépasse le solde restant de {outstanding} {currency}.").format(
+                outstanding=outstanding, currency=charge.currency
+            )
         )
     if PaymentRequest.objects.filter(
         rent_charge=charge, status=PaymentRequest.Status.PENDING
     ).exists():
         raise ValidationError(
-            "Une demande est déjà en attente pour cette échéance."
+            _("Une demande est déjà en attente pour cette échéance.")
         )
     if data.operator not in PaymentRequest.Operator.values:
-        raise ValidationError("Moyen de paiement invalide.")
+        raise ValidationError(_("Moyen de paiement invalide."))
 
     payee = _primary_payee(charge=charge)
     method_account = None
@@ -837,11 +847,11 @@ def initiate_payment_request(
         )
         if method_account is None:
             raise ValidationError(
-                "Ce compte de réception n'appartient pas au bailleur du bien."
+                _("Ce compte de réception n'appartient pas au bailleur du bien.")
             )
         if method_account.operator != data.operator:
             raise ValidationError(
-                "Le compte choisi ne correspond pas au moyen de paiement."
+                _("Le compte choisi ne correspond pas au moyen de paiement.")
             )
 
     payment_request = PaymentRequest(
@@ -898,19 +908,19 @@ def confirm_payment_request(
     )
     charge = payment_request.rent_charge
     if payment_request.status != PaymentRequest.Status.PENDING:
-        raise ValidationError("Cette demande a déjà été traitée.")
+        raise ValidationError(_("Cette demande a déjà été traitée."))
     if charge.status == RentCharge.Status.CANCELLED:
-        raise ValidationError("Une échéance annulée ne peut pas recevoir de paiement.")
+        raise ValidationError(_("Une échéance annulée ne peut pas recevoir de paiement."))
     _assert_can_manage_charge(actor=owner, charge=charge)
 
     received = received_amount if received_amount is not None else payment_request.amount
     if received <= 0:
-        raise ValidationError("Le montant reçu doit être strictement positif.")
+        raise ValidationError(_("Le montant reçu doit être strictement positif."))
     outstanding = _outstanding_balance(charge)
     if received > outstanding:
         raise ValidationError(
-            f"Le montant reçu dépasse le solde restant de {outstanding} "
-            f"{charge.currency}."
+            _("Le montant reçu dépasse le solde restant de {outstanding} "
+            "{currency}.").format(outstanding=outstanding, currency=charge.currency)
         )
 
     idempotency_key = uuid5(
@@ -988,9 +998,9 @@ def refuse_payment_request(
         id=payment_request.id
     )
     if payment_request.status != PaymentRequest.Status.PENDING:
-        raise ValidationError("Cette demande a déjà été traitée.")
+        raise ValidationError(_("Cette demande a déjà été traitée."))
     if not reason.strip():
-        raise ValidationError("Le motif est obligatoire.")
+        raise ValidationError(_("Le motif est obligatoire."))
     _assert_can_manage_charge(actor=owner, charge=payment_request.rent_charge)
 
     payment_request.status = PaymentRequest.Status.NOT_RECEIVED
@@ -1019,9 +1029,9 @@ def cancel_payment_request(
         id=payment_request.id
     )
     if payment_request.requested_by_id != tenant.id:
-        raise PermissionDenied("Tu ne peux pas annuler cette demande.")
+        raise PermissionDenied(_("Tu ne peux pas annuler cette demande."))
     if payment_request.status != PaymentRequest.Status.PENDING:
-        raise ValidationError("Cette demande a déjà été traitée.")
+        raise ValidationError(_("Cette demande a déjà été traitée."))
 
     payment_request.status = PaymentRequest.Status.CANCELLED
     payment_request.processing_note = reason.strip()

@@ -74,14 +74,14 @@ class RentCharge(models.Model):
         validators=[MinValueValidator(Decimal("0"))],
     )
     amount_released = models.DecimalField(
-        "caution libérée",
+        _("caution libérée"),
         max_digits=12,
         decimal_places=2,
         default=Decimal("0"),
         validators=[MinValueValidator(Decimal("0"))],
         help_text=(
-            "Montant remboursé, retenu ou affecté. "
-            "ImmoLib ne conserve pas les fonds."
+            _("Montant remboursé, retenu ou affecté. "
+            "ImmoLib ne conserve pas les fonds.")
         ),
     )
     currency = models.CharField("devise", max_length=3, default="XOF")
@@ -143,7 +143,7 @@ class RentCharge(models.Model):
         super().clean()
         if self.period_start and self.period_start.day != 1:
             raise ValidationError(
-                {"period_start": "La periode doit commencer le premier du mois."}
+                {"period_start": _("La periode doit commencer le premier du mois.")}
             )
         if (
             self.charge_type == self.Type.RENT
@@ -153,16 +153,16 @@ class RentCharge(models.Model):
             expected_total = self.rent_amount + self.charges_amount
             if self.amount_due != expected_total:
                 raise ValidationError(
-                    {"amount_due": "Le total doit etre egal au loyer plus les charges."}
+                    {"amount_due": _("Le total doit etre egal au loyer plus les charges.")}
                 )
         if self.charge_type == self.Type.SECURITY_DEPOSIT:
             if self.rent_amount != 0 or self.charges_amount != 0:
                 raise ValidationError(
-                    "Une caution ne doit pas être comptabilisée comme un loyer."
+                    _("Une caution ne doit pas être comptabilisée comme un loyer.")
                 )
         elif self.amount_released:
             raise ValidationError(
-                {"amount_released": "Seule une caution peut être libérée."}
+                {"amount_released": _("Seule une caution peut être libérée.")}
             )
 
         if (
@@ -171,7 +171,7 @@ class RentCharge(models.Model):
             and self.amount_paid > self.amount_due
         ):
             raise ValidationError(
-                {"amount_paid": "Le total paye ne peut pas depasser le total attendu."}
+                {"amount_paid": _("Le total paye ne peut pas depasser le total attendu.")}
             )
 
     @property

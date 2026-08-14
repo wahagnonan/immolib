@@ -1,0 +1,1522 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-08-14 11:18+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: modules/accounts/managers.py:15
+msgid "Le numero de telephone est obligatoire."
+msgstr ""
+
+#: modules/accounts/managers.py:32
+msgid "Un superutilisateur doit avoir is_staff=True."
+msgstr ""
+
+#: modules/accounts/managers.py:34
+msgid "Un superutilisateur doit avoir is_superuser=True."
+msgstr ""
+
+#: modules/accounts/models.py:30
+msgid ""
+"Role systeme. Seul le role ADMIN ouvre l'espace d'administration. Le "
+"statut bailleur ou locataire reste derive des donnees."
+msgstr ""
+
+#: modules/accounts/models.py:44
+msgid "langue preferee"
+msgstr ""
+
+#: modules/accounts/models.py:49
+msgid "Laisser vide pour la detection automatique."
+msgstr ""
+
+#: modules/accounts/models.py:52
+msgid "fuseau horaire prefere"
+msgstr ""
+
+#: modules/accounts/models.py:56
+msgid "Code IANA, ex. Africa/Abidjan. Laisser vide pour le defaut."
+msgstr ""
+
+#: modules/accounts/models.py:59
+msgid "devise preferee"
+msgstr ""
+
+#: modules/accounts/models.py:64
+msgid "Devise ISO 4217. Laisser vide pour la devise par defaut."
+msgstr ""
+
+#: modules/accounts/models.py:67
+msgid "format de date prefere"
+msgstr ""
+
+#: modules/accounts/models.py:74
+msgid "format de nombre prefere"
+msgstr ""
+
+#: modules/accounts/phones.py:9
+msgid "Utilisez le format international E.164, par exemple +2250700000000."
+msgstr ""
+
+#: modules/accounts/services.py:24
+msgid "Code invalide ou expiré."
+msgstr ""
+
+#: modules/accounts/services.py:95
+msgid "Réinitialisation de votre mot de passe ImmoLib"
+msgstr ""
+
+#: modules/accounts/services.py:96
+msgid "réinitialiser votre mot de passe"
+msgstr ""
+
+#: modules/accounts/services.py:98
+msgid "Vérification de votre email ImmoLib"
+msgstr ""
+
+#: modules/accounts/services.py:99
+msgid "vérifier votre adresse email"
+msgstr ""
+
+#: modules/accounts/services.py:101
+msgid "Vérification de votre téléphone ImmoLib"
+msgstr ""
+
+#: modules/accounts/services.py:102
+msgid "vérifier votre numéro de téléphone"
+msgstr ""
+
+#: modules/accounts/services.py:104
+#, python-brace-format
+msgid ""
+"Votre code ImmoLib pour {action} est {code}. Il expire à {expires_at}. Ne"
+" le partagez avec personne."
+msgstr ""
+
+#: modules/accounts/services.py:117
+msgid "Une adresse email est obligatoire."
+msgstr ""
+
+#: modules/accounts/services.py:125 modules/accounts/services.py:261
+msgid "Finalité OTP inconnue."
+msgstr ""
+
+#: modules/accounts/api/serializers.py:84 modules/accounts/services.py:190
+#: modules/accounts/services.py:241
+msgid "Un compte utilise déjà ce numéro de téléphone."
+msgstr ""
+
+#: modules/accounts/services.py:194 modules/accounts/services.py:238
+msgid "Un compte utilise déjà cette adresse email."
+msgstr ""
+
+#: modules/accounts/api/serializers.py:91
+#: modules/accounts/api/serializers.py:159
+msgid "Les mots de passe ne correspondent pas."
+msgstr ""
+
+#: modules/accounts/api/views.py:49
+msgid "Si le compte est éligible, un code a été mis en file d’envoi."
+msgstr ""
+
+#: modules/accounts/api/views.py:226
+msgid "Votre mot de passe a été modifié."
+msgstr ""
+
+#: modules/accounts/api/views.py:242
+msgid "Trop de tentatives échouées. Réessayez dans quelques minutes."
+msgstr ""
+
+#: modules/accounts/api/views.py:260
+msgid "Email ou mot de passe incorrect."
+msgstr ""
+
+#: modules/accounts/api/views.py:266
+msgid "Vérifiez votre email ou votre téléphone avant de vous connecter."
+msgstr ""
+
+#: modules/admin_panel/models.py:16
+msgid "Connexion admin"
+msgstr ""
+
+#: modules/admin_panel/models.py:17
+msgid "Utilisateur suspendu"
+msgstr ""
+
+#: modules/admin_panel/models.py:18
+msgid "Utilisateur reactive"
+msgstr ""
+
+#: modules/admin_panel/models.py:19
+msgid "Role utilisateur modifie"
+msgstr ""
+
+#: modules/admin_panel/models.py:20
+msgid "Abonnement modifie"
+msgstr ""
+
+#: modules/admin_panel/models.py:21
+msgid "Abonnement annule"
+msgstr ""
+
+#: modules/admin_panel/models.py:22
+msgid "Abonnement prolonge"
+msgstr ""
+
+#: modules/admin_panel/models.py:23
+msgid "Abonnement active"
+msgstr ""
+
+#: modules/admin_panel/models.py:32
+msgid "administrateur"
+msgstr ""
+
+#: modules/admin_panel/services.py:216
+msgid "Vous ne pouvez pas suspendre votre propre compte."
+msgstr ""
+
+#: modules/admin_panel/services.py:219
+msgid "Un compte administrateur ne peut pas être suspendu par ce canal."
+msgstr ""
+
+#: modules/admin_panel/services.py:223
+#, python-format
+msgid "Ce compte est deja %s."
+msgstr ""
+
+#: modules/admin_panel/services.py:224 modules/i18n/models.py:102
+msgid "actif"
+msgstr ""
+
+#: modules/admin_panel/services.py:224
+msgid "suspendu"
+msgstr ""
+
+#: modules/admin_panel/services.py:255 modules/admin_panel/services.py:313
+#: modules/subscriptions/services.py:242
+msgid "Ce plan n'existe pas ou n'est plus disponible."
+msgstr ""
+
+#: modules/admin_panel/services.py:283
+msgid "Le nombre de jours doit etre positif."
+msgstr ""
+
+#: modules/admin_panel/services.py:316
+msgid "La duree doit etre positive."
+msgstr ""
+
+#: modules/billing/models.py:22
+msgid "Loyer"
+msgstr ""
+
+#: modules/billing/models.py:23
+msgid "Caution"
+msgstr ""
+
+#: modules/billing/models.py:26
+msgid "A venir"
+msgstr ""
+
+#: modules/billing/models.py:27
+msgid "A payer"
+msgstr ""
+
+#: modules/billing/models.py:28
+msgid "Partiellement payee"
+msgstr ""
+
+#: modules/billing/models.py:29
+msgid "Payee"
+msgstr ""
+
+#: modules/billing/models.py:30
+msgid "En retard"
+msgstr ""
+
+#: modules/billing/models.py:31
+msgid "Contestee"
+msgstr ""
+
+#: modules/billing/models.py:32
+msgid "Annulee"
+msgstr ""
+
+#: modules/billing/models.py:129
+msgid "echeance de loyer"
+msgstr ""
+
+#: modules/billing/models.py:130
+msgid "echeances de loyer"
+msgstr ""
+
+#: modules/billing/services.py:33
+msgid "La periode doit commencer le premier du mois."
+msgstr ""
+
+#: modules/billing/services.py:114
+msgid "Tu ne peux pas préparer un paiement pour cette maison."
+msgstr ""
+
+#: modules/billing/services.py:162
+msgid "Seul un bail actif peut recevoir un paiement."
+msgstr ""
+
+#: modules/billing/services.py:164
+msgid "Indique le premier et le dernier mois à payer."
+msgstr ""
+
+#: modules/billing/services.py:167
+msgid "Les périodes doivent commencer le premier du mois."
+msgstr ""
+
+#: modules/billing/services.py:169
+msgid "Le dernier mois doit suivre le premier mois."
+msgstr ""
+
+#: modules/billing/services.py:206
+msgid "Sélectionne une caution ou au moins un mois de loyer."
+msgstr ""
+
+#: modules/documents/models.py:18
+msgid "Recu de paiement"
+msgstr ""
+
+#: modules/documents/models.py:19 modules/documents/pdfs.py:86
+msgid "Quittance de loyer"
+msgstr ""
+
+#: modules/documents/models.py:20
+msgid "Reçu de caution"
+msgstr ""
+
+#: modules/documents/models.py:21
+msgid "Relevé de caution"
+msgstr ""
+
+#: modules/documents/models.py:24 modules/leases/models.py:184
+#: modules/properties/models.py:75
+msgid "Actif"
+msgstr ""
+
+#: modules/documents/models.py:25
+msgid "Invalide"
+msgstr ""
+
+#: modules/documents/models.py:114
+msgid "document locatif"
+msgstr ""
+
+#: modules/documents/models.py:115
+msgid "documents locatifs"
+msgstr ""
+
+#: modules/documents/models.py:168
+msgid "Lien du document"
+msgstr ""
+
+#: modules/documents/models.py:169
+msgid "Code d'acces au document"
+msgstr ""
+
+#: modules/documents/models.py:170
+msgid "Code de verification du compte"
+msgstr ""
+
+#: modules/documents/models.py:171
+msgid "Rappel de loyer"
+msgstr ""
+
+#: modules/documents/models.py:172
+msgid "Invitation du locataire"
+msgstr ""
+
+#: modules/documents/models.py:173
+msgid "Paiement à confirmer"
+msgstr ""
+
+#: modules/documents/models.py:174
+msgid "Paiement confirmé"
+msgstr ""
+
+#: modules/documents/models.py:177 modules/documents/models.py:373
+#: modules/leases/models.py:153 modules/notifications/models.py:16
+msgid "SMS"
+msgstr ""
+
+#: modules/documents/models.py:178 modules/documents/models.py:372
+#: modules/leases/models.py:152 modules/notifications/models.py:14
+msgid "Email"
+msgstr ""
+
+#: modules/documents/models.py:179 modules/documents/models.py:371
+#: modules/leases/models.py:151 modules/notifications/models.py:15
+msgid "WhatsApp"
+msgstr ""
+
+#: modules/documents/models.py:180 modules/notifications/models.py:13
+msgid "Notification push"
+msgstr ""
+
+#: modules/documents/models.py:183 modules/leases/models.py:81
+#: modules/properties/models.py:132
+msgid "En attente"
+msgstr ""
+
+#: modules/documents/models.py:184
+msgid "Traitement en cours"
+msgstr ""
+
+#: modules/documents/models.py:185
+msgid "Envoye"
+msgstr ""
+
+#: modules/documents/models.py:186
+msgid "Echec"
+msgstr ""
+
+#: modules/documents/models.py:374 modules/leases/models.py:154
+msgid "Partage de l'appareil"
+msgstr ""
+
+#: modules/documents/models.py:375
+msgid "Copie du lien"
+msgstr ""
+
+#: modules/documents/notifications.py:115
+msgid "Le code de compte est introuvable."
+msgstr ""
+
+#: modules/documents/notifications.py:121
+msgid "Le code de compte n'est plus actif."
+msgstr ""
+
+#: modules/documents/notifications.py:126
+msgid "Le contenu du code de compte n’est plus disponible."
+msgstr ""
+
+#: modules/documents/notifications.py:145
+msgid "L'invitation du locataire est introuvable."
+msgstr ""
+
+#: modules/documents/notifications.py:152
+msgid "L'invitation du locataire n'est plus active."
+msgstr ""
+
+#: modules/documents/notifications.py:164 modules/leases/services.py:165
+msgid "Invitation à rejoindre ImmoLib"
+msgstr ""
+
+#: modules/documents/notifications.py:166 modules/leases/services.py:167
+#, python-brace-format
+msgid ""
+"Bonjour {tenant}, {owner} vous invite à rejoindre ImmoLib pour le bien "
+"{house}. Créez ou rattachez votre compte ici : {url} (invitation valable "
+"jusqu'au {expires_at})."
+msgstr ""
+
+#: modules/documents/notifications.py:190
+msgid "L'echeance du rappel est introuvable."
+msgstr ""
+
+#: modules/documents/notifications.py:197
+msgid "L'echeance ne doit plus etre relancee."
+msgstr ""
+
+#: modules/documents/notifications.py:204
+#, python-brace-format
+msgid "arrive a echeance le {date}"
+msgstr ""
+
+#: modules/documents/notifications.py:208
+msgid "est a regler aujourd'hui"
+msgstr ""
+
+#: modules/documents/notifications.py:211
+#, python-brace-format
+msgid "est en retard depuis {days} {unit} (echeance du {date})"
+msgstr ""
+
+#: modules/documents/notifications.py:214
+msgid "jour"
+msgstr ""
+
+#: modules/documents/notifications.py:214
+msgid "jours"
+msgstr ""
+
+#: modules/documents/notifications.py:221
+#, python-brace-format
+msgid "ImmoLib - Rappel de loyer {period}"
+msgstr ""
+
+#: modules/documents/notifications.py:225
+#, python-brace-format
+msgid ""
+"Bonjour {tenant}, votre loyer pour {house} ({period}), avec un solde de "
+"{balance}, {timing}."
+msgstr ""
+
+#: modules/documents/notifications.py:250
+msgid "La transaction de paiement est introuvable."
+msgstr ""
+
+#: modules/documents/notifications.py:259
+#, python-brace-format
+msgid "ImmoLib - Paiement a confirmer {reference}"
+msgstr ""
+
+#: modules/documents/notifications.py:263
+#, python-brace-format
+msgid ""
+"Bonjour {payee}, le locataire {tenant} a initie un paiement de {amount} "
+"par {operator} ({phone}) pour {house} ({period}). Verifiez la reception "
+"puis confirmez dans ImmoLib : reference {reference}."
+msgstr ""
+
+#: modules/documents/notifications.py:289
+#, python-brace-format
+msgid "ImmoLib - Paiement confirme {reference}"
+msgstr ""
+
+#: modules/documents/notifications.py:293
+#, python-brace-format
+msgid ""
+"Bonjour {tenant}, le bailleur a confirme votre paiement de {amount} pour "
+"{house} ({period}). Votre quittance est disponible dans ImmoLib : "
+"reference {reference}."
+msgstr ""
+
+#: modules/documents/notifications.py:314
+msgid "Le lien de notification est introuvable."
+msgstr ""
+
+#: modules/documents/notifications.py:324
+msgid "Le lien du document n'est plus actif."
+msgstr ""
+
+#: modules/documents/notifications.py:326
+msgid "Le document n'est plus actif."
+msgstr ""
+
+#: modules/documents/notifications.py:330 modules/documents/services.py:324
+#, python-brace-format
+msgid ""
+"Bonjour {tenant}, consultez votre {document_type} ImmoLib : {url} (lien "
+"valable jusqu'au {expires_at})."
+msgstr ""
+
+#: modules/documents/notifications.py:342 modules/documents/services.py:320
+#, python-brace-format
+msgid "ImmoLib - {document_type}"
+msgstr ""
+
+#: modules/documents/notifications.py:352
+msgid "Le code OTP est introuvable."
+msgstr ""
+
+#: modules/documents/notifications.py:354
+msgid "Le code OTP n'est plus actif."
+msgstr ""
+
+#: modules/documents/notifications.py:357
+msgid "Le contenu du code n’est plus disponible."
+msgstr ""
+
+#: modules/documents/notifications.py:368
+msgid "Type de notification inconnu."
+msgstr ""
+
+#: modules/documents/pdfs.py:70
+msgid "quittance"
+msgstr ""
+
+#: modules/documents/pdfs.py:71
+msgid "recu"
+msgstr ""
+
+#: modules/documents/pdfs.py:87
+msgid "Reçu de paiement"
+msgstr ""
+
+#: modules/documents/pdfs.py:89
+msgid "ACTIF"
+msgstr ""
+
+#: modules/documents/pdfs.py:89
+msgid "INVALIDE"
+msgstr ""
+
+#: modules/documents/pdfs.py:102
+msgid "Justificatif de gestion locative"
+msgstr ""
+
+#: modules/documents/pdfs.py:173
+msgid "GESTION LOCATIVE"
+msgstr ""
+
+#: modules/documents/pdfs.py:235
+#, python-brace-format
+msgid "Période de {month}"
+msgstr ""
+
+#: modules/documents/pdfs.py:244 modules/maintenance/models.py:128
+msgid "Bailleur"
+msgstr ""
+
+#: modules/documents/pdfs.py:245 modules/maintenance/models.py:129
+msgid "Locataire"
+msgstr ""
+
+#: modules/documents/pdfs.py:248
+msgid "Bien"
+msgstr ""
+
+#: modules/documents/pdfs.py:250
+msgid "Période"
+msgstr ""
+
+#: modules/documents/pdfs.py:251
+#, python-brace-format
+msgid "Du {date}"
+msgstr ""
+
+#: modules/documents/pdfs.py:252
+#, python-brace-format
+msgid "au {date}"
+msgstr ""
+
+#: modules/documents/pdfs.py:257
+msgid "Moyen de paiement"
+msgstr ""
+
+#: modules/documents/pdfs.py:258
+msgid "Non précisé"
+msgstr ""
+
+#: modules/documents/pdfs.py:261
+msgid "Émis le"
+msgstr ""
+
+#: modules/documents/pdfs.py:284
+msgid "MONTANT DOCUMENTÉ"
+msgstr ""
+
+#: modules/documents/pdfs.py:310
+msgid "AFFECTATION"
+msgstr ""
+
+#: modules/documents/pdfs.py:311
+msgid "MONTANT"
+msgstr ""
+
+#: modules/documents/pdfs.py:317
+msgid "Obligation"
+msgstr ""
+
+#: modules/documents/pdfs.py:349
+msgid ""
+"Cette quittance atteste que l'échéance de loyer indiquée ci-dessus a été "
+"entièrement soldée. Elle est distincte de chaque reçu émis pour un "
+"versement partiel."
+msgstr ""
+
+#: modules/documents/pdfs.py:355
+msgid ""
+"Ce reçu atteste de l'enregistrement du versement indiqué ci-dessus. Il ne"
+" constitue une quittance de loyer que si l'échéance concernée est "
+"entièrement soldée."
+msgstr ""
+
+#: modules/documents/pdfs.py:361
+msgid "VÉRIFICATION"
+msgstr ""
+
+#: modules/documents/pdfs.py:362
+msgid "Référence"
+msgstr ""
+
+#: modules/documents/pdfs.py:363
+msgid "Statut à l'émission du PDF"
+msgstr ""
+
+#: modules/documents/pdfs.py:367
+msgid "Motif"
+msgstr ""
+
+#: modules/documents/pdfs.py:408
+msgid "DOCUMENT INVALIDE"
+msgstr ""
+
+#: modules/documents/pdfs.py:415
+msgid "Document généré par ImmoLib"
+msgstr ""
+
+#: modules/documents/pdfs.py:419
+#, python-brace-format
+msgid "Page {number}"
+msgstr ""
+
+#: modules/documents/services.py:122
+msgid "Le paiement ne possède aucune affectation."
+msgstr ""
+
+#: modules/documents/services.py:282
+msgid "Tu ne peux pas partager ce document."
+msgstr ""
+
+#: modules/documents/services.py:296 modules/documents/services.py:298
+msgid "Lien invalide ou expire."
+msgstr ""
+
+#: modules/documents/services.py:300
+msgid "Ce document n'est plus valide."
+msgstr ""
+
+#: modules/documents/services.py:307
+msgid "Le locataire ne possede pas d'adresse email."
+msgstr ""
+
+#: modules/documents/services.py:314
+msgid "Canal d'envoi invalide."
+msgstr ""
+
+#: modules/documents/services.py:341
+msgid "Un document invalide ne peut pas etre partage."
+msgstr ""
+
+#: modules/documents/services.py:344
+msgid "Selectionne au moins un canal d'envoi."
+msgstr ""
+
+#: modules/documents/services.py:378
+msgid "Un document invalide ne peut pas être partagé."
+msgstr ""
+
+#: modules/documents/services.py:380
+msgid "Canal de partage manuel invalide."
+msgstr ""
+
+#: modules/documents/services.py:406 modules/leases/services.py:193
+#: modules/leases/services.py:233
+msgid "Le locataire ne possède pas d'adresse email."
+msgstr ""
+
+#: modules/documents/services.py:488
+msgid "Votre code de verification ImmoLib"
+msgstr ""
+
+#: modules/documents/services.py:490
+#, python-brace-format
+msgid ""
+"Votre code ImmoLib est {code}. Il expire dans 10 minutes. Ne le partagez "
+"avec personne."
+msgstr ""
+
+#: modules/documents/services.py:519 modules/documents/services.py:525
+#: modules/documents/services.py:541
+msgid "Code invalide ou expire."
+msgstr ""
+
+#: modules/documents/services.py:556
+msgid "Acces invalide ou expire."
+msgstr ""
+
+#: modules/documents/services.py:558
+msgid "Acces non verifie."
+msgstr ""
+
+#: modules/documents/api/serializers.py:127
+#, python-brace-format
+msgid "Loyer {period}"
+msgstr ""
+
+#: modules/documents/api/serializers.py:129
+msgid "Invitation locataire"
+msgstr ""
+
+#: modules/documents/api/serializers.py:130
+msgid "Notification"
+msgstr ""
+
+#: modules/documents/api/views.py:69
+msgid "Utilisez le format AAAA-MM-JJ."
+msgstr ""
+
+#: modules/documents/api/views.py:231
+msgid "Saisissez le numéro du document."
+msgstr ""
+
+#: modules/documents/api/views.py:236
+msgid "Aucun document ImmoLib ne correspond à cette référence."
+msgstr ""
+
+#: modules/i18n/currencies.py:17
+msgid "Avant le montant"
+msgstr ""
+
+#: modules/i18n/currencies.py:18
+msgid "Après le montant"
+msgstr ""
+
+#: modules/i18n/models.py:21
+msgid "code"
+msgstr ""
+
+#: modules/i18n/models.py:22
+msgid "Code ISO 639-1, ex. fr, en, es, pt, ar."
+msgstr ""
+
+#: modules/i18n/models.py:24
+msgid "nom natif"
+msgstr ""
+
+#: modules/i18n/models.py:25
+msgid "nom anglais"
+msgstr ""
+
+#: modules/i18n/models.py:27 modules/i18n/models.py:72
+msgid "active"
+msgstr ""
+
+#: modules/i18n/models.py:28
+msgid "Une langue inactive ne peut jamais etre servie."
+msgstr ""
+
+#: modules/i18n/models.py:31
+msgid "langue par defaut"
+msgstr ""
+
+#: modules/i18n/models.py:32
+msgid "Utilisee lorsque aucune preference n'est exprimable."
+msgstr ""
+
+#: modules/i18n/models.py:35
+msgid "ecriture droite a gauche"
+msgstr ""
+
+#: modules/i18n/models.py:36
+msgid "Coche pour l'arabe et autres ecritures RTL."
+msgstr ""
+
+#: modules/i18n/models.py:38 modules/i18n/models.py:73
+#: modules/i18n/models.py:103
+msgid "ordre"
+msgstr ""
+
+#: modules/i18n/models.py:42
+msgid "langue"
+msgstr ""
+
+#: modules/i18n/models.py:43
+msgid "langues"
+msgstr ""
+
+#: modules/i18n/models.py:60
+msgid "code ISO 4217"
+msgstr ""
+
+#: modules/i18n/models.py:61
+msgid "Ex. XOF, USD, EUR, MAD, NGN, KES, GHS, ZAR."
+msgstr ""
+
+#: modules/i18n/models.py:63 modules/i18n/models.py:91
+msgid "nom"
+msgstr ""
+
+#: modules/i18n/models.py:64
+msgid "symbole"
+msgstr ""
+
+#: modules/i18n/models.py:65
+msgid "decimales"
+msgstr ""
+
+#: modules/i18n/models.py:67
+msgid "position du symbole"
+msgstr ""
+
+#: modules/i18n/models.py:77 modules/i18n/models.py:96
+msgid "devise"
+msgstr ""
+
+#: modules/i18n/models.py:78
+msgid "devises"
+msgstr ""
+
+#: modules/i18n/models.py:88
+msgid "code ISO 3166-1"
+msgstr ""
+
+#: modules/i18n/models.py:89
+msgid "Ex. CI, FR, US, MA, NG, KE, GH, ZA."
+msgstr ""
+
+#: modules/i18n/models.py:99
+msgid "fuseau par defaut"
+msgstr ""
+
+#: modules/i18n/models.py:100
+msgid "Code IANA, ex. Africa/Abidjan."
+msgstr ""
+
+#: modules/i18n/models.py:107 modules/i18n/models.py:108
+msgid "pays"
+msgstr ""
+
+#: modules/leases/models.py:20
+msgid "Sans compte ImmoLib"
+msgstr ""
+
+#: modules/leases/models.py:21
+msgid "Invite"
+msgstr ""
+
+#: modules/leases/models.py:22
+msgid "Compte active"
+msgstr ""
+
+#: modules/leases/models.py:23
+msgid "Bloque"
+msgstr ""
+
+#: modules/leases/models.py:70
+msgid "locataire"
+msgstr ""
+
+#: modules/leases/models.py:71
+msgid "locataires"
+msgstr ""
+
+#: modules/leases/models.py:82 modules/properties/models.py:133
+msgid "Acceptée"
+msgstr ""
+
+#: modules/leases/models.py:83 modules/properties/models.py:134
+msgid "Révoquée"
+msgstr ""
+
+#: modules/leases/models.py:84 modules/properties/models.py:135
+msgid "Expirée"
+msgstr ""
+
+#: modules/leases/models.py:155
+msgid "Copie du message"
+msgstr ""
+
+#: modules/leases/models.py:183
+msgid "Brouillon"
+msgstr ""
+
+#: modules/leases/models.py:185
+msgid "Termine"
+msgstr ""
+
+#: modules/leases/models.py:186
+msgid "Annule"
+msgstr ""
+
+#: modules/leases/models.py:280
+msgid "bail"
+msgstr ""
+
+#: modules/leases/models.py:281
+msgid "baux"
+msgstr ""
+
+#: modules/leases/services.py:63
+msgid "Tu ne peux pas modifier ce bien."
+msgstr ""
+
+#: modules/leases/services.py:105
+msgid "Invitation invalide ou expirée."
+msgstr ""
+
+#: modules/leases/services.py:118
+msgid "Cette invitation n'est plus active."
+msgstr ""
+
+#: modules/leases/services.py:120
+msgid "Cette invitation est expirée."
+msgstr ""
+
+#: modules/leases/services.py:134
+msgid "Ce locataire possède déjà un compte ImmoLib."
+msgstr ""
+
+#: modules/leases/services.py:218
+msgid "Canal de partage invalide."
+msgstr ""
+
+#: modules/leases/services.py:311
+msgid "Cette invitation est déjà réclamée par un autre compte."
+msgstr ""
+
+#: modules/leases/services.py:342
+msgid "Cette invitation appartient à un autre compte."
+msgstr ""
+
+#: modules/leases/services.py:351
+msgid "Ce locataire est déjà lié à un autre compte."
+msgstr ""
+
+#: modules/leases/services.py:478
+msgid "Seul un bail brouillon peut etre active."
+msgstr ""
+
+#: modules/leases/services.py:480
+msgid "Un bien indisponible ne peut pas etre loue."
+msgstr ""
+
+#: modules/leases/services.py:484
+msgid "Ce bien possede deja un bail actif."
+msgstr ""
+
+#: modules/leases/services.py:503
+msgid "Seul un bail actif peut etre termine."
+msgstr ""
+
+#: modules/leases/api/serializers.py:53
+#: modules/properties/api/serializers.py:185
+msgid "Utilisez le format international, par exemple +2250700000000."
+msgstr ""
+
+#: modules/leases/api/serializers.py:197
+msgid "La date de fin doit suivre la date de debut."
+msgstr ""
+
+#: modules/leases/api/serializers.py:203
+msgid "Au moins un moyen de paiement doit etre accepte."
+msgstr ""
+
+#: modules/maintenance/models.py:16
+msgid "Plomberie"
+msgstr ""
+
+#: modules/maintenance/models.py:17
+msgid "Électricité"
+msgstr ""
+
+#: modules/maintenance/models.py:18
+msgid "Sécurité"
+msgstr ""
+
+#: modules/maintenance/models.py:19
+msgid "Toiture"
+msgstr ""
+
+#: modules/maintenance/models.py:20
+msgid "Structure"
+msgstr ""
+
+#: modules/maintenance/models.py:21
+msgid "Équipement"
+msgstr ""
+
+#: modules/maintenance/models.py:22
+msgid "Autre"
+msgstr ""
+
+#: modules/maintenance/models.py:25
+msgid "Faible"
+msgstr ""
+
+#: modules/maintenance/models.py:26
+msgid "Normale"
+msgstr ""
+
+#: modules/maintenance/models.py:27
+msgid "Élevée"
+msgstr ""
+
+#: modules/maintenance/models.py:28
+msgid "Urgente"
+msgstr ""
+
+#: modules/maintenance/models.py:31
+msgid "Signalé"
+msgstr ""
+
+#: modules/maintenance/models.py:32
+msgid "Pris en compte"
+msgstr ""
+
+#: modules/maintenance/models.py:33
+msgid "Intervention en cours"
+msgstr ""
+
+#: modules/maintenance/models.py:34
+msgid "Résolu par le bailleur"
+msgstr ""
+
+#: modules/maintenance/models.py:35
+msgid "Clôturé par le locataire"
+msgstr ""
+
+#: modules/maintenance/models.py:36
+msgid "Annulé"
+msgstr ""
+
+#: modules/maintenance/models.py:99
+msgid "incident de maintenance"
+msgstr ""
+
+#: modules/maintenance/models.py:100
+msgid "incidents de maintenance"
+msgstr ""
+
+#: modules/maintenance/models.py:123
+msgid "Incident signalé"
+msgstr ""
+
+#: modules/maintenance/models.py:124
+msgid "Statut modifié"
+msgstr ""
+
+#: modules/maintenance/models.py:125
+msgid "Commentaire ajouté"
+msgstr ""
+
+#: modules/maintenance/models.py:159
+msgid "événement de maintenance"
+msgstr ""
+
+#: modules/maintenance/models.py:160
+msgid "événements de maintenance"
+msgstr ""
+
+#: modules/maintenance/services.py:49
+msgid "Tu ne peux pas signaler un incident pour ce bail."
+msgstr ""
+
+#: modules/maintenance/services.py:57
+msgid "Cet incident n'appartient pas à ce locataire."
+msgstr ""
+
+#: modules/maintenance/services.py:64
+msgid "Tu ne peux pas modifier cet incident."
+msgstr ""
+
+#: modules/maintenance/services.py:76
+msgid "Un incident doit concerner un bail actif."
+msgstr ""
+
+#: modules/maintenance/services.py:79
+msgid "Catégorie d'incident invalide."
+msgstr ""
+
+#: modules/maintenance/services.py:81
+msgid "Priorité d'incident invalide."
+msgstr ""
+
+#: modules/maintenance/services.py:83
+msgid "Le titre et la description sont obligatoires."
+msgstr ""
+
+#: modules/maintenance/services.py:176
+msgid "Réponse locataire invalide."
+msgstr ""
+
+#: modules/maintenance/api/serializers.py:133
+#: modules/maintenance/services.py:178
+msgid "Expliquez pourquoi le problème persiste."
+msgstr ""
+
+#: modules/maintenance/services.py:230
+msgid "Cet incident est clôturé."
+msgstr ""
+
+#: modules/maintenance/services.py:232
+msgid "Le commentaire ne peut pas être vide."
+msgstr ""
+
+#: modules/notifications/adapters.py:21
+msgid "AWS_SES_FROM_EMAIL doit être configuré."
+msgstr ""
+
+#: modules/notifications/adapters.py:27
+msgid "Installez boto3 pour utiliser Amazon SES."
+msgstr ""
+
+#: modules/notifications/models.py:12
+msgid "Automatique"
+msgstr ""
+
+#: modules/notifications/models.py:52
+msgid "Navigateur web"
+msgstr ""
+
+#: modules/notifications/api/serializers.py:61
+msgid "Le consentement WhatsApp est obligatoire pour activer ce canal."
+msgstr ""
+
+#: modules/payments/services.py:95
+msgid "Tu ne peux pas enregistrer un paiement pour ce bien."
+msgstr ""
+
+#: modules/payments/services.py:129
+msgid "Les paiements depassent le montant de l'echeance."
+msgstr ""
+
+#: modules/payments/services.py:183
+msgid "Le paiement doit être affecté à au moins une obligation."
+msgstr ""
+
+#: modules/payments/services.py:185
+msgid "Une obligation ne peut apparaître qu'une seule fois."
+msgstr ""
+
+#: modules/payments/services.py:195
+msgid "Une obligation de paiement est introuvable."
+msgstr ""
+
+#: modules/payments/services.py:210
+msgid "Toutes les obligations doivent utiliser la même devise."
+msgstr ""
+
+#: modules/payments/services.py:220
+msgid "Moyen de paiement hors ImmoLib invalide."
+msgstr ""
+
+#: modules/payments/services.py:222
+msgid "Le montant doit etre strictement positif."
+msgstr ""
+
+#: modules/payments/services.py:294
+msgid "Ce paiement n'appartient pas a ce locataire."
+msgstr ""
+
+#: modules/payments/services.py:302
+msgid "Un paiement annule ne peut pas etre confirme."
+msgstr ""
+
+#: modules/payments/services.py:325
+msgid "Un paiement annule ne peut pas etre conteste."
+msgstr ""
+
+#: modules/payments/services.py:331
+msgid "Le motif de contestation est obligatoire."
+msgstr ""
+
+#: modules/payments/services.py:363
+msgid "Le motif d'annulation est obligatoire."
+msgstr ""
+
+#: modules/payments/services.py:478
+msgid "Cette obligation n'est pas une caution."
+msgstr ""
+
+#: modules/payments/services.py:480
+msgid "Type de mouvement de caution invalide."
+msgstr ""
+
+#: modules/payments/services.py:482 modules/payments/services.py:816
+msgid "Le montant doit être strictement positif."
+msgstr ""
+
+#: modules/payments/services.py:494
+msgid "Le motif de la retenue est obligatoire."
+msgstr ""
+
+#: modules/payments/services.py:501
+msgid "Sélectionnez le loyer à solder."
+msgstr ""
+
+#: modules/payments/services.py:515
+msgid "Un loyer annulé ne peut pas recevoir la caution."
+msgstr ""
+
+#: modules/payments/services.py:631
+msgid "Une échéance annulée ne peut pas recevoir de paiement."
+msgstr ""
+
+#: modules/payments/services.py:638
+msgid "La devise ne correspond pas à l'échéance."
+msgstr ""
+
+#: modules/payments/services.py:736
+msgid "Cette échéance ne t'appartient pas."
+msgstr ""
+
+#: modules/payments/services.py:746
+msgid "Le bien n'a pas de bailleur principal."
+msgstr ""
+
+#: modules/payments/services.py:788
+msgid "Impossible de générer une référence unique."
+msgstr ""
+
+#: modules/payments/services.py:807
+msgid "Cette échéance est introuvable."
+msgstr ""
+
+#: modules/payments/services.py:810
+msgid "Une échéance annulée ne peut pas recevoir de demande."
+msgstr ""
+
+#: modules/payments/services.py:829
+msgid "Moyen de paiement invalide."
+msgstr ""
+
+#: modules/payments/services.py:902 modules/payments/services.py:992
+#: modules/payments/services.py:1025
+msgid "Cette demande a déjà été traitée."
+msgstr ""
+
+#: modules/payments/services.py:909
+msgid "Le montant reçu doit être strictement positif."
+msgstr ""
+
+#: modules/payments/services.py:994
+msgid "Le motif est obligatoire."
+msgstr ""
+
+#: modules/payments/services.py:1023
+msgid "Tu ne peux pas annuler cette demande."
+msgstr ""
+
+#: modules/payments/api/webhook_views.py:45
+msgid "Signature du webhook invalide."
+msgstr ""
+
+#: modules/properties/models.py:24
+msgid "Maison"
+msgstr ""
+
+#: modules/properties/models.py:25
+msgid "Appartement"
+msgstr ""
+
+#: modules/properties/models.py:26
+msgid "Terrain"
+msgstr ""
+
+#: modules/properties/models.py:27
+msgid "Local commercial"
+msgstr ""
+
+#: modules/properties/models.py:30
+msgid "Vacante"
+msgstr ""
+
+#: modules/properties/models.py:31
+msgid "Occupee"
+msgstr ""
+
+#: modules/properties/models.py:32
+msgid "Indisponible"
+msgstr ""
+
+#: modules/properties/models.py:60
+msgid "bien"
+msgstr ""
+
+#: modules/properties/models.py:61
+msgid "biens"
+msgstr ""
+
+#: modules/properties/models.py:71
+msgid "Proprietaire principal"
+msgstr ""
+
+#: modules/properties/models.py:72
+msgid "Coproprietaire"
+msgstr ""
+
+#: modules/properties/models.py:76
+msgid "Observateur"
+msgstr ""
+
+#: modules/properties/models.py:121
+msgid "propriete"
+msgstr ""
+
+#: modules/properties/models.py:122
+msgid "proprietes"
+msgstr ""
+
+#: modules/properties/models.py:200
+msgid "invitation de copropriétaire"
+msgstr ""
+
+#: modules/properties/models.py:201
+msgid "invitations de copropriétaires"
+msgstr ""
+
+#: modules/properties/services.py:139
+msgid "Cette invitation n'est plus en attente."
+msgstr ""
+
+#: modules/properties/services.py:141
+msgid "Cette invitation a expiré."
+msgstr ""
+
+#: modules/properties/services.py:143
+msgid "Cette invitation ne correspond pas à ce compte."
+msgstr ""
+
+#: modules/properties/services.py:145
+msgid "Ce compte possède déjà un rôle pour ce bien."
+msgstr ""
+
+#: modules/properties/services.py:283
+msgid "Seule une invitation en attente peut être révoquée."
+msgstr ""
+
+#: modules/properties/api/serializers.py:123
+msgid "Indique au moins une modification."
+msgstr ""
+
+#: modules/sms/adapters.py:56
+msgid "IMMOLIB_SMS_MAX_CHARS doit etre positif."
+msgstr ""
+
+#: modules/sms/models.py:51
+msgid "SMS envoye"
+msgstr ""
+
+#: modules/sms/models.py:52
+msgid "SMS envoyes"
+msgstr ""
+
+#: modules/sms/models.py:83
+msgid "accuse de reception SMS"
+msgstr ""
+
+#: modules/sms/models.py:84
+msgid "accuses de reception SMS"
+msgstr ""
+
+#: modules/sms/provider.py:140
+msgid "Reponse de token Orange illisible."
+msgstr ""
+
+#: modules/sms/provider.py:143
+msgid "Orange n'a pas renvoye d'access_token."
+msgstr ""
+
+#: modules/sms/provider.py:262
+msgid "Reponse Orange illisible."
+msgstr ""
+
+#: modules/sms/provider.py:266
+msgid "Orange n'a pas renvoye de resource_id."
+msgstr ""
+
+#: modules/subscriptions/services.py:76
+#, python-brace-format
+msgid "Cette fonctionnalité est disponible avec le plan {plan}."
+msgstr ""
+
+#: modules/subscriptions/services.py:244
+msgid "Vous êtes déjà abonné à ce plan."
+msgstr ""
+
+#: modules/subscriptions/services.py:281
+msgid "Le paiement en ligne n’est pas configuré pour ce compte."
+msgstr ""
+
+#: modules/subscriptions/services.py:303
+msgid "Le plan Gratuit ne peut pas être annulé."
+msgstr ""
+
+#: modules/subscriptions/services.py:305
+msgid "Votre abonnement est déjà annulé."
+msgstr ""
+
+#: modules/subscriptions/api/views.py:99
+msgid "Le paiement en ligne est momentanément indisponible."
+msgstr ""
+
+#: modules/subscriptions/api/views.py:184
+msgid "Réservé aux administrateurs ImmoLib."
+msgstr ""
+
+#: modules/whatsapp/models.py:9
+msgid "Texte"
+msgstr ""
+
+#: modules/whatsapp/models.py:10
+msgid "Image"
+msgstr ""
+
+#: modules/whatsapp/models.py:11
+msgid "Vidéo"
+msgstr ""
+
+#: modules/whatsapp/models.py:12
+msgid "Audio"
+msgstr ""
+
+#: modules/whatsapp/models.py:13
+msgid "Document"
+msgstr ""
+
+#: modules/whatsapp/models.py:14
+msgid "Sticker"
+msgstr ""
+
+#: modules/whatsapp/models.py:15
+msgid "Localisation"
+msgstr ""
+
+#: modules/whatsapp/models.py:16
+msgid "Contacts"
+msgstr ""
+
+#: modules/whatsapp/models.py:17
+msgid "Bouton"
+msgstr ""
+
+#: modules/whatsapp/models.py:18
+msgid "Interactif"
+msgstr ""
+
+#: modules/whatsapp/models.py:19
+msgid "Inconnu"
+msgstr ""
+
+#: modules/whatsapp/models.py:37
+msgid "message WhatsApp entrant"
+msgstr ""
+
+#: modules/whatsapp/models.py:38
+msgid "messages WhatsApp entrants"
+msgstr ""
+
+#: modules/whatsapp/models.py:48
+msgid "Envoyé"
+msgstr ""
+
+#: modules/whatsapp/models.py:49
+msgid "Délivré"
+msgstr ""
+
+#: modules/whatsapp/models.py:50
+msgid "Lu"
+msgstr ""
+
+#: modules/whatsapp/models.py:51
+msgid "Échec"
+msgstr ""
+
+#: modules/whatsapp/models.py:67
+msgid "statut WhatsApp"
+msgstr ""
+
+#: modules/whatsapp/models.py:68
+msgid "statuts WhatsApp"
+msgstr ""
+

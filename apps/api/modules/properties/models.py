@@ -142,13 +142,13 @@ class CoOwnerInvitation(models.Model):
         verbose_name="bien",
     )
     phone = models.CharField(
-        "téléphone",
+        _("téléphone"),
         max_length=20,
         validators=[validate_e164],
     )
     email = models.EmailField("email", blank=True)
     ownership_percentage = models.DecimalField(
-        "quote-part proposée",
+        _("quote-part proposée"),
         max_digits=5,
         decimal_places=2,
         null=True,
@@ -159,7 +159,7 @@ class CoOwnerInvitation(models.Model):
         ],
     )
     access_level = models.CharField(
-        "niveau d'accès proposé",
+        _("niveau d'accès proposé"),
         max_length=20,
         choices=Ownership.AccessLevel.choices,
         default=Ownership.AccessLevel.OBSERVER,

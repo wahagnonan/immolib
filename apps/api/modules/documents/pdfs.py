@@ -5,6 +5,7 @@ from xml.sax.saxutils import escape
 
 import reportlab
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
@@ -20,6 +21,8 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+
+from modules.i18n.format import format_long_date, format_month_name, format_money
 
 from .models import RentalDocument
 
@@ -37,21 +40,6 @@ ERROR_SOFT = colors.HexColor("#FEF3F2")
 REGULAR_FONT = "ImmoLibVera"
 BOLD_FONT = "ImmoLibVeraBold"
 
-MONTHS = (
-    "janvier",
-    "février",
-    "mars",
-    "avril",
-    "mai",
-    "juin",
-    "juillet",
-    "août",
-    "septembre",
-    "octobre",
-    "novembre",
-    "décembre",
-)
-
 
 def _register_fonts() -> None:
     if REGULAR_FONT in pdfmetrics.getRegisteredFontNames():
@@ -66,12 +54,11 @@ def _register_fonts() -> None:
 
 
 def _date_label(value) -> str:
-    return f"{value.day} {MONTHS[value.month - 1]} {value.year}"
+    return format_long_date(value)
 
 
 def _money_label(amount, currency: str) -> str:
-    number = f"{amount:,.0f}".replace(",", " ")
-    return f"{number} {currency}"
+    return format_money(amount, currency)
 
 
 def _safe(value) -> str:
@@ -80,25 +67,26 @@ def _safe(value) -> str:
 
 def rental_document_pdf_filename(document: RentalDocument) -> str:
     prefix = {
-        RentalDocument.Type.RENT_RECEIPT: "quittance",
-        RentalDocument.Type.DEPOSIT_RECEIPT: "recu-caution",
-        RentalDocument.Type.DEPOSIT_SETTLEMENT: "releve-caution",
-    }.get(document.document_type, "recu")
+        RentalDocument.Type.RENT_RECEIPT: _("quittance"),
+    }.get(document.document_type, _("recu"))
     return f"{prefix}-{document.reference}.pdf"
 
 
 def build_rental_document_pdf(document: RentalDocument) -> bytes:
-    """Construit un PDF A4 depuis l'instantané immuable du document."""
+    """Construit un PDF A4 depuis l'instantané immuable du document.
+
+    Le PDF est genere dans la langue de l'utilisateur : la locale active
+    (middleware ou override explicite) fournit les libelles, mois, dates
+    et montants localises.
+    """
 
     _register_fonts()
     output = BytesIO()
     title = {
-        RentalDocument.Type.RENT_RECEIPT: "Quittance de loyer",
-        RentalDocument.Type.DEPOSIT_RECEIPT: "Reçu de caution",
-        RentalDocument.Type.DEPOSIT_SETTLEMENT: "Relevé de caution",
-    }.get(document.document_type, "Reçu de paiement")
+        RentalDocument.Type.RENT_RECEIPT: _("Quittance de loyer"),
+    }.get(document.document_type, _("Reçu de paiement"))
     active = document.status == RentalDocument.Status.ACTIVE
-    status_label = "ACTIF" if active else "INVALIDE"
+    status_label = _("ACTIF") if active else _("INVALIDE")
     status_color = BRAND_DARK if active else ERROR
     status_background = BRAND_SOFT if active else ERROR_SOFT
 
@@ -109,9 +97,9 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
         rightMargin=22 * mm,
         topMargin=19 * mm,
         bottomMargin=20 * mm,
-        title=f"{title} - {document.reference}",
+        title=f"{str(title)} - {document.reference}",
         author="ImmoLib",
-        subject="Justificatif de gestion locative",
+        subject=str(_("Justificatif de gestion locative")),
     )
 
     styles = getSampleStyleSheet()
@@ -182,7 +170,7 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
     )
     brand_text = [
         Paragraph("<b>ImmoLib</b>", ParagraphStyle("Brand", parent=body, fontName=BOLD_FONT, fontSize=14, leading=16)),
-        Paragraph("GESTION LOCATIVE", label),
+        Paragraph(_("GESTION LOCATIVE"), label),
     ]
     status = Table(
         [[Paragraph(status_label, ParagraphStyle("Status", parent=centered, fontName=BOLD_FONT, fontSize=7.5, textColor=status_color))]],
@@ -216,6 +204,7 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
         )
     )
 
+    period = f"{document.period_start.year}-{document.period_start.month:02d}"
     title_block = [
         Spacer(1, 15 * mm),
         Paragraph(
@@ -243,16 +232,7 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
         ),
         Spacer(1, 2 * mm),
         Paragraph(
-            (
-                f"Période de {_safe(MONTHS[document.period_start.month - 1])} "
-                f"{document.period_start.year}"
-                if document.document_type
-                not in (
-                    RentalDocument.Type.DEPOSIT_RECEIPT,
-                    RentalDocument.Type.DEPOSIT_SETTLEMENT,
-                )
-                else f"Caution prévue au bail du {_date_label(document.period_start)}"
-            ),
+            _("Période de {month}").format(month=format_month_name(period)),
             centered,
         ),
         Spacer(1, 11 * mm),
@@ -261,20 +241,26 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
     details = Table(
         [
             [
-                field("Bailleur", document.owner_name),
-                field("Locataire", document.tenant_name),
+                field(_("Bailleur"), document.owner_name),
+                field(_("Locataire"), document.tenant_name),
             ],
             [
-                field("Bien", document.house_name, document.house_address),
+field(_("Bien"), document.house_name, document.house_address),
                 field(
-                    "Période",
-                    f"Du {_date_label(document.period_start)}",
-                    f"au {_date_label(document.period_end)}",
+                    _("Période"),
+                    _("Du {date}").format(date=_date_label(document.period_start)),
+                    _("au {date}").format(date=_date_label(document.period_end)),
                 ),
             ],
             [
-                field("Moyen de paiement", document.payment_method or "Non précisé"),
-                field("Émis le", _date_label(timezone.localtime(document.issued_at).date())),
+                field(
+                    _("Moyen de paiement"),
+                    document.payment_method or _("Non précisé"),
+                ),
+                field(
+                    _("Émis le"),
+                    _date_label(timezone.localtime(document.issued_at).date()),
+                ),
             ],
         ],
         colWidths=[80 * mm, 80 * mm],
@@ -295,7 +281,7 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
 
     amount_table = Table(
         [[
-            Paragraph("MONTANT DOCUMENTÉ", ParagraphStyle("AmountLabel", parent=label, textColor=BRAND_DARK)),
+            Paragraph(_("MONTANT DOCUMENTÉ"), ParagraphStyle("AmountLabel", parent=label, textColor=BRAND_DARK)),
             Paragraph(
                 _safe(_money_label(document.amount, document.currency)),
                 ParagraphStyle("Amount", parent=right, fontName=BOLD_FONT, fontSize=17, leading=21, textColor=INK),
@@ -318,17 +304,17 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
     )
 
     breakdown_table = None
-    if document.document_type == RentalDocument.Type.PAYMENT_RECEIPT and document.breakdown:
+    if document.document_type == RentalDocument.Type.RENT_RECEIPT and document.breakdown:
         breakdown_rows = [
             [
-                Paragraph("AFFECTATION", label),
-                Paragraph("MONTANT", ParagraphStyle("BreakdownAmountLabel", parent=label, alignment=TA_RIGHT)),
+                Paragraph(_("AFFECTATION"), label),
+                Paragraph(_("MONTANT"), ParagraphStyle("BreakdownAmountLabel", parent=label, alignment=TA_RIGHT)),
             ]
         ]
         breakdown_rows.extend(
             [
                 [
-                    Paragraph(_safe(item.get("label", "Obligation")), body),
+                    Paragraph(_safe(item.get("label", _("Obligation"))), body),
                     Paragraph(
                         _safe(
                             _money_label(
@@ -359,46 +345,26 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
         )
 
     if document.document_type == RentalDocument.Type.RENT_RECEIPT:
-        statement = (
+        statement = _(
             "Cette quittance atteste que l'échéance de loyer indiquée ci-dessus "
             "a été entièrement soldée. Elle est distincte de chaque reçu émis "
             "pour un versement partiel."
         )
-    elif document.document_type == RentalDocument.Type.DEPOSIT_RECEIPT:
-        statement = (
-            "Ce reçu atteste du versement de la caution prévue au bail. Cette "
-            "somme reste distincte des loyers et son remboursement ou sa retenue "
-            "devra faire l'objet d'une opération traçable."
-        )
-    elif document.document_type == RentalDocument.Type.DEPOSIT_SETTLEMENT:
-        detail = document.breakdown[0] if document.breakdown else {}
-        statement = (
-            f"Ce relevé trace une opération de caution : "
-            f"{detail.get('label', 'libération de caution')}. "
-            "ImmoLib ne détient pas les fonds et enregistre la décision déclarée "
-            "par les parties."
-        )
-        if detail.get("reason"):
-            statement += f" Motif : {detail['reason']}."
-        if detail.get("agreement_reference"):
-            statement += (
-                f" Référence de l'accord : {detail['agreement_reference']}."
-            )
     else:
-        statement = (
+        statement = _(
             "Ce reçu atteste de l'enregistrement du versement indiqué ci-dessus. "
             "Il ne constitue une quittance de loyer que si l'échéance concernée "
             "est entièrement soldée."
         )
 
     verification_data = [
-        [Paragraph("VÉRIFICATION", label), Paragraph("", small)],
-        [Paragraph("Référence", small), Paragraph(_safe(document.reference), value)],
-        [Paragraph("Statut à l'émission du PDF", small), Paragraph(status_label, ParagraphStyle("VerificationStatus", parent=value, textColor=status_color))],
+        [Paragraph(_("VÉRIFICATION"), label), Paragraph("", small)],
+        [Paragraph(_("Référence"), small), Paragraph(_safe(document.reference), value)],
+        [Paragraph(_("Statut à l'émission du PDF"), small), Paragraph(status_label, ParagraphStyle("VerificationStatus", parent=value, textColor=status_color))],
     ]
     if not active and document.void_reason:
         verification_data.append(
-            [Paragraph("Motif", small), Paragraph(_safe(document.void_reason), body)]
+            [Paragraph(_("Motif"), small), Paragraph(_safe(document.void_reason), body)]
         )
     verification = Table(verification_data, colWidths=[56 * mm, 104 * mm])
     verification.setStyle(
@@ -439,18 +405,18 @@ def build_rental_document_pdf(document: RentalDocument) -> bytes:
             canvas.setFont(BOLD_FONT, 39)
             canvas.translate(A4[0] / 2, A4[1] / 2)
             canvas.rotate(35)
-            canvas.drawCentredString(0, 0, "DOCUMENT INVALIDE")
+            canvas.drawCentredString(0, 0, str(_("DOCUMENT INVALIDE")))
             canvas.rotate(-35)
             canvas.translate(-A4[0] / 2, -A4[1] / 2)
         canvas.setStrokeColor(LINE)
         canvas.line(22 * mm, 14 * mm, A4[0] - 22 * mm, 14 * mm)
         canvas.setFont(REGULAR_FONT, 7)
         canvas.setFillColor(MUTED)
-        canvas.drawString(22 * mm, 9.5 * mm, "Document généré par ImmoLib")
+        canvas.drawString(22 * mm, 9.5 * mm, str(_("Document généré par ImmoLib")))
         canvas.drawRightString(
             A4[0] - 22 * mm,
             9.5 * mm,
-            f"Page {doc.page}",
+            str(_("Page {number}").format(number=doc.page)),
         )
         canvas.restoreState()
 

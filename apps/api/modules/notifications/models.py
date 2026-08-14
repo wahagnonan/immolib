@@ -38,7 +38,7 @@ class NotificationPreference(models.Model):
         ordering = ["user__phone"]
 
     def __str__(self) -> str:
-        return f"Préférences de {self.user}"
+        return _("Préférences de {user}").format(user=self.user)
 
 
 class PushSubscription(models.Model):

@@ -23,6 +23,7 @@ import requests
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
@@ -136,10 +137,10 @@ class OrangeSmsApiClient:
             expires_in = int(payload.get("expires_in", _TOKEN_LIFETIME_SECONDS))
         except (ValueError, TypeError) as exc:
             logger.warning("sms.auth.failed reason=invalid-response")
-            raise OrangeProviderError("Reponse de token Orange illisible.") from exc
+            raise OrangeProviderError(_("Reponse de token Orange illisible.")) from exc
         if not token:
             logger.warning("sms.auth.failed reason=missing-token")
-            raise OrangeProviderError("Orange n'a pas renvoye d'access_token.")
+            raise OrangeProviderError(_("Orange n'a pas renvoye d'access_token."))
         self._token = token
         self._token_expires_at = (
             time.monotonic() + expires_in - _TOKEN_SAFETY_MARGIN_SECONDS
@@ -258,10 +259,10 @@ class OrangeSmsApiClient:
             payload = response.json()
         except ValueError as exc:
             logger.warning("sms.send.failed reason=invalid-response")
-            raise OrangeProviderError("Reponse Orange illisible.") from exc
+            raise OrangeProviderError(_("Reponse Orange illisible.")) from exc
         resource_id = self._extract_resource_id(payload)
         if not resource_id:
             logger.warning("sms.send.failed reason=missing-resource-id")
-            raise OrangeProviderError("Orange n'a pas renvoye de resource_id.")
+            raise OrangeProviderError(_("Orange n'a pas renvoye de resource_id."))
         logger.info("sms.send.success resource_id=%s", resource_id)
         return resource_id

@@ -61,7 +61,7 @@ def _date_filter(value: str, field: str) -> date:
     try:
         return date.fromisoformat(value)
     except ValueError as exc:
-        raise ValidationError({field: "Utilisez le format AAAA-MM-JJ."}) from exc
+        raise ValidationError({field: _("Utilisez le format AAAA-MM-JJ.")}) from exc
 
 
 class PaymentViewSet(
@@ -123,7 +123,7 @@ class PaymentViewSet(
             }
             if len(obligations) != len(obligation_ids):
                 raise ValidationError(
-                    {"allocations": "Une obligation est introuvable ou inaccessible."}
+                    {"allocations": _("Une obligation est introuvable ou inaccessible.")}
                 )
             allocations = tuple(
                 PaymentAllocationData(
