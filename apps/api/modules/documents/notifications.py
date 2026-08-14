@@ -474,7 +474,7 @@ def process_notification_batch(
     *, adapters: Mapping[str, NotificationAdapter], limit: int = 50, now=None
 ) -> ProcessingSummary:
     if limit < 1:
-        raise ValueError("La limite doit etre superieure a zero.")
+        raise ValueError(_("La limite doit etre superieure a zero."))
     now = now or timezone.now()
     recovered = recover_stale_deliveries(now=now)
     configured_channels = tuple(adapters.keys())

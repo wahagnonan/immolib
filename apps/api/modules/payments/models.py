@@ -15,55 +15,55 @@ class Payment(models.Model):
     """Somme declaree par un bailleur et conservee comme operation tracable."""
 
     class Method(models.TextChoices):
-        CASH = "CASH", "Especes"
-        BANK_TRANSFER = "BANK_TRANSFER", "Virement bancaire"
-        MOBILE_MONEY = "MOBILE_MONEY", "Mobile Money confirmé"
-        EXTERNAL_MOBILE_MONEY = "EXTERNAL_MOBILE_MONEY", "Mobile Money hors ImmoLib"
+        CASH = "CASH", _("Especes")
+        BANK_TRANSFER = "BANK_TRANSFER", _("Virement bancaire")
+        MOBILE_MONEY = "MOBILE_MONEY", _("Mobile Money confirmé")
+        EXTERNAL_MOBILE_MONEY = "EXTERNAL_MOBILE_MONEY", _("Mobile Money hors ImmoLib")
         SECURITY_DEPOSIT_APPLICATION = (
             "SECURITY_DEPOSIT_APPLICATION",
-            "Caution affectée au loyer",
+            _("Caution affectée au loyer"),
         )
-        OTHER = "OTHER", "Autre"
+        OTHER = "OTHER", _("Autre")
 
     class Status(models.TextChoices):
-        RECORDED_BY_OWNER = "RECORDED_BY_OWNER", "Declare par le bailleur"
+        RECORDED_BY_OWNER = "RECORDED_BY_OWNER", _("Declare par le bailleur")
         CONFIRMED_BY_PROVIDER = (
             "CONFIRMED_BY_PROVIDER",
-            "Confirmé par le prestataire",
+            _("Confirmé par le prestataire"),
         )
-        CONFIRMED_BY_TENANT = "CONFIRMED_BY_TENANT", "Confirme par le locataire"
-        DISPUTED_BY_TENANT = "DISPUTED_BY_TENANT", "Conteste par le locataire"
-        CANCELLED = "CANCELLED", "Annule"
+        CONFIRMED_BY_TENANT = "CONFIRMED_BY_TENANT", _("Confirme par le locataire")
+        DISPUTED_BY_TENANT = "DISPUTED_BY_TENANT", _("Conteste par le locataire")
+        CANCELLED = "CANCELLED", _("Annule")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     amount = models.DecimalField(
-        "montant",
+        _("montant"),
         max_digits=12,
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))],
     )
-    currency = models.CharField("devise", max_length=3, default="XOF")
-    method = models.CharField("moyen", max_length=32, choices=Method.choices)
+    currency = models.CharField(_("devise"), max_length=3, default="XOF")
+    method = models.CharField(_("moyen"), max_length=32, choices=Method.choices)
     status = models.CharField(
-        "statut",
+        _("statut"),
         max_length=32,
         choices=Status.choices,
         default=Status.RECORDED_BY_OWNER,
     )
-    received_at = models.DateTimeField("recu le", default=timezone.now)
-    external_reference = models.CharField("reference externe", max_length=120, blank=True)
-    note = models.TextField("note", blank=True)
+    received_at = models.DateTimeField(_("recu le"), default=timezone.now)
+    external_reference = models.CharField(_("reference externe"), max_length=120, blank=True)
+    note = models.TextField(_("note"), blank=True)
     is_cash_movement = models.BooleanField(
-        "mouvement de trésorerie",
+        _("mouvement de trésorerie"),
         default=True,
-        help_text="Faux lorsqu'une caution déjà encaissée est affectée à un loyer.",
+        help_text=_("Faux lorsqu'une caution déjà encaissée est affectée à un loyer."),
     )
-    idempotency_key = models.UUIDField("cle d'idempotence")
+    idempotency_key = models.UUIDField(_("cle d'idempotence"))
     recorded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="recorded_payments",
-        verbose_name="enregistre par",
+        verbose_name=_("enregistre par"),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -92,8 +92,8 @@ class Payment(models.Model):
                 name="payment_status_received_idx",
             )
         ]
-        verbose_name = "paiement"
-        verbose_name_plural = "paiements"
+        verbose_name = _("paiement")
+        verbose_name_plural = _("paiements")
 
     def __str__(self) -> str:
         return f"{self.amount} {self.currency} - {self.get_method_display()}"
@@ -107,9 +107,9 @@ class SecurityDepositMovement(models.Model):
     """
 
     class Type(models.TextChoices):
-        REFUND = "REFUND", "Remboursement"
-        RETENTION = "RETENTION", "Retenue justifiée"
-        APPLY_TO_RENT = "APPLY_TO_RENT", "Affectation au loyer"
+        REFUND = "REFUND", _("Remboursement")
+        RETENTION = "RETENTION", _("Retenue justifiée")
+        APPLY_TO_RENT = "APPLY_TO_RENT", _("Affectation au loyer")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     deposit_obligation = models.ForeignKey(
@@ -277,8 +277,8 @@ class PaymentProviderEvent(models.Model):
 
     class Status(models.TextChoices):
         RECEIVED = "RECEIVED", "Reçu"
-        PROCESSED = "PROCESSED", "Traité"
-        IGNORED = "IGNORED", "Ignoré"
+        PROCESSED = "PROCESSED", _("Traité")
+        IGNORED = "IGNORED", _("Ignoré")
         FAILED = "FAILED", "Échec"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -326,8 +326,8 @@ class PaymentProviderEvent(models.Model):
                 name="payment_provider_status_idx",
             )
         ]
-        verbose_name = "événement prestataire de paiement"
-        verbose_name_plural = "événements prestataire de paiement"
+        verbose_name = _("événement prestataire de paiement")
+        verbose_name_plural = _("événements prestataire de paiement")
 
     def __str__(self) -> str:
         return f"{self.provider} - {self.external_event_id}"
@@ -341,9 +341,9 @@ class PaymentMethodAccount(models.Model):
         ORANGE_MONEY = "ORANGE_MONEY", "Orange Money"
         MOOV_MONEY = "MOOV_MONEY", "Moov Money"
         WAVE = "WAVE", "Wave"
-        BANK_TRANSFER = "BANK_TRANSFER", "Virement bancaire"
+        BANK_TRANSFER = "BANK_TRANSFER", _("Virement bancaire")
         CASH = "CASH", "Espèces"
-        OTHER = "OTHER", "Autre"
+        OTHER = "OTHER", _("Autre")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(
@@ -352,12 +352,12 @@ class PaymentMethodAccount(models.Model):
         related_name="payment_method_accounts",
         verbose_name="bailleur",
     )
-    operator = models.CharField("opérateur", max_length=32, choices=Operator.choices)
+    operator = models.CharField(_("opérateur"), max_length=32, choices=Operator.choices)
     account_identifier = models.CharField(
         "identifiant du compte", max_length=120
     )
     account_holder = models.CharField("titulaire", max_length=120, blank=True)
-    is_default = models.BooleanField("compte par défaut", default=False)
+    is_default = models.BooleanField(_("compte par défaut"), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -375,7 +375,7 @@ class PaymentMethodAccount(models.Model):
     def __str__(self) -> str:
         return (
             f"{self.get_operator_display()} - {self.account_identifier}"
-            f"{' (défaut)' if self.is_default else ''}"
+            f"{_(' (défaut)') if self.is_default else ''}"
         )
 
 
@@ -391,63 +391,63 @@ class PaymentRequest(models.Model):
         ORANGE_MONEY = "ORANGE_MONEY", "Orange Money"
         MOOV_MONEY = "MOOV_MONEY", "Moov Money"
         WAVE = "WAVE", "Wave"
-        BANK_TRANSFER = "BANK_TRANSFER", "Virement bancaire"
+        BANK_TRANSFER = "BANK_TRANSFER", _("Virement bancaire")
         CASH = "CASH", "Espèces"
-        OTHER = "OTHER", "Autre"
+        OTHER = "OTHER", _("Autre")
 
     class Status(models.TextChoices):
         PENDING = "PENDING", "En attente"
-        CONFIRMED = "CONFIRMED", "Confirmé"
-        NOT_RECEIVED = "NOT_RECEIVED", "Non reçu"
-        CANCELLED = "CANCELLED", "Annulé"
+        CONFIRMED = "CONFIRMED", _("Confirmé")
+        NOT_RECEIVED = "NOT_RECEIVED", _("Non reçu")
+        CANCELLED = "CANCELLED", _("Annulé")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reference = models.CharField("référence", max_length=24, unique=True)
+    reference = models.CharField(_("référence"), max_length=24, unique=True)
     rent_charge = models.ForeignKey(
         RentCharge,
         on_delete=models.PROTECT,
         related_name="payment_requests",
-        verbose_name="échéance",
+        verbose_name=_("échéance"),
     )
     amount = models.DecimalField(
-        "montant demandé",
+        _("montant demandé"),
         max_digits=12,
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))],
     )
     amount_received = models.DecimalField(
-        "montant reçu",
+        _("montant reçu"),
         max_digits=12,
         decimal_places=2,
         null=True,
         blank=True,
     )
-    currency = models.CharField("devise", max_length=3, default="XOF")
-    operator = models.CharField("moyen", max_length=32, choices=Operator.choices)
+    currency = models.CharField(_("devise"), max_length=3, default="XOF")
+    operator = models.CharField(_("moyen"), max_length=32, choices=Operator.choices)
     method_account = models.ForeignKey(
         PaymentMethodAccount,
         on_delete=models.PROTECT,
         related_name="payment_requests",
         null=True,
         blank=True,
-        verbose_name="compte de réception",
+        verbose_name=_("compte de réception"),
     )
     payee = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="received_payment_requests",
-        verbose_name="bailleur bénéficiaire",
+        verbose_name=_("bailleur bénéficiaire"),
     )
-    payee_name = models.CharField("nom du bénéficiaire", max_length=160, blank=True)
-    payee_phone = models.CharField("téléphone du bénéficiaire", max_length=20, blank=True)
+    payee_name = models.CharField(_("nom du bénéficiaire"), max_length=160, blank=True)
+    payee_phone = models.CharField(_("téléphone du bénéficiaire"), max_length=20, blank=True)
     requested_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="initiated_payment_requests",
-        verbose_name="initié par",
+        verbose_name=_("initié par"),
     )
     status = models.CharField(
-        "statut",
+        _("statut"),
         max_length=16,
         choices=Status.choices,
         default=Status.PENDING,
@@ -460,16 +460,16 @@ class PaymentRequest(models.Model):
         related_name="processed_payment_requests",
         null=True,
         blank=True,
-        verbose_name="traité par",
+        verbose_name=_("traité par"),
     )
-    processed_at = models.DateTimeField("traité le", null=True, blank=True)
+    processed_at = models.DateTimeField(_("traité le"), null=True, blank=True)
     payment = models.ForeignKey(
         Payment,
         on_delete=models.PROTECT,
         related_name="payment_request",
         null=True,
         blank=True,
-        verbose_name="paiement créé",
+        verbose_name=_("paiement créé"),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -37,10 +37,10 @@ class Subscription(models.Model):
     """
 
     class Status(models.TextChoices):
-        ACTIVE = "ACTIVE", "Actif"
-        PENDING = "PENDING", "En attente"
-        EXPIRED = "EXPIRED", "Expiré"
-        CANCELLED = "CANCELLED", "Annulé"
+        ACTIVE = "ACTIVE", _("Actif")
+        PENDING = "PENDING", _("En attente")
+        EXPIRED = "EXPIRED", _("Expiré")
+        CANCELLED = "CANCELLED", _("Annulé")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(
@@ -76,14 +76,14 @@ class SubscriptionTransaction(models.Model):
     """Paiement d'un abonnement, tracé pour l'intégration PayDunya."""
 
     class Status(models.TextChoices):
-        PENDING = "PENDING", "En attente"
-        SUCCESSFUL = "SUCCESSFUL", "Réussi"
-        FAILED = "FAILED", "Échoué"
-        CANCELLED = "CANCELLED", "Annulé"
-        EXPIRED = "EXPIRED", "Expiré"
+        PENDING = "PENDING", _("En attente")
+        SUCCESSFUL = "SUCCESSFUL", _("Réussi")
+        FAILED = "FAILED", _("Échoué")
+        CANCELLED = "CANCELLED", _("Annulé")
+        EXPIRED = "EXPIRED", _("Expiré")
 
     class Provider(models.TextChoices):
-        MANUAL = "MANUAL", "Activation manuelle (pilote)"
+        MANUAL = "MANUAL", _("Activation manuelle (pilote)")
         PAYDUNYA = "PAYDUNYA", "PayDunya"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

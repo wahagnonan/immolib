@@ -120,13 +120,13 @@ class RecordOfflinePaymentSerializer(serializers.Serializer):
             )
         if not legacy_charge_id and not allocations:
             raise serializers.ValidationError(
-                "Affecte le paiement à au moins une obligation."
+                _("Affecte le paiement à au moins une obligation.")
             )
         if allocations:
             obligation_ids = [item["obligation_id"] for item in allocations]
             if len(obligation_ids) != len(set(obligation_ids)):
                 raise serializers.ValidationError(
-                    {"allocations": "Une obligation ne peut apparaître qu'une fois."}
+                    {"allocations": _("Une obligation ne peut apparaître qu'une fois.")}
                 )
             allocated_total = sum(
                 (item["amount"] for item in allocations), start=Decimal("0")
@@ -135,8 +135,10 @@ class RecordOfflinePaymentSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     {
                         "allocations": (
-                            "La somme des affectations doit être égale au montant "
-                            "du paiement."
+                            _(
+                                "La somme des affectations doit être égale au montant "
+                                "du paiement."
+                            )
                         )
                     }
                 )
@@ -230,11 +232,11 @@ class SecurityDepositSerializer(serializers.Serializer):
 
     def get_deposit_state_label(self, obj) -> str:
         return {
-            "EXPECTED": "À encaisser",
-            "PARTIALLY_HELD": "Partiellement détenue",
-            "HELD": "Détenue",
-            "PARTIALLY_SETTLED": "Partiellement clôturée",
-            "SETTLED": "Clôturée",
+            "EXPECTED": _("À encaisser"),
+            "PARTIALLY_HELD": _("Partiellement détenue"),
+            "HELD": _("Détenue"),
+            "PARTIALLY_SETTLED": _("Partiellement clôturée"),
+            "SETTLED": _("Clôturée"),
         }.get(obj.deposit_state, obj.deposit_state)
 
 
@@ -265,18 +267,18 @@ class SettleSecurityDepositSerializer(serializers.Serializer):
             and not attrs.get("reason", "").strip()
         ):
             raise serializers.ValidationError(
-                {"reason": "Le motif de la retenue est obligatoire."}
+                {"reason": _("Le motif de la retenue est obligatoire.")}
             )
         if movement_type == SecurityDepositMovement.Type.APPLY_TO_RENT:
             errors = {}
             if not attrs.get("target_rent_charge_id"):
-                errors["target_rent_charge_id"] = "Sélectionnez un loyer."
+                errors["target_rent_charge_id"] = _("Sélectionnez un loyer.")
             if not attrs.get("agreement_confirmed"):
                 errors["agreement_confirmed"] = (
-                    "Confirmez que le locataire a donné son accord."
+                    _("Confirmez que le locataire a donné son accord.")
                 )
             if not attrs.get("agreement_reference", "").strip():
-                errors["agreement_reference"] = "Indiquez la référence de l'accord."
+                errors["agreement_reference"] = _("Indiquez la référence de l'accord.")
             if errors:
                 raise serializers.ValidationError(errors)
         return attrs

@@ -61,7 +61,7 @@ def queue_rent_reminders(
     unknown_channels = set(configured_channels) - valid_channels
     if unknown_channels:
         raise ImproperlyConfigured(
-            "Canaux de rappel invalides : " + ", ".join(sorted(unknown_channels))
+            _("Canaux de rappel invalides : ") + ", ".join(sorted(unknown_channels))
         )
     if not configured_offsets or not configured_channels:
         return ReminderQueueSummary(0, 0, 0, 0)

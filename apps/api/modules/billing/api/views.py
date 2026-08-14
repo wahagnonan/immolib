@@ -34,7 +34,7 @@ def _month_start(value: str, field: str) -> date:
         return date.fromisoformat(f"{value}-01")
     except ValueError as exc:
         raise ValidationError(
-            {field: "Utilisez le format AAAA-MM."}
+            {field: _("Utilisez le format AAAA-MM.")}
         ) from exc
 
 

@@ -52,7 +52,7 @@ class MaintenanceIncident(models.Model):
         Tenant,
         on_delete=models.PROTECT,
         related_name="maintenance_incidents",
-        verbose_name="locataire",
+        verbose_name=_("locataire"),
     )
     reported_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -62,12 +62,12 @@ class MaintenanceIncident(models.Model):
     title = models.CharField("titre", max_length=160)
     description = models.TextField("description")
     category = models.CharField(
-        "catégorie",
+        _("catégorie"),
         max_length=20,
         choices=Category.choices,
     )
     priority = models.CharField(
-        "priorité",
+        _("priorité"),
         max_length=12,
         choices=Priority.choices,
         default=Priority.NORMAL,
@@ -78,7 +78,7 @@ class MaintenanceIncident(models.Model):
         choices=Status.choices,
         default=Status.REPORTED,
     )
-    occurred_at = models.DateTimeField("constaté le", null=True, blank=True)
+    occurred_at = models.DateTimeField(_("constaté le"), null=True, blank=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
     closed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -104,12 +104,12 @@ class MaintenanceIncident(models.Model):
         if self.lease_id and self.property_id:
             if self.lease.property_id != self.property_id:
                 raise ValidationError(
-                    {"property": "Le bien doit correspondre au bail."}
+                    {"property": _("Le bien doit correspondre au bail.")}
                 )
         if self.lease_id and self.tenant_id:
             if self.lease.tenant_id != self.tenant_id:
                 raise ValidationError(
-                    {"tenant": "Le locataire doit correspondre au bail."}
+                    {"tenant": _("Le locataire doit correspondre au bail.")}
                 )
 
     def __str__(self) -> str:

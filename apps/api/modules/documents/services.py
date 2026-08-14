@@ -119,7 +119,7 @@ def issue_documents_for_payment(*, payment: Payment) -> IssuedDocuments:
         ).order_by("rent_charge__period_start", "created_at")
     )
     if not allocations:
-        raise ValidationError("Le paiement ne possède aucune affectation.")
+        raise ValidationError(_("Le paiement ne possède aucune affectation."))
     charge = allocations[0].rent_charge
     breakdown = [
         {
@@ -256,7 +256,7 @@ def void_documents_after_cancellation(*, payment: Payment) -> int:
     ).update(
         status=RentalDocument.Status.VOIDED,
         voided_at=now,
-        void_reason="Paiement annule",
+        void_reason=_("Paiement annule"),
     )
     for allocation in payment.allocations.select_related("rent_charge"):
         allocation.rent_charge.refresh_from_db()
@@ -271,7 +271,7 @@ def void_documents_after_cancellation(*, payment: Payment) -> int:
             ).update(
                 status=RentalDocument.Status.VOIDED,
                 voided_at=now,
-                void_reason="L'obligation n'est plus entièrement payée",
+                void_reason=_("L'obligation n'est plus entièrement payée"),
             )
     return updated
 

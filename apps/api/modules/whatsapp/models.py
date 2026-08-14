@@ -19,7 +19,7 @@ class WhatsAppInboundMessage(models.Model):
         UNKNOWN = "unknown", _("Inconnu")
 
     message_id = models.CharField(max_length=255, unique=True)
-    wa_id = models.CharField("numéro de l'expéditeur", max_length=32, db_index=True)
+    wa_id = models.CharField(_("numéro de l'expéditeur"), max_length=32, db_index=True)
     profile_name = models.CharField(max_length=255, blank=True)
     message_type = models.CharField(
         max_length=20, choices=MessageType.choices, default=MessageType.UNKNOWN

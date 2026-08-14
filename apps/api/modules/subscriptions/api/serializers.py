@@ -1,5 +1,6 @@
 """API d'abonnement."""
 
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from ..models import Subscription, SubscriptionPlan, SubscriptionTransaction
@@ -62,6 +63,6 @@ class UpgradeSubscriptionSerializer(serializers.Serializer):
     def validate_plan_slug(self, value: str) -> str:
         if value == "free":
             raise serializers.ValidationError(
-                "Le plan Gratuit ne nécessite pas de souscription."
+                _("Le plan Gratuit ne nécessite pas de souscription.")
             )
         return value

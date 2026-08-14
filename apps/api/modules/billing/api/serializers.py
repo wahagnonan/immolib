@@ -69,13 +69,13 @@ class PreparePaymentObligationsSerializer(serializers.Serializer):
         regex=r"^\d{4}-(0[1-9]|1[0-2])$",
         required=False,
         allow_blank=True,
-        help_text="Premier mois de loyer au format AAAA-MM.",
+        help_text=_("Premier mois de loyer au format AAAA-MM."),
     )
     period_end = serializers.RegexField(
         regex=r"^\d{4}-(0[1-9]|1[0-2])$",
         required=False,
         allow_blank=True,
-        help_text="Dernier mois de loyer au format AAAA-MM.",
+        help_text=_("Dernier mois de loyer au format AAAA-MM."),
     )
     include_security_deposit = serializers.BooleanField(required=False, default=False)
 
@@ -84,11 +84,11 @@ class PreparePaymentObligationsSerializer(serializers.Serializer):
         period_end = attrs.get("period_end", "")
         if bool(period_start) != bool(period_end):
             raise serializers.ValidationError(
-                "Indique le premier et le dernier mois de loyer."
+                _("Indique le premier et le dernier mois de loyer.")
             )
         if not period_start and not attrs["include_security_deposit"]:
             raise serializers.ValidationError(
-                "Sélectionne la caution ou une période de loyer."
+                _("Sélectionne la caution ou une période de loyer.")
             )
         if period_start:
             start_year, start_month = period_start.split("-")

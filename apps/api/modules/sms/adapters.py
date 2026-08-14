@@ -13,6 +13,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.translation import gettext_lazy as _
 
 from modules.documents.models import NotificationDelivery
 from modules.documents.notifications import (
@@ -52,7 +53,7 @@ class OrangeSmsAdapter:
             max_chars if max_chars is not None else settings.IMMOLIB_SMS_MAX_CHARS
         )
         if self.max_chars < 1:
-            raise ImproperlyConfigured("IMMOLIB_SMS_MAX_CHARS doit etre positif.")
+            raise ImproperlyConfigured(_("IMMOLIB_SMS_MAX_CHARS doit etre positif."))
         self.rate_per_second = (
             rate_per_second
             if rate_per_second is not None

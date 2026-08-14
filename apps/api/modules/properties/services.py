@@ -46,7 +46,7 @@ class UpdateCoOwnerData:
 def _assert_is_primary_owner(*, actor: User, property: Property) -> None:
     if not primary_owned_properties_for(actor).filter(id=property.id).exists():
         raise PermissionDenied(
-            "Seul le propriétaire principal peut gérer les copropriétaires."
+            _("Seul le propriétaire principal peut gérer les copropriétaires.")
         )
 
 
@@ -79,8 +79,10 @@ def _assert_coowner_share_available(
         raise ValidationError(
             {
                 "ownership_percentage": (
-                    "La somme des quote-parts des copropriétaires doit rester "
-                    "inférieure à 100 %."
+                    _(
+                        "La somme des quote-parts des copropriétaires doit rester "
+                        "inférieure à 100 %."
+                    )
                 )
             }
         )
@@ -174,7 +176,7 @@ def invite_coowner(
     assert_has_feature(
         actor,
         "co_owners",
-        message="La gestion des copropriétaires est disponible avec le plan Essentiel.",
+        message=_("La gestion des copropriétaires est disponible avec le plan Essentiel."),
     )
     _assert_is_primary_owner(actor=actor, property=property)
     phone = normalize_e164(data.phone)
@@ -184,13 +186,13 @@ def invite_coowner(
     ).update(status=CoOwnerInvitation.Status.EXPIRED)
     if property.ownerships.filter(user__phone=phone).exists():
         raise ValidationError(
-            {"phone": "Ce compte possède déjà un rôle pour ce bien."}
+            {"phone": _("Ce compte possède déjà un rôle pour ce bien.")}
         )
     if property.co_owner_invitations.filter(
         phone=phone, status=CoOwnerInvitation.Status.PENDING
     ).exists():
         raise ValidationError(
-            {"phone": "Une invitation est déjà en attente pour ce numéro."}
+            {"phone": _("Une invitation est déjà en attente pour ce numéro.")}
         )
     _assert_coowner_share_available(
         property=property, percentage=data.ownership_percentage

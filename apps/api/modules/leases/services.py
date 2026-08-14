@@ -281,18 +281,20 @@ def validate_tenant_invitation_registration(
     tenant = invitation.tenant
     if normalize_e164(phone) != normalize_e164(tenant.phone):
         raise ValidationError(
-            {"phone": "Utilisez le numéro de téléphone indiqué dans l'invitation."}
+            {"phone": _("Utilisez le numéro de téléphone indiqué dans l'invitation.")}
         )
     if tenant.email and not _emails_match(email, tenant.email):
         raise ValidationError(
-            {"email": "Utilisez l'adresse email indiquée dans l'invitation."}
+            {"email": _("Utilisez l'adresse email indiquée dans l'invitation.")}
         )
     if not tenant.email and email:
         raise ValidationError(
             {
                 "email": (
-                    "Cette invitation doit d'abord être validée par le téléphone. "
-                    "Vous pourrez ajouter un email ensuite."
+                    _(
+                        "Cette invitation doit d'abord être validée par le téléphone. "
+                        "Vous pourrez ajouter un email ensuite."
+                    )
                 )
             }
         )
@@ -342,7 +344,7 @@ def accept_tenant_invitation(
         raise ValidationError(_("Cette invitation appartient à un autre compte."))
     if not _user_has_tenant_proof(invitation=invitation, user=user):
         raise ValidationError(
-            "Vérifiez le téléphone ou l'email indiqué dans l'invitation."
+            _("Vérifiez le téléphone ou l'email indiqué dans l'invitation.")
         )
 
     now = timezone.now()
@@ -392,7 +394,7 @@ def claim_tenant_invitation(
     )
     if not contact_matches:
         raise ValidationError(
-            "Ce compte ne correspond pas aux coordonnées de l'invitation."
+            _("Ce compte ne correspond pas aux coordonnées de l'invitation.")
         )
     reserve_tenant_invitation(invitation=invitation, user=user)
     return accept_tenant_invitation(invitation=invitation, user=user)

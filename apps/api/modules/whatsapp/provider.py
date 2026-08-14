@@ -62,8 +62,10 @@ class WhatsAppCloudApiClient:
         self.base_url = (base_url or settings.WHATSAPP_GRAPH_BASE_URL).rstrip("/")
         if not self.access_token or not self.phone_number_id:
             raise ImproperlyConfigured(
-                "WHATSAPP_ACCESS_TOKEN et WHATSAPP_PHONE_NUMBER_ID doivent être "
-                "configurés pour envoyer des messages WhatsApp."
+                _(
+                    "WHATSAPP_ACCESS_TOKEN et WHATSAPP_PHONE_NUMBER_ID doivent être "
+                    "configurés pour envoyer des messages WhatsApp."
+                )
             )
         self.session = session or requests.Session()
 

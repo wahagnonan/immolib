@@ -154,7 +154,7 @@ class PayDunyaWebhookView(APIView):
     def post(self, request: Request) -> Response:
         if not paydunya.is_configured():
             return Response(
-                {"detail": "PayDunya n'est pas configuré."},
+                {"detail": _("PayDunya n'est pas configuré.")},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
         invoice = request.data.get("invoice") or {}

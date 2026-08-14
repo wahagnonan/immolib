@@ -5,4 +5,4 @@ class PaymentsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "modules.payments"
     label = "payments"
-    verbose_name = "Paiements"
+    verbose_name = _("Paiements")

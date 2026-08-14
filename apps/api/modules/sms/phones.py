@@ -34,6 +34,6 @@ def normalize_ci_phone(value: str) -> str:
         candidate = candidate[3:]
     if len(candidate) != 10 or not candidate.isdigit() or not candidate.startswith("0"):
         raise InvalidPhoneNumber(
-            "Numero invalide : utilisez le format ivoirien +2250700000000."
+            _("Numero invalide : utilisez le format ivoirien +2250700000000.")
         )
     return f"+225{candidate}"
