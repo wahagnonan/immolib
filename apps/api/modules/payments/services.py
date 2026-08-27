@@ -829,7 +829,11 @@ def initiate_payment_request(
             )
         )
     if PaymentRequest.objects.filter(
-        rent_charge=charge, status=PaymentRequest.Status.PENDING
+        rent_charge=charge,
+        status__in=[
+            PaymentRequest.Status.PENDING,
+            PaymentRequest.Status.PROCESSING,
+        ],
     ).exists():
         raise ValidationError(
             _("Une demande est déjà en attente pour cette échéance.")
@@ -887,6 +891,7 @@ def _payment_method_for_operator(operator: str) -> str:
         PaymentRequest.Operator.ORANGE_MONEY: Payment.Method.EXTERNAL_MOBILE_MONEY,
         PaymentRequest.Operator.MOOV_MONEY: Payment.Method.EXTERNAL_MOBILE_MONEY,
         PaymentRequest.Operator.WAVE: Payment.Method.EXTERNAL_MOBILE_MONEY,
+        PaymentRequest.Operator.PI_SPI: Payment.Method.PI_SPI,
         PaymentRequest.Operator.OTHER: Payment.Method.OTHER,
     }[operator]
 

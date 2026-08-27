@@ -25,6 +25,11 @@ from modules.payments.api.views import (
     SecurityDepositViewSet,
 )
 from modules.notifications.api.ses_webhook import SesBounceComplaintWebhookView
+from modules.payments.api.pi_spi_views import (
+    PiSpiInitiateView,
+    PiSpiStatusView,
+    PiSpiWebhookView,
+)
 from modules.payments.api.webhook_views import MobileMoneyWebhookView
 from modules.properties.api.views import (
     CoOwnerInvitationViewSet,
@@ -101,6 +106,21 @@ urlpatterns = [
         "api/v1/webhooks/mobile-money/",
         MobileMoneyWebhookView.as_view(),
         name="mobile-money-webhook",
+    ),
+    path(
+        "api/v1/webhooks/pi-spi/",
+        PiSpiWebhookView.as_view(),
+        name="pi-spi-webhook",
+    ),
+    path(
+        "api/v1/payment-requests/<uuid:pk>/initiate-pi-spi/",
+        PiSpiInitiateView.as_view(),
+        name="pi-spi-initiate",
+    ),
+    path(
+        "api/v1/payment-requests/<uuid:pk>/pi-spi-status/",
+        PiSpiStatusView.as_view(),
+        name="pi-spi-status",
     ),
     path("api/v1/", include("modules.sms.api.urls")),
     path(

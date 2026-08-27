@@ -396,6 +396,7 @@ export type PaymentMethod =
   | "BANK_TRANSFER"
   | "MOBILE_MONEY"
   | "EXTERNAL_MOBILE_MONEY"
+  | "PI_SPI"
   | "SECURITY_DEPOSIT_APPLICATION"
   | "OTHER";
 
@@ -466,14 +467,18 @@ export type PaymentRequestOperator =
   | "MOOV_MONEY"
   | "WAVE"
   | "BANK_TRANSFER"
+  | "PI_SPI"
   | "CASH"
   | "OTHER";
 
 export type PaymentRequestStatus =
   | "PENDING"
+  | "PROCESSING"
   | "CONFIRMED"
   | "NOT_RECEIVED"
-  | "CANCELLED";
+  | "CANCELLED"
+  | "FAILED"
+  | "EXPIRED";
 
 export type PaymentRequest = {
   id: string;
@@ -500,6 +505,12 @@ export type PaymentRequest = {
   note: string;
   processing_note: string;
   payment_id: string | null;
+  external_transaction_id: string | null;
+  provider: string | null;
+  provider_status: string | null;
+  provider_reference: string | null;
+  failure_reason: string | null;
+  expires_at: string | null;
   created_at: string;
   updated_at: string;
 };

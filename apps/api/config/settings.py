@@ -279,6 +279,27 @@ MOBILE_MONEY_WEBHOOK_TOLERANCE_SECONDS = int(
     os.getenv("MOBILE_MONEY_WEBHOOK_TOLERANCE_SECONDS", "300")
 )
 
+# --- PI-SPI BCEAO (Model B : via PSP participant) -------------------------
+# ImmoLib n'est PAS participant direct (non régulé). L'intégration passe
+# par un PSP partenaire déjà connecté au switch PI-SPI 24/7 (banque/EME agréée).
+# En sandbox (PI_SPI_MODE=sandbox/mock) sans PSP configuré, l'adapter mock
+# simule l'initiation sans mouvement réel. En production, PI_SPI_PSP_BASE_URL
+# et PI_SPI_WEBHOOK_SECRET doivent être renseignés hors dépôt.
+PI_SPI_ENABLED = os.getenv("PI_SPI_ENABLED", "true" if DEBUG else "false").lower() == "true"
+PI_SPI_MODE = os.getenv("PI_SPI_MODE", "sandbox" if DEBUG else "live").lower()  # sandbox|live
+PI_SPI_PSP_BASE_URL = os.getenv("PI_SPI_PSP_BASE_URL", "").rstrip("/")
+PI_SPI_PSP_API_KEY = os.getenv("PI_SPI_PSP_API_KEY", "")
+PI_SPI_WEBHOOK_SECRET = os.getenv("PI_SPI_WEBHOOK_SECRET", "")
+PI_SPI_WEBHOOK_TOLERANCE_SECONDS = int(
+    os.getenv("PI_SPI_WEBHOOK_TOLERANCE_SECONDS", "300")
+)
+PI_SPI_TIMEOUT_SECONDS = int(os.getenv("PI_SPI_TIMEOUT_SECONDS", "15"))
+PI_SPI_MOCK_ENABLED = os.getenv("PI_SPI_MOCK_ENABLED", "true" if DEBUG else "false").lower() == "true"
+PI_SPI_MOCK_AUTO_SUCCESS = os.getenv("PI_SPI_MOCK_AUTO_SUCCESS", "false").lower() == "true"
+PI_SPI_TRANSACTION_TTL_SECONDS = int(
+    os.getenv("PI_SPI_TRANSACTION_TTL_SECONDS", "900")
+)  # 15 min expiration PENDING→EXPIRED
+
 # Abonnements ImmoLib : plans, limites et paiement PayDunya.
 SUBSCRIPTION_CURRENCY = os.getenv("SUBSCRIPTION_CURRENCY", "XOF")
 SUBSCRIPTION_DURATION_DAYS = int(

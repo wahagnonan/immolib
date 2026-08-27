@@ -25,7 +25,9 @@ import {
   confirmPaymentRequest,
   createPaymentMethod,
   deletePaymentMethod,
+  getPiSpiStatus,
   initiatePayment,
+  initiatePiSpiPayment,
   listLandlordPaymentRequests,
   listMyPaymentRequests,
   listPaymentMethods,
@@ -51,6 +53,7 @@ const operatorOptions: Array<{
   { value: "ORANGE_MONEY", label: "Orange Money", icon: Smartphone },
   { value: "MOOV_MONEY", label: "Moov Money", icon: Smartphone },
   { value: "WAVE", label: "Wave", icon: Smartphone },
+  { value: "PI_SPI", label: "PI-SPI (BCEAO)", icon: Landmark },
   { value: "BANK_TRANSFER", label: "Virement bancaire", icon: Landmark },
   { value: "CASH", label: "Espèces", icon: HandCoins },
   { value: "OTHER", label: "Autre", icon: MoreHorizontal },
@@ -58,9 +61,12 @@ const operatorOptions: Array<{
 
 const statusStyle: Record<PaymentRequestStatus, string> = {
   PENDING: "status-partial",
+  PROCESSING: "status-partial",
   CONFIRMED: "status-paid",
   NOT_RECEIVED: "status-late",
   CANCELLED: "bg-zinc-100 text-zinc-700",
+  FAILED: "status-late",
+  EXPIRED: "bg-zinc-100 text-zinc-700",
 };
 
 function formatMoney(value: string | number) {
@@ -506,7 +512,17 @@ export function PaymentRequestsWorkspace({
                     {request.processing_note
                       ? ` · ${request.processing_note}`
                       : ""}
+                    {request.operator === "PI_SPI" && request.external_transaction_id
+                      ? ` · PI-SPI ${request.external_transaction_id.slice(0, 8)}…`
+                      : ""}
+                    {request.failure_reason ? ` · ${request.failure_reason}` : ""}
                   </p>
+                  {request.operator === "PI_SPI" && request.provider_status && (
+                    <p className="truncate text-xs text-amber-600">
+                      Prestataire: {request.provider_status}
+                      {request.expires_at ? ` · expire ${formatDateTime(request.expires_at)}` : ""}
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold">
@@ -538,7 +554,56 @@ export function PaymentRequestsWorkspace({
                     </button>
                   </div>
                 ) : null}
-                {!isLandlord && request.status === "PENDING" ? (
+                {!isLandlord && request.operator === "PI_SPI" && request.status === "PENDING" ? (
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() =>
+                      run(
+                        () => initiatePiSpiPayment(request.id),
+                        "Paiement PI-SPI initié. En attente de confirmation.",
+                      )
+                    }
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-emerald-700 px-3 text-sm font-bold text-white disabled:opacity-50"
+                  >
+                    <Landmark size={14} aria-hidden />
+                    Payer via PI-SPI
+                  </button>
+                ) : null}
+                {!isLandlord && request.operator === "PI_SPI" && request.status === "PROCESSING" ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700">
+                      <LoaderCircle size={14} className="animate-spin" aria-hidden />
+                      En cours PI-SPI
+                    </span>
+                    <button
+                      type="button"
+                      disabled={saving}
+                      onClick={() =>
+                        run(
+                          () =>
+                            getPiSpiStatus(request.id).then((updated) => {
+                              setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+                            }),
+                          "Statut PI-SPI actualisé.",
+                        )
+                      }
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+                    >
+                      <RefreshCw size={14} aria-hidden />
+                      Actualiser
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCancelTarget(request)}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-zinc-600 hover:bg-zinc-100"
+                    >
+                      <X size={14} aria-hidden />
+                      Annuler
+                    </button>
+                  </div>
+                ) : null}
+                {!isLandlord && request.status === "PENDING" && request.operator !== "PI_SPI" ? (
                   <button
                     type="button"
                     onClick={() => setCancelTarget(request)}

@@ -691,6 +691,27 @@ export function cancelPaymentRequest(
   });
 }
 
+export function initiatePiSpiPayment(id: string): Promise<{
+  payment_request: PaymentRequest;
+  external_transaction_id: string;
+  provider_status: string;
+  created: boolean;
+}> {
+  return apiRequest<{
+    payment_request: PaymentRequest;
+    external_transaction_id: string;
+    provider_status: string;
+    created: boolean;
+  }>(`/payment-requests/${id}/initiate-pi-spi/`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export function getPiSpiStatus(id: string): Promise<PaymentRequest> {
+  return apiRequest<PaymentRequest>(`/payment-requests/${id}/pi-spi-status/`);
+}
+
 export function getTenantPortalOverview(): Promise<TenantPortalOverview> {
   return apiRequest<TenantPortalOverview>("/tenant-portal/overview/");
 }

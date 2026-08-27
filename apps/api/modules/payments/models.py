@@ -20,6 +20,7 @@ class Payment(models.Model):
         BANK_TRANSFER = "BANK_TRANSFER", _("Virement bancaire")
         MOBILE_MONEY = "MOBILE_MONEY", _("Mobile Money confirmé")
         EXTERNAL_MOBILE_MONEY = "EXTERNAL_MOBILE_MONEY", _("Mobile Money hors ImmoLib")
+        PI_SPI = "PI_SPI", _("PI-SPI (BCEAO)")
         SECURITY_DEPOSIT_APPLICATION = (
             "SECURITY_DEPOSIT_APPLICATION",
             _("Caution affectée au loyer"),
@@ -309,6 +310,14 @@ class PaymentProviderEvent(models.Model):
         null=True,
         blank=True,
     )
+    payment_request = models.ForeignKey(
+        "PaymentRequest",
+        on_delete=models.PROTECT,
+        related_name="provider_events",
+        null=True,
+        blank=True,
+        verbose_name=_("demande liée"),
+    )
     failure_reason = models.TextField(blank=True)
     received_at = models.DateTimeField(auto_now_add=True)
     processed_at = models.DateTimeField(null=True, blank=True)
@@ -343,6 +352,7 @@ class PaymentMethodAccount(models.Model):
         MOOV_MONEY = "MOOV_MONEY", "Moov Money"
         WAVE = "WAVE", "Wave"
         BANK_TRANSFER = "BANK_TRANSFER", _("Virement bancaire")
+        PI_SPI = "PI_SPI", _("PI-SPI (BCEAO)")
         CASH = "CASH", "Espèces"
         OTHER = "OTHER", _("Autre")
 
@@ -393,14 +403,18 @@ class PaymentRequest(models.Model):
         MOOV_MONEY = "MOOV_MONEY", "Moov Money"
         WAVE = "WAVE", "Wave"
         BANK_TRANSFER = "BANK_TRANSFER", _("Virement bancaire")
+        PI_SPI = "PI_SPI", _("PI-SPI (BCEAO)")
         CASH = "CASH", "Espèces"
         OTHER = "OTHER", _("Autre")
 
     class Status(models.TextChoices):
         PENDING = "PENDING", "En attente"
+        PROCESSING = "PROCESSING", _("En cours")
         CONFIRMED = "CONFIRMED", _("Confirmé")
         NOT_RECEIVED = "NOT_RECEIVED", _("Non reçu")
         CANCELLED = "CANCELLED", _("Annulé")
+        FAILED = "FAILED", _("Échoué")
+        EXPIRED = "EXPIRED", _("Expiré")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField(_("référence"), max_length=24, unique=True)
@@ -472,6 +486,19 @@ class PaymentRequest(models.Model):
         blank=True,
         verbose_name=_("paiement créé"),
     )
+    # PI-SPI (BCEAO) — traçabilité provider (Model B)
+    external_transaction_id = models.CharField(
+        _("transaction externe"), max_length=120, blank=True, default=""
+    )
+    provider = models.CharField(_("prestataire"), max_length=40, blank=True, default="")
+    provider_status = models.CharField(
+        _("statut prestataire"), max_length=24, blank=True, default=""
+    )
+    provider_reference = models.CharField(
+        _("référence prestataire"), max_length=120, blank=True, default=""
+    )
+    failure_reason = models.TextField(_("raison d'échec"), blank=True, default="")
+    expires_at = models.DateTimeField(_("expire le"), null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -486,6 +513,11 @@ class PaymentRequest(models.Model):
                 fields=["rent_charge"],
                 condition=Q(status="PENDING"),
                 name="one_pending_payment_request_per_charge",
+            ),
+            models.UniqueConstraint(
+                fields=["rent_charge"],
+                condition=Q(status__in=["PENDING", "PROCESSING"]),
+                name="one_active_payment_request_per_charge",
             ),
         ]
         indexes = [

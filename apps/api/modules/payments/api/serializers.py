@@ -388,6 +388,12 @@ class PaymentRequestSerializer(serializers.ModelSerializer):
             "note",
             "processing_note",
             "payment_id",
+            "external_transaction_id",
+            "provider",
+            "provider_status",
+            "provider_reference",
+            "failure_reason",
+            "expires_at",
             "created_at",
             "updated_at",
         )
