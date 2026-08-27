@@ -245,15 +245,25 @@ export function PaymentRequestsWorkspace({
   async function handleInitiate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!chargeId) return;
-    await run(
-      () =>
-        initiatePayment({
-          rent_charge_id: chargeId,
-          amount: initiateAmount,
-          operator: initiateOperator,
-        }),
-      "Demande de paiement envoyée au bailleur.",
-    );
+    const operator = initiateOperator;
+    const amount = initiateAmount;
+    const cid = chargeId;
+    await run(async () => {
+      const created = await initiatePayment({
+        rent_charge_id: cid,
+        amount,
+        operator,
+      });
+      // Pour PI-SPI, enchaîne automatiquement l'initiation PSP (Model B)
+      if (operator === "PI_SPI") {
+        try {
+          await initiatePiSpiPayment(created.id);
+        } catch (cause) {
+          // La demande reste PENDING si l'initiation échoue — l'utilisateur pourra réessayer via "Payer via PI-SPI"
+          throw cause;
+        }
+      }
+    }, operator === "PI_SPI" ? "Paiement PI-SPI initié. En attente de confirmation." : "Demande de paiement envoyée au bailleur.");
     if (!error) {
       setInitiateAmount("");
       setInitiateOperator("MTN_MOMO");
@@ -470,8 +480,11 @@ export function PaymentRequestsWorkspace({
             >
               <option value="">Tous les statuts</option>
               <option value="PENDING">En attente</option>
+              <option value="PROCESSING">En cours (PI-SPI)</option>
               <option value="CONFIRMED">Confirmées</option>
               <option value="NOT_RECEIVED">Non reçues</option>
+              <option value="FAILED">Échouées</option>
+              <option value="EXPIRED">Expirées</option>
               <option value="CANCELLED">Annulées</option>
             </select>
           )}
